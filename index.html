@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roman Rabodzei</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 2rem 1rem;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #f0f6fc;
+    }
+
+    header p {
+      color: var(--muted);
+      margin-top: .25rem;
+      font-size: .95rem;
+    }
+
+    main {
+      max-width: 860px;
+      margin: 2.5rem auto;
+      padding: 0 1.25rem;
+    }
+
+    section + section { margin-top: 2.5rem; }
+
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #f0f6fc;
+      padding-bottom: .5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.25rem;
+    }
+
+    /* About */
+    .about p {
+      text-align: justify;
+      color: var(--text);
+      font-size: .975rem;
+    }
+
+    /* Cert groups */
+    .cert-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .cert-group:last-child { margin-bottom: 0; }
+
+    .cert-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .4rem;
+      text-decoration: none;
+      transition: transform .15s ease, opacity .15s ease;
+    }
+
+    .cert-badge:hover { transform: translateY(-3px); opacity: .85; }
+
+    .cert-badge img {
+      width: 90px;
+      height: 90px;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    .cert-badge span {
+      font-size: .65rem;
+      color: var(--muted);
+      text-align: center;
+      max-width: 90px;
+      line-height: 1.3;
+    }
+
+    /* Support */
+    .support-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+    }
+
+    .support-links a {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .45rem .9rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: .875rem;
+      color: var(--text);
+      background: var(--surface);
+      transition: border-color .15s ease, color .15s ease;
+    }
+
+    .support-links a:hover { border-color: var(--accent); color: var(--accent); }
+
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--muted);
+      font-size: .8rem;
+      border-top: 1px solid var(--border);
+      margin-top: 3rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Roman Rabodzei</h1>
+    <p>IT Engineer &amp; Cloud Architect</p>
+  </header>
+
+  <main>
+
+    <!-- About -->
+    <section class="about">
+      <h2>About me</h2>
+      <p>
+        Reliable IT Engineer with over 17 years of experience managing on-premise and cloud-based
+        infrastructure and solutions with a security-minded focus. Skilled in applying DevOps principles
+        and agile methodologies to deliver high-quality products and services in a fast-paced and
+        collaborative environment. Progressive experience in the field marked by continuous contributions
+        above and beyond requirements. Experienced in using various tools and technologies to automate,
+        monitor, and optimize the development and deployment processes. Meticulous attention to detail
+        with deep technical knowledge. Adept at working with cross-functional teams and communicating
+        effectively with stakeholders, demonstrating resiliency even in challenging situations. Always
+        seeking untapped potential for growth and innovation.
+      </p>
+    </section>
+
+    <!-- Certifications -->
+    <section>
+      <h2>Licenses &amp; Certifications</h2>
+
+      <!-- Expert -->
+      <div class="cert-group">
+        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/4F48A8397F604892?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+          <img src="azure-devops-engineer-expert.png" alt="Azure DevOps Engineer Expert" />
+          <span>Azure DevOps Engineer Expert</span>
+        </a>
+        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/977678304216884B?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+          <img src="azure-solutions-architect-expert.png" alt="Azure Solutions Architect Expert" />
+          <span>Azure Solutions Architect Expert</span>
+        </a>
+        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/AB0829F37921442E?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+          <img src="azure-cybersecurity-architect-exper.png" alt="Azure Cybersecurity Architect Expert" />
+          <span>Azure Cybersecurity Architect Expert</span>
+        </a>
+        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/185BD79D4B1F186B?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+          <img src="azure-virtual-desktop-specialty.png" alt="Azure Virtual Desktop Specialty" />
+          <span>Azure Virtual Desktop Specialty</span>
+        </a>
+      </div>
+
+      <!-- Associate -->
+      <div class="cert-group">
+        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/AC60B90FD780DE2E?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+          <img src="azure-administrator-associate.png" alt="Azure Administrator Associate" />
+          <span>Azure Administrator Associate</span>
+        </a>
+        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/BE0BFA3983B667C2?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+          <img src="azure-network-engineer-associate.png" alt="Azure Network Engineer Associate" />
+          <span>Azure Network Engineer Associate</span>
+        </a>
+        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/9D7DF5C09F3B647C?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+          <img src="azure-data-engineer-associate.png" alt="Azure Data Engineer Associate" />
+          <span>Azure Data Engineer Associate</span>
+        </a>
+        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/C1E9CFDD8F78D793?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+          <img src="azure-ai-engineer-associate.png" alt="Azure AI Engineer Associate" />
+          <span>Azure AI Engineer Associate</span>
+        </a>
+        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/82A596ACA31366A7?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+          <img src="azure-security-engineer-associate.png" alt="Azure Security Engineer Associate" />
+          <span>Azure Security Engineer Associate</span>
+        </a>
+        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/F7D70FE59B762680?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+          <img src="azure-identity-and-access-administrator-associate.png" alt="Azure Identity and Access Administrator Associate" />
+          <span>Azure Identity &amp; Access Administrator</span>
+        </a>
+        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/31872132664101B9?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+          <img src="azure-security-operations-analyst-associate.png" alt="Azure Security Operations Analyst Associate" />
+          <span>Azure Security Operations Analyst</span>
+        </a>
+      </div>
+
+      <!-- HashiCorp & GitHub -->
+      <div class="cert-group">
+        <a class="cert-badge" href="https://www.credly.com/badges/ba5079d6-5069-433c-98c3-65caaaace2bd" target="_blank" rel="noopener">
+          <img src="hashicorp-certified-terraform-associate.png" alt="HashiCorp Certified: Terraform Associate" />
+          <span>HashiCorp Terraform Associate</span>
+        </a>
+        <a class="cert-badge" href="https://www.credly.com/badges/8932b5c9-712d-4c55-943b-801e9509928a" target="_blank" rel="noopener">
+          <img src="github-foundations.png" alt="GitHub Foundations" />
+          <span>GitHub Foundations</span>
+        </a>
+        <a class="cert-badge" href="https://www.credly.com/badges/69e9bac6-dff2-4748-aee6-ce89a05589ab" target="_blank" rel="noopener">
+          <img src="github-administration.png" alt="GitHub Administration" />
+          <span>GitHub Administration</span>
+        </a>
+        <a class="cert-badge" href="https://www.credly.com/badges/a1441f60-5e8f-4a3a-b621-13928524a993" target="_blank" rel="noopener">
+          <img src="github-actions.png" alt="GitHub Actions" />
+          <span>GitHub Actions</span>
+        </a>
+        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/C519684A242ECCD1?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+          <img src="github-copilot.png" alt="GitHub Copilot" />
+          <span>GitHub Copilot</span>
+        </a>
+        <a class="cert-badge" href="https://www.credly.com/badges/734b474d-3e13-4595-b1ba-4395056e9902/public_url" target="_blank" rel="noopener">
+          <img src="github-advanced-security.png" alt="GitHub Advanced Security" />
+          <span>GitHub Advanced Security</span>
+        </a>
+      </div>
+
+      <!-- Kubernetes -->
+      <div class="cert-group">
+        <a class="cert-badge" href="https://www.credly.com/badges/91f7bb44-7111-4c48-9aa0-0d4cc11437c8" target="_blank" rel="noopener">
+          <img src="kcna-kubernetes-and-cloud-native-associate.png" alt="KCNA" />
+          <span>KCNA</span>
+        </a>
+        <a class="cert-badge" href="https://www.credly.com/badges/aedff2c5-6b61-4a2c-9cc1-7b9f8e0ffc52" target="_blank" rel="noopener">
+          <img src="kcsa-kubernetes-and-cloud-native-security-associate.png" alt="KCSA" />
+          <span>KCSA</span>
+        </a>
+        <a class="cert-badge" href="https://www.credly.com/badges/9d63f183-0027-42d7-a824-ddba56a51fe2" target="_blank" rel="noopener">
+          <img src="cka-certified-kubernetes-administrator.png" alt="CKA" />
+          <span>CKA</span>
+        </a>
+        <a class="cert-badge" href="https://www.credly.com/badges/a6af1bae-c7ff-4440-959d-faa8e90d6ec3" target="_blank" rel="noopener">
+          <img src="ckad-certified-kubernetes-application-developer.png" alt="CKAD" />
+          <span>CKAD</span>
+        </a>
+        <a class="cert-badge" href="https://www.credly.com/badges/bc980418-7b86-4262-9d6c-f1ffb68e81be" target="_blank" rel="noopener">
+          <img src="cks-certified-kubernetes-security-specialist.png" alt="CKS" />
+          <span>CKS</span>
+        </a>
+        <a class="cert-badge" href="https://www.credly.com/badges/ed60be19-2dab-421e-bddf-43f2d43a256c" target="_blank" rel="noopener">
+          <img src="kubestronaut.png" alt="CNCF Kubestronaut" />
+          <span>CNCF Kubestronaut</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Support -->
+    <section>
+      <h2>Support</h2>
+      <div class="support-links">
+        <a href="https://www.buymeacoffee.com/romanrabodzei" target="_blank" rel="noopener">
+          ☕ Buy me a coffee
+        </a>
+        <a href="https://paypal.me/romanrabodzey" target="_blank" rel="noopener">
+          💙 PayPal
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    &copy; <span id="year"></span> Roman Rabodzei
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+  </footer>
+
+</body>
+</html>
