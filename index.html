@@ -6,6 +6,15 @@
   <title>Roman Rabodzei</title>
   <style>
     :root {
+      --bg: #ffffff;
+      --surface: #f6f8fa;
+      --border: #d0d7de;
+      --text: #1f2328;
+      --muted: #656d76;
+      --accent: #0969da;
+    }
+
+    [data-theme="dark"] {
       --bg: #0d1117;
       --surface: #161b22;
       --border: #30363d;
@@ -33,7 +42,7 @@
     header h1 {
       font-size: 2rem;
       font-weight: 600;
-      color: #f0f6fc;
+      color: var(--text);
     }
 
     header p {
@@ -79,7 +88,7 @@
     h2 {
       font-size: 1.25rem;
       font-weight: 600;
-      color: #f0f6fc;
+      color: var(--text);
       padding-bottom: .5rem;
       border-bottom: 1px solid var(--border);
       margin-bottom: 1.25rem;
@@ -160,9 +169,30 @@
       border-top: 1px solid var(--border);
       margin-top: 3rem;
     }
+
+    /* Theme toggle */
+    .theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: .4rem .6rem;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      color: var(--muted);
+      transition: border-color .15s ease, color .15s ease;
+      z-index: 100;
+    }
+
+    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
   </style>
 </head>
 <body>
+
+  <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">🌙</button>
 
   <header>
     <h1>Roman Rabodzei</h1>
@@ -327,8 +357,32 @@
 
   <footer>
     &copy; <span id="year"></span> Roman Rabodzei
-    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
   </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const root = document.documentElement;
+    const btn = document.getElementById('themeToggle');
+    const saved = localStorage.getItem('theme') || 'light';
+
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        root.setAttribute('data-theme', 'dark');
+        btn.textContent = '☀️';
+      } else {
+        root.removeAttribute('data-theme');
+        btn.textContent = '🌙';
+      }
+      localStorage.setItem('theme', theme);
+    }
+
+    applyTheme(saved);
+
+    btn.addEventListener('click', () => {
+      applyTheme(root.hasAttribute('data-theme') ? 'light' : 'dark');
+    });
+  </script>
 
 </body>
 </html>
