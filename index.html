@@ -67,7 +67,7 @@
       color: var(--accent); cursor: pointer;
     }
 
-    .nav-links { display: flex; list-style: none; gap: .15rem; }
+    .nav-links { display: flex; list-style: none; gap: .15rem; margin-left: auto; }
 
     .nav-links a {
       font-family: 'JetBrains Mono', monospace;
@@ -124,7 +124,13 @@
       background: radial-gradient(ellipse 60% 60% at 15% 50%, rgba(2,119,189,0.04) 0%, transparent 70%);
     }
 
-    .hero .container { padding-top: 3rem; padding-bottom: 3rem; padding-left: 2.5rem; }
+    .hero .container-wide {
+      padding-top: 3rem; padding-bottom: 3rem;
+      padding-left: max(2rem, calc((100vw - 1200px) / 2 + 2rem));
+      padding-right: 2rem;
+      margin: 0;
+      max-width: none;
+    }
 
     .hero-prompt {
       font-family: 'JetBrains Mono', monospace;
@@ -156,8 +162,8 @@
     .hero h1 .accent { color: var(--accent); }
 
     .hero .tagline {
-      font-size: 1.2rem; color: var(--muted);
-      max-width: 540px; line-height: 1.7;
+      font-size: 1.45rem; color: var(--muted);
+      max-width: 580px; line-height: 1.7;
       margin-bottom: 2.25rem;
     }
 
@@ -312,8 +318,18 @@
     /* ─── ABOUT PAGE ────────────────────────────── */
     .about-bio {
       font-size: .96rem; line-height: 1.85; color: var(--text);
-      max-width: 720px; margin-bottom: 3rem; text-align: justify;
+      margin-bottom: 3rem; text-align: justify;
     }
+
+    .exp-entry { margin-bottom: 2.5rem; }
+    .exp-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1.2rem; margin-bottom: .3rem; }
+    .exp-role { font-size: .8rem; color: var(--accent); }
+    .exp-period { font-size: .75rem; color: var(--muted); }
+    .exp-company { font-size: .88rem; font-weight: 500; margin-bottom: .15rem; }
+    .exp-context { font-size: .78rem; color: var(--muted); margin-bottom: .8rem; }
+    .exp-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .55rem; }
+    .exp-list li { font-size: .88rem; line-height: 1.65; color: var(--text); padding-left: 1.1rem; position: relative; }
+    .exp-list li::before { content: '▸'; position: absolute; left: 0; color: var(--accent); font-size: .75rem; top: .15rem; }
 
     .section-heading {
       font-size: 1.05rem; font-weight: 600;
@@ -330,11 +346,11 @@
 
     .cert-group-wrap { margin-bottom: 2.25rem; }
 
-    .cert-group { display: flex; flex-wrap: wrap; gap: .65rem; }
+    .cert-group { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: .75rem; }
 
     .cert-badge {
       display: flex; flex-direction: column; align-items: center; gap: .4rem;
-      width: 108px; padding: .75rem .5rem;
+      padding: .75rem .5rem;
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 8px;
       transition: border-color .15s, transform .15s;
@@ -466,30 +482,29 @@
   <div id="page-home" class="page active">
 
     <section class="hero">
-      <div class="container">
+      <div class="container-wide">
         <p class="hero-prompt mono">&gt;&nbsp;hello,&nbsp;world<span class="cursor"></span></p>
         <h1>Roman <span class="accent">Rabodzei</span></h1>
         <p class="tagline">
-          Principal Azure Cloud and DevOps Engineer<br>
+          Principal Azure Cloud, DevOps &amp; AI Engineer<br>
           with a security-minded focus.
         </p>
         <div class="hero-actions">
-          <a class="btn btn-primary"   data-goto="blog">read my blog →</a>
-          <a class="btn btn-secondary" data-goto="projects">view projects →</a>
-          <a class="btn btn-ghost"     data-goto="about">about me</a>
+          <a class="btn btn-primary"   data-goto="projects">view my projects →</a>
+          <a class="btn btn-secondary" data-goto="blog">read my blog →</a>
         </div>
       </div>
     </section>
 
     <section class="cards-section container-wide">
-      <p class="section-label mono">AZURE &amp; CLOUD ENGINEERING AT A GLANCE</p>
+      <p class="section-label mono">AZURE CLOUD &nbsp;·&nbsp; DEVOPS &nbsp;·&nbsp; AI</p>
       <div class="cards-grid">
 
         <!-- About snippet -->
         <div class="card">
           <span class="card-tag mono">principal cloud engineer</span>
           <h3>About Me</h3>
-          <p>17+ years managing on-premise and cloud infrastructure with a security-minded focus. DevOps, Kubernetes, and IaC — always seeking untapped potential for growth and innovation.</p>
+          <p>18+ years managing on-premise and cloud infrastructure with a security-minded focus. DevOps, Kubernetes, IaC, and AI-powered cloud operations — always seeking untapped potential for growth and innovation.</p>
           <span class="card-link mono" data-goto="about">more about me →</span>
         </div>
 
@@ -497,12 +512,16 @@
         <div class="card">
           <div class="stats-list">
             <div class="stat">
-              <span class="stat-num mono">17<span class="accent">+</span></span>
+              <span class="stat-num mono">18<span class="accent">+</span></span>
               <span class="stat-label">years of experience</span>
             </div>
             <div class="stat">
               <span class="stat-num mono">20<span class="accent">+</span></span>
               <span class="stat-label">industry certifications</span>
+            </div>
+            <div class="stat">
+              <span class="stat-num mono">11<span class="accent">×</span></span>
+              <span class="stat-label">Microsoft certified</span>
             </div>
             <div class="stat">
               <span class="stat-num mono">5<span class="accent">×</span></span>
@@ -515,11 +534,9 @@
         <div class="card">
           <h3>⚙ Tech Stack</h3>
           <p>The tools I reach for most often.</p>
+          <!-- <p class="card-tag mono" style="margin:.75rem 0 .4rem">Cloud &amp; Infrastructure</p> -->
           <div class="tags">
-            <span>Azure</span><span>Kubernetes</span><span>Terraform</span>
-            <span>Bicep</span><span>GitHub Actions</span><span>ArgoCD</span>
-            <span>Helm</span><span>PowerShell</span><span>Python</span>
-            <span>Docker</span><span>Azure DevOps</span><span>Entra ID</span>
+            <span>Microsoft Azure</span><span>Azure Landing Zone</span><span>VMware</span><span>Hyper-V</span><span>Windows Server</span><span>Linux</span><span>Entra ID</span><span>Azure DevOps</span><span>GitHub Actions</span><span>GitLab CI</span><span>ArgoCD</span><span>GitOps</span><span>IaC</span><span>CI/CD</span><span>Terraform</span><span>Bicep</span><span>PowerShell</span><span>Bash</span><span>Kubernetes</span><span>AKS</span><span>Helm</span><span>Docker</span><span>Azure Sentinel</span><span>Defender for Cloud</span><span>Azure Policy</span><span>Prometheus</span><span>Grafana</span><span>Azure Monitor</span><span>Zero Trust</span><span>IAM</span><span>Azure OpenAI</span><span>Azure AI</span><span>LLM</span><span>MCP</span><span>GitHub Copilot</span><span>AI Governance</span><span>Agile/Scrum</span><span>SRE</span><span>FinOps</span>
           </div>
         </div>
 
@@ -530,17 +547,11 @@
           <div class="connect-grid">
             <a class="connect-item" href="https://linkedin.com/in/romanrabodzei" target="_blank" rel="noopener">
               <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-              LinkedIn
+              @romanrabodzei
             </a>
             <a class="connect-item" href="https://github.com/romanrabodzei" target="_blank" rel="noopener">
               <svg viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-              GitHub
-            </a>
-            <a class="connect-item" href="https://www.buymeacoffee.com/romanrabodzei" target="_blank" rel="noopener">
-              ☕ Buy me a coffee
-            </a>
-            <a class="connect-item" href="https://paypal.me/romanrabodzey" target="_blank" rel="noopener">
-              💙 PayPal
+              @romanrabodzei
             </a>
           </div>
         </div>
@@ -578,26 +589,30 @@
       <div class="page-header">
         <p class="pg-prompt mono">&gt; about.me()</p>
         <h1>Roman <span class="accent">Rabodzei</span></h1>
-        <p>Principal Azure Cloud and DevOps Engineer with a security-minded focus.</p>
+        <p>Principal Azure Cloud, DevOps &amp; AI Engineer with a security-minded focus.</p>
       </div>
 
       <p class="about-bio">
-        Reliable IT Engineer with over 17 years of experience managing on-premise and cloud-based
-        infrastructure and solutions with a security-minded focus. Skilled in applying DevOps principles
-        and agile methodologies to deliver high-quality products and services in a fast-paced and
-        collaborative environment. Progressive experience in the field marked by continuous contributions
-        above and beyond requirements. Experienced in using various tools and technologies to automate,
-        monitor, and optimize the development and deployment processes. Meticulous attention to detail
-        with deep technical knowledge. Adept at working with cross-functional teams and communicating
-        effectively with stakeholders, demonstrating resiliency even in challenging situations. Always
-        seeking untapped potential for growth and innovation.
+        Reliable IT Engineer with over 18 years of experience managing on-premise and cloud-based
+        infrastructure and solutions with a security-minded focus. Skilled in applying DevOps principles,
+        agile methodologies, and AI-assisted engineering to deliver high-quality products and services
+        in a fast-paced and collaborative environment. Progressive experience in the field marked by
+        continuous contributions above and beyond requirements. Experienced in using various tools and
+        technologies to automate, monitor, and optimize development and deployment processes —
+        including designing AI-powered cloud operations using Azure OpenAI and building AI-driven
+        automation pipelines, as well as architecting an AI-powered cloud control plane (Copilot) enabling
+        teams to safely observe, analyze, and operate Azure infrastructure across multi-subscription
+        and multi-tenant environments. Meticulous attention to detail with deep technical knowledge. Adept at
+        working with cross-functional teams and communicating effectively with stakeholders,
+        demonstrating resiliency even in challenging situations. Always seeking untapped potential for
+        growth and innovation.
       </p>
 
       <h2 class="section-heading">Licenses &amp; Certifications</h2>
 
-      <!-- Expert & Specialty -->
+      <!-- Expert -->
       <div class="cert-group-wrap">
-        <p class="cert-section-label mono">Expert &amp; Specialty</p>
+        <p class="cert-section-label mono">Expert</p>
         <div class="cert-group">
           <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/4F48A8397F604892?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
             <img src="images/azure-devops-engineer-expert.png" alt="Azure DevOps Engineer Expert">
@@ -610,10 +625,6 @@
           <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/AB0829F37921442E?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
             <img src="images/azure-cybersecurity-architect-exper.png" alt="Azure Cybersecurity Architect Expert">
             <span>Cybersecurity Architect Expert</span>
-          </a>
-          <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/185BD79D4B1F186B?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
-            <img src="images/azure-virtual-desktop-specialty.png" alt="Azure Virtual Desktop Specialty">
-            <span>Virtual Desktop Specialty</span>
           </a>
         </div>
       </div>
@@ -653,25 +664,21 @@
         </div>
       </div>
 
-      <!-- AWS -->
+      <!-- Specialty -->
       <div class="cert-group-wrap">
-        <p class="cert-section-label mono">AWS</p>
+        <p class="cert-section-label mono">Specialty</p>
         <div class="cert-group">
-          <a class="cert-badge" href="https://www.credly.com/users/romanrabodzei" target="_blank" rel="noopener">
-            <img src="images/aws-certified-sysops-administrator-associate.png" alt="AWS Certified SysOps Administrator Associate">
-            <span>AWS SysOps Admin Associate</span>
+          <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/185BD79D4B1F186B?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+            <img src="images/azure-virtual-desktop-specialty.png" alt="Azure Virtual Desktop Specialty">
+            <span>Virtual Desktop Specialty</span>
           </a>
         </div>
       </div>
 
-      <!-- HashiCorp & GitHub -->
+      <!-- GitHub & HashiCorp -->
       <div class="cert-group-wrap">
-        <p class="cert-section-label mono">HashiCorp &amp; GitHub</p>
+        <p class="cert-section-label mono">GitHub &amp; HashiCorp</p>
         <div class="cert-group">
-          <a class="cert-badge" href="https://www.credly.com/badges/ba5079d6-5069-433c-98c3-65caaaace2bd" target="_blank" rel="noopener">
-            <img src="images/hashicorp-certified-terraform-associate.png" alt="HashiCorp Terraform Associate">
-            <span>Terraform Associate</span>
-          </a>
           <a class="cert-badge" href="https://www.credly.com/badges/8932b5c9-712d-4c55-943b-801e9509928a" target="_blank" rel="noopener">
             <img src="images/github-foundations.png" alt="GitHub Foundations">
             <span>GitHub Foundations</span>
@@ -691,6 +698,10 @@
           <a class="cert-badge" href="https://www.credly.com/badges/734b474d-3e13-4595-b1ba-4395056e9902/public_url" target="_blank" rel="noopener">
             <img src="images/github-advanced-security.png" alt="GitHub Advanced Security">
             <span>GitHub Advanced Security</span>
+          </a>
+          <a class="cert-badge" href="https://www.credly.com/badges/ba5079d6-5069-433c-98c3-65caaaace2bd" target="_blank" rel="noopener">
+            <img src="images/hashicorp-certified-terraform-associate.png" alt="HashiCorp Terraform Associate">
+            <span>Terraform Associate</span>
           </a>
         </div>
       </div>
