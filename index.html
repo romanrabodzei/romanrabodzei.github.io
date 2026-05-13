@@ -50,6 +50,7 @@
 
     /* ─── CONTAINER ─────────────────────────────── */
     .container { max-width: 920px; margin: 0 auto; padding: 0 1.5rem; }
+    .container-wide { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
 
     /* ─── NAV ───────────────────────────────────── */
     nav {
@@ -123,7 +124,7 @@
       background: radial-gradient(ellipse 60% 60% at 15% 50%, rgba(2,119,189,0.04) 0%, transparent 70%);
     }
 
-    .hero .container { padding-top: 3rem; padding-bottom: 3rem; }
+    .hero .container { padding-top: 3rem; padding-bottom: 3rem; padding-left: 2.5rem; }
 
     .hero-prompt {
       font-family: 'JetBrains Mono', monospace;
@@ -155,8 +156,8 @@
     .hero h1 .accent { color: var(--accent); }
 
     .hero .tagline {
-      font-size: 1.05rem; color: var(--muted);
-      max-width: 500px; line-height: 1.7;
+      font-size: 1.2rem; color: var(--muted);
+      max-width: 540px; line-height: 1.7;
       margin-bottom: 2.25rem;
     }
 
@@ -450,7 +451,6 @@
 
   <!-- ═══════════════════ NAV ═══════════════════ -->
   <nav>
-    <span class="nav-logo mono" data-page="home">rr.dev</span>
     <ul class="nav-links">
       <li><a data-page="home"     class="active">home</a></li>
       <li><a data-page="about">about</a></li>
@@ -481,7 +481,7 @@
       </div>
     </section>
 
-    <section class="cards-section container">
+    <section class="cards-section container-wide">
       <p class="section-label mono">AZURE &amp; CLOUD ENGINEERING AT A GLANCE</p>
       <div class="cards-grid">
 
