@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Becoming a CNCF Kubestronaut — Roman Rabodzei</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #06090f;
+      --surface:     #0b1524;
+      --surface2:    #101e30;
+      --border:      #182d42;
+      --text:        #dce8f4;
+      --muted:       #6a8ba8;
+      --accent:      #4fc3f7;
+      --accent-dim:  rgba(79, 195, 247, 0.10);
+    }
+
+    [data-theme="light"] {
+      --bg:          #f2f6fb;
+      --surface:     #ffffff;
+      --surface2:    #e8f0f8;
+      --border:      #c4d4e4;
+      --text:        #0c1c2c;
+      --muted:       #486a86;
+      --accent:      #0277bd;
+      --accent-dim:  rgba(2, 119, 189, 0.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace; }
+    a { color: inherit; }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: .7rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+
+    .nav-logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600; font-size: 1.05rem;
+      color: var(--accent); text-decoration: none;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+
+    .back-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .82rem; color: var(--muted);
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    .back-link:hover { color: var(--accent); }
+
+    .theme-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; background: none;
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: .28rem .55rem; cursor: pointer; color: var(--muted);
+      transition: border-color .15s;
+    }
+
+    .theme-btn:hover { border-color: var(--accent); }
+
+    [data-theme="dark"]  .theme-btn .mode-dark  { color: var(--accent); }
+    [data-theme="light"] .theme-btn .mode-light { color: var(--accent); }
+
+    /* ARTICLE */
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+
+    .article-header {
+      padding: 3rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+
+    .article-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted); margin-bottom: .75rem;
+    }
+
+    .article-title {
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      font-weight: 700; line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .article-title .accent { color: var(--accent); }
+
+    .article-meta {
+      display: flex; flex-wrap: wrap; gap: .75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; color: var(--muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .article-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+    .article-tags span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem; padding: .15rem .5rem;
+      border-radius: 4px; border: 1px solid var(--border);
+      color: var(--muted); background: var(--surface);
+    }
+
+    /* CONTENT */
+    .article-content { padding-bottom: 4rem; }
+
+    .article-content p {
+      font-size: .975rem; line-height: 1.85;
+      color: var(--text); margin-bottom: 1.35rem;
+    }
+
+    .article-content h2 {
+      font-size: 1.2rem; font-weight: 600;
+      margin: 2.25rem 0 1rem;
+      padding-bottom: .5rem; border-bottom: 1px solid var(--border);
+    }
+
+    .article-content h3 {
+      font-size: 1rem; font-weight: 600;
+      margin: 1.75rem 0 .6rem; color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .article-content ul, .article-content ol {
+      margin: .75rem 0 1.35rem 1.5rem;
+      display: flex; flex-direction: column; gap: .45rem;
+    }
+
+    .article-content li { font-size: .975rem; line-height: 1.75; color: var(--text); }
+
+    .article-content strong { color: var(--text); }
+
+    .article-content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .85em; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 3px;
+      padding: .1em .35em; color: var(--accent);
+    }
+
+    .cert-row {
+      display: flex; flex-wrap: wrap; gap: .5rem;
+      margin: 1.25rem 0;
+    }
+
+    .cert-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; padding: .3rem .75rem;
+      background: var(--accent-dim); border: 1px solid rgba(79,195,247,0.25);
+      border-radius: 20px; color: var(--accent);
+    }
+
+    [data-theme="light"] .cert-pill { border-color: rgba(2,119,189,0.25); }
+
+    .callout {
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px; padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+    }
+
+    .callout p { margin-bottom: 0; }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem; text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-logo mono" href="../index.html">rr.dev</a>
+    <div class="nav-right">
+      <a class="back-link mono" href="../index.html#blog">← back to blog</a>
+      <button class="theme-btn mono" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
+        <span class="mode-dark">[dark]</span><span class="mode-light">[light]</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="article-header">
+      <p class="article-label mono">&gt; blog.post()</p>
+      <h1 class="article-title">Becoming a CNCF <span class="accent">Kubestronaut</span>:<br>Passing All 5 Kubernetes Certifications</h1>
+      <div class="article-meta">
+        <span>Roman Rabodzei</span>
+        <span>·</span>
+        <span>May 2026</span>
+        <span>·</span>
+        <span>~10 min read</span>
+      </div>
+      <div class="article-tags">
+        <span>Kubernetes</span>
+        <span>CNCF</span>
+        <span>Certifications</span>
+        <span>CKA</span>
+        <span>CKAD</span>
+        <span>CKS</span>
+      </div>
+    </header>
+
+    <article class="article-content">
+
+      <p>
+        In early 2026 I earned the <strong>CNCF Kubestronaut</strong> designation — awarded to engineers who
+        pass all five Kubernetes certifications: KCNA, KCSA, CKA, CKAD, and CKS. This post covers
+        my honest experience with each exam: what I used to study, what surprised me, and what actually
+        matters in practice.
+      </p>
+
+      <div class="cert-row">
+        <span class="cert-pill">KCNA</span>
+        <span class="cert-pill">KCSA</span>
+        <span class="cert-pill">CKA</span>
+        <span class="cert-pill">CKAD</span>
+        <span class="cert-pill">CKS</span>
+        <span class="cert-pill">Kubestronaut</span>
+      </div>
+
+      <h2>Why all five?</h2>
+
+      <p>
+        I had been working with AKS in production for a few years before deciding to get formally
+        certified. I started with CKA to validate the fundamentals, but once I had it I kept going.
+        The KCNA and KCSA cover cloud-native concepts and security theory — useful for understanding
+        the ecosystem beyond just Kubernetes itself. CKAD sharpened my application-development
+        perspective on the platform. And CKS, the hardest one, pushed my security knowledge into
+        territory I genuinely use at work: runtime security, supply chain hardening, and cluster-level
+        threat mitigation.
+      </p>
+
+      <p>
+        Once CKA, CKAD, and CKS were done, KCNA and KCSA felt like a natural close to the loop.
+        The Kubestronaut badge is a nice bonus, but the real value was filling in the gaps.
+      </p>
+
+      <h2>The exams, one by one</h2>
+
+      <h3>KCNA — Kubernetes and Cloud Native Associate</h3>
+      <p>
+        Multiple-choice, no terminal. Covers Kubernetes fundamentals, container concepts, cloud-native
+        architecture, and CNCF project landscape. If you already work with Kubernetes day-to-day this
+        will feel straightforward. The trickiest parts are the broader ecosystem questions about CNCF
+        projects you may not use directly — Fluentd, Jaeger, Linkerd concepts.
+      </p>
+      <div class="callout">
+        <p><strong>Prep tip:</strong> Read through the CNCF landscape and understand what each major project category does (observability, service mesh, CI/CD, security). Don't memorise — understand the purpose.</p>
+      </div>
+
+      <h3>KCSA — Kubernetes and Cloud Native Security Associate</h3>
+      <p>
+        Also multiple-choice. Security-focused theory: cluster hardening, network policies, supply chain
+        security, runtime security, and compliance frameworks. A good bridge between KCNA and CKS.
+        Expect questions on the 4Cs model (Cloud, Cluster, Container, Code), Pod Security Standards,
+        and RBAC concepts.
+      </p>
+
+      <h3>CKA — Certified Kubernetes Administrator</h3>
+      <p>
+        Performance-based, 2 hours, 17 questions in a live terminal. This is where things get hands-on.
+        Core topics: cluster bootstrapping with <code>kubeadm</code>, etcd backup and restore, troubleshooting
+        broken nodes and control-plane components, RBAC, storage (PV/PVC), networking (Services,
+        Ingress, NetworkPolicies), and upgrade procedures.
+      </p>
+      <ul>
+        <li>Bookmark the Kubernetes docs — you can use them during the exam. Know where things are.</li>
+        <li>Practice <code>etcdctl snapshot save/restore</code> until it's automatic.</li>
+        <li>Time management matters more than depth. Move on and return to hard questions.</li>
+        <li>Use <code>kubectl explain</code> and <code>--dry-run=client -o yaml</code> constantly.</li>
+      </ul>
+
+      <h3>CKAD — Certified Kubernetes Application Developer</h3>
+      <p>
+        Same format as CKA but developer-focused. Multi-container Pods, init containers, ConfigMaps and
+        Secrets, resource limits, probes, Helm basics, Jobs and CronJobs. If you've done CKA first,
+        CKAD covers a lot of overlapping ground but from a different angle — less cluster admin,
+        more application lifecycle.
+      </p>
+      <div class="callout">
+        <p><strong>Tip:</strong> The CKAD has more questions per hour than CKA. Speed is everything. Practice generating resource manifests from scratch with <code>kubectl run</code> and <code>kubectl create</code> flags rather than writing YAML by hand.</p>
+      </div>
+
+      <h3>CKS — Certified Kubernetes Security Specialist</h3>
+      <p>
+        The hardest one. Requires an active CKA to sit. Topics include: API server hardening,
+        audit logging, Falco runtime threat detection, AppArmor and seccomp profiles, image scanning
+        with Trivy, OPA/Gatekeeper policies, network policies, mTLS with Istio concepts, and
+        supply chain security. The exam environment can have multiple clusters and you must
+        be very careful about context switching.
+      </p>
+      <ul>
+        <li>Know Falco rules syntax — you'll likely need to modify one.</li>
+        <li>Understand the difference between PodSecurityAdmission enforce/warn/audit modes.</li>
+        <li>Practice AppArmor profile loading and referencing in Pod specs.</li>
+        <li>Trivy: <code>trivy image --severity HIGH,CRITICAL &lt;image&gt;</code> — know the flags.</li>
+        <li>NetworkPolicies: isolate namespaces, deny-all defaults, selective allow rules.</li>
+      </ul>
+
+      <h2>Resources I actually used</h2>
+
+      <ul>
+        <li><strong>Killer.sh</strong> — Two free simulator sessions are included with exam registration. They're harder than the real exam. Do them multiple times.</li>
+        <li><strong>KillerCoda</strong> — Free browser-based scenarios. Great for CKS-specific topics like Falco, AppArmor, and Trivy.</li>
+        <li><strong>Official Kubernetes docs</strong> — The canonical reference. Learn to navigate it quickly.</li>
+        <li><strong>Certified Kubernetes courses on Udemy</strong> — Mumshad Mannambeth's CKA/CKAD/CKS courses. Solid fundamentals coverage.</li>
+      </ul>
+
+      <h2>Practical takeaways</h2>
+
+      <p>
+        Earning these certifications solidified concepts I thought I already knew — and exposed a few
+        gaps I didn't realise were there. CKS in particular changed how I approach cluster security
+        reviews at work: I'm now much more deliberate about audit logging, runtime detection, and
+        admission controller coverage.
+      </p>
+
+      <p>
+        If you're working with Kubernetes in production and considering this path: start with CKA,
+        follow with CKS while your CKA knowledge is fresh, then round out with CKAD. Add KCNA and
+        KCSA whenever convenient — they're lower effort if you already have the practitioner certs.
+      </p>
+
+      <p>
+        The Kubestronaut designation is a nice milestone but the process itself is the real value.
+        Good luck — and keep your <code>kubectl</code> shortcuts sharp.
+      </p>
+
+    </article>
+  </div>
+
+  <footer>
+    <span class="mono">&copy; <span id="year"></span> Roman Rabodzei &nbsp;·&nbsp; <a href="../index.html#blog" style="color: var(--accent);">← back to blog</a></span>
+  </footer>
+
+  <script>
+    const html = document.documentElement;
+
+    function applyTheme(t) {
+      html.setAttribute('data-theme', t);
+      localStorage.setItem('theme', t);
+    }
+
+    const saved = localStorage.getItem('theme') ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    applyTheme(saved);
+
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>

@@ -1,285 +1,587 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Roman Rabodzei</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roman Rabodzei — Principal Azure Cloud &amp; DevOps Engineer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #ffffff;
-      --surface: #f6f8fa;
-      --border: #d0d7de;
-      --text: #1f2328;
-      --muted: #656d76;
-      --accent: #0969da;
-    }
-
-    [data-theme="dark"] {
-      --bg: #0d1117;
-      --surface: #161b22;
-      --border: #30363d;
-      --text: #c9d1d9;
-      --muted: #8b949e;
-      --accent: #58a6ff;
-    }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --bg:          #06090f;
+      --surface:     #0b1524;
+      --surface2:    #101e30;
+      --border:      #182d42;
+      --text:        #dce8f4;
+      --muted:       #6a8ba8;
+      --accent:      #4fc3f7;
+      --accent-dim:  rgba(79, 195, 247, 0.10);
+      --accent-glow: rgba(79, 195, 247, 0.25);
+    }
+
+    [data-theme="light"] {
+      --bg:          #f2f6fb;
+      --surface:     #ffffff;
+      --surface2:    #e8f0f8;
+      --border:      #c4d4e4;
+      --text:        #0c1c2c;
+      --muted:       #486a86;
+      --accent:      #0277bd;
+      --accent-dim:  rgba(2, 119, 189, 0.08);
+      --accent-glow: rgba(2, 119, 189, 0.20);
+    }
+
+    html { scroll-behavior: smooth; }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
+      min-height: 100vh;
     }
 
-    header {
-      background: var(--surface);
+    .mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace; }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ─── CONTAINER ─────────────────────────────── */
+    .container { max-width: 920px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* ─── NAV ───────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg);
       border-bottom: 1px solid var(--border);
-      padding: 2rem 1rem;
-      text-align: center;
+      padding: .7rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
     }
 
-    header h1 {
-      font-size: 2rem;
-      font-weight: 600;
-      color: var(--text);
+    .nav-logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600; font-size: 1.05rem;
+      color: var(--accent); cursor: pointer;
     }
 
-    header p {
+    .nav-links { display: flex; list-style: none; gap: .15rem; }
+
+    .nav-links a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .85rem;
       color: var(--muted);
-      margin-top: .25rem;
-      font-size: .95rem;
+      padding: .3rem .6rem;
+      border-radius: 4px;
+      cursor: pointer;
+      position: relative;
+      transition: color .15s;
     }
 
-    .social-links {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin-top: .75rem;
+    .nav-links a:hover:not(.active) { color: var(--text); }
+
+    .nav-links a.active { color: var(--accent); }
+
+    .nav-links a.active::after {
+      content: '';
+      position: absolute; bottom: -1px; left: .6rem; right: .6rem;
+      height: 2px; border-radius: 1px;
+      background: var(--accent);
     }
 
-    .social-links a {
-      display: inline-flex;
-      align-items: center;
-      gap: .4rem;
-      color: var(--muted);
-      text-decoration: none;
-      font-size: .875rem;
-      transition: color .15s ease;
+    /* Theme button */
+    .theme-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: .28rem .55rem;
+      cursor: pointer; color: var(--muted);
+      white-space: nowrap; flex-shrink: 0;
+      transition: border-color .15s;
     }
 
-    .social-links a:hover { color: var(--accent); }
+    .theme-btn:hover { border-color: var(--accent); }
 
-    .social-links svg {
-      width: 18px;
-      height: 18px;
-      fill: currentColor;
-      flex-shrink: 0;
+    [data-theme="dark"]  .theme-btn .mode-dark  { color: var(--accent); }
+    [data-theme="light"] .theme-btn .mode-light { color: var(--accent); }
+
+    /* ─── PAGE ROUTING ──────────────────────────── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ─── HERO ──────────────────────────────────── */
+    .hero {
+      min-height: calc(88vh - 46px);
+      display: flex; align-items: center;
+      background: radial-gradient(ellipse 60% 60% at 15% 50%, rgba(79,195,247,0.05) 0%, transparent 70%);
     }
 
-    main {
-      max-width: 860px;
-      margin: 2.5rem auto;
-      padding: 0 1.25rem;
+    [data-theme="light"] .hero {
+      background: radial-gradient(ellipse 60% 60% at 15% 50%, rgba(2,119,189,0.04) 0%, transparent 70%);
     }
 
-    section + section { margin-top: 2.5rem; }
+    .hero .container { padding-top: 3rem; padding-bottom: 3rem; }
 
-    h2 {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--text);
-      padding-bottom: .5rem;
-      border-bottom: 1px solid var(--border);
+    .hero-prompt {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .9rem; color: var(--muted);
+      display: flex; align-items: center; gap: .1rem;
+      margin-bottom: 1.35rem;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 9px; height: 1.05em;
+      background: var(--accent);
+      margin-left: 3px;
+      vertical-align: middle;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0; }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.6rem, 8vw, 4.6rem);
+      font-weight: 700; letter-spacing: -.025em; line-height: 1.08;
       margin-bottom: 1.25rem;
     }
 
-    /* About */
-    .about p {
-      text-align: justify;
-      color: var(--text);
-      font-size: .975rem;
+    .hero h1 .accent { color: var(--accent); }
+
+    .hero .tagline {
+      font-size: 1.05rem; color: var(--muted);
+      max-width: 500px; line-height: 1.7;
+      margin-bottom: 2.25rem;
     }
 
-    /* Cert groups */
-    .cert-group {
-      display: flex;
-      flex-wrap: wrap;
+    .hero-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+
+    /* ─── BUTTONS ───────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: .35rem;
+      padding: .52rem 1.1rem;
+      border-radius: 6px; border: 1px solid transparent;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .83rem; cursor: pointer;
+      transition: opacity .15s, transform .15s;
+    }
+
+    .btn:hover { opacity: .82; transform: translateY(-1px); }
+
+    .btn-primary   { background: var(--accent); color: #06090f; border-color: var(--accent); font-weight: 600; }
+    .btn-secondary { background: var(--surface); color: var(--text); border-color: var(--border); }
+    .btn-ghost     { background: transparent; color: var(--muted); border-color: var(--border); }
+
+    [data-theme="light"] .btn-primary { color: #ffffff; }
+
+    /* ─── HOME CARDS ────────────────────────────── */
+    .cards-section { padding-bottom: 4.5rem; }
+
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem; letter-spacing: .12em;
+      color: var(--muted); padding-bottom: 1.35rem;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
       gap: 1rem;
-      justify-content: center;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.4rem;
+      transition: border-color .2s;
+    }
+
+    .card:hover { border-color: var(--accent-glow); }
+
+    .card h3 { font-size: .975rem; font-weight: 600; margin-bottom: .5rem; }
+
+    .card > p { color: var(--muted); font-size: .88rem; line-height: 1.65; }
+
+    .card-tag {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem; color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid rgba(79,195,247,0.22);
+      border-radius: 4px; padding: .15rem .5rem;
+      margin-bottom: .8rem;
+    }
+
+    [data-theme="light"] .card-tag { border-color: rgba(2,119,189,0.22); }
+
+    .card-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--accent);
+      display: inline-block; margin-top: .85rem;
+      cursor: pointer;
+    }
+
+    .card-link:hover { opacity: .75; }
+
+    /* Stats */
+    .stats-list { display: flex; flex-direction: column; gap: 1rem; justify-content: center; }
+
+    .stat { display: flex; align-items: baseline; gap: .65rem; }
+
+    .stat-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.85rem; font-weight: 600; line-height: 1; color: var(--text);
+    }
+
+    .stat-num .accent { color: var(--accent); }
+
+    .stat-label { font-size: .83rem; color: var(--muted); }
+
+    /* Tags */
+    .tags { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .75rem; }
+
+    .tags span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .7rem; padding: .18rem .5rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: var(--surface2);
+    }
+
+    /* Connect grid */
+    .connect-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin-top: .8rem; }
+
+    .connect-item {
+      display: flex; align-items: center; gap: .5rem;
+      padding: .48rem .75rem;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; font-size: .8rem; color: var(--text);
+      transition: border-color .15s, color .15s;
+    }
+
+    .connect-item:hover { border-color: var(--accent-glow); color: var(--accent); }
+
+    .connect-item svg { width: 14px; height: 14px; fill: currentColor; flex-shrink: 0; }
+
+    /* Timeline */
+    .timeline-list { list-style: none; display: flex; flex-direction: column; gap: .6rem; margin-top: .8rem; }
+
+    .timeline-list li {
+      display: flex; align-items: baseline; gap: .55rem;
+      font-size: .865rem; color: var(--text);
+    }
+
+    .timeline-list li::before { content: '○'; color: var(--accent); font-size: .55rem; flex-shrink: 0; }
+
+    .timeline-list li .yr {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .73rem; color: var(--accent); flex-shrink: 0;
+    }
+
+    /* Prompt inline */
+    .prompt-inline {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .85rem; color: var(--accent); margin-bottom: .5rem;
+    }
+
+    /* ─── PAGE HEADER ───────────────────────────── */
+    .page-header {
+      padding: 3rem 0 2rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+
+    .page-header .pg-prompt {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .88rem; color: var(--muted); margin-bottom: .75rem;
+    }
+
+    .page-header h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: .4rem; }
+
+    .page-header > p { color: var(--muted); font-size: .975rem; }
+
+    /* ─── ABOUT PAGE ────────────────────────────── */
+    .about-bio {
+      font-size: .96rem; line-height: 1.85; color: var(--text);
+      max-width: 720px; margin-bottom: 3rem; text-align: justify;
+    }
+
+    .section-heading {
+      font-size: 1.05rem; font-weight: 600;
+      padding-bottom: .5rem; border-bottom: 1px solid var(--border);
       margin-bottom: 1.5rem;
     }
 
-    .cert-group:last-child { margin-bottom: 0; }
+    .cert-section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem; letter-spacing: .1em;
+      color: var(--muted); text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .cert-group-wrap { margin-bottom: 2.25rem; }
+
+    .cert-group { display: flex; flex-wrap: wrap; gap: .65rem; }
 
     .cert-badge {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: .4rem;
-      text-decoration: none;
-      transition: transform .15s ease, opacity .15s ease;
-    }
-
-    .cert-badge:hover { transform: translateY(-3px); opacity: .85; }
-
-    .cert-badge img {
-      width: 90px;
-      height: 90px;
-      object-fit: contain;
+      display: flex; flex-direction: column; align-items: center; gap: .4rem;
+      width: 108px; padding: .75rem .5rem;
+      background: var(--surface); border: 1px solid var(--border);
       border-radius: 8px;
+      transition: border-color .15s, transform .15s;
     }
 
-    .cert-badge span {
-      font-size: .65rem;
-      color: var(--muted);
-      text-align: center;
-      max-width: 90px;
-      line-height: 1.3;
-    }
+    .cert-badge:hover { border-color: var(--accent-glow); transform: translateY(-2px); }
 
-    /* Support */
-    .support-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .75rem;
-    }
+    .cert-badge img { width: 70px; height: 70px; object-fit: contain; }
 
-    .support-links a {
-      display: inline-flex;
-      align-items: center;
-      gap: .5rem;
-      padding: .45rem .9rem;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      text-decoration: none;
-      font-size: .875rem;
-      color: var(--text);
+    .cert-badge span { font-size: .59rem; color: var(--muted); text-align: center; line-height: 1.3; }
+
+    .support-links { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1rem; margin-bottom: 3rem; }
+
+    .support-link {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .48rem 1rem;
+      border: 1px solid var(--border); border-radius: 6px;
+      font-size: .875rem; color: var(--text);
       background: var(--surface);
-      transition: border-color .15s ease, color .15s ease;
+      transition: border-color .15s, color .15s;
     }
 
-    .support-links a:hover { border-color: var(--accent); color: var(--accent); }
+    .support-link:hover { border-color: var(--accent-glow); color: var(--accent); }
 
+    /* ─── PROJECTS PAGE ─────────────────────────── */
+    .projects-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 1rem; padding-bottom: 4rem;
+    }
+
+    .project-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1.4rem;
+      display: flex; flex-direction: column; gap: .7rem;
+      transition: border-color .2s;
+    }
+
+    .project-card:hover { border-color: var(--accent-glow); }
+
+    .project-card h3 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .92rem; font-weight: 500; color: var(--accent);
+    }
+
+    .project-card .proj-desc { font-size: .875rem; color: var(--muted); line-height: 1.65; flex: 1; }
+
+    .proj-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: .25rem;
+    }
+
+    .proj-footer a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .73rem; color: var(--accent);
+      transition: opacity .15s;
+    }
+
+    .proj-footer a:hover { opacity: .75; }
+
+    /* ─── BLOG PAGE ─────────────────────────────── */
+    .blog-list {
+      border: 1px solid var(--border); border-radius: 10px;
+      overflow: hidden; margin-bottom: 2.5rem;
+    }
+
+    .blog-item {
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      padding: 1.15rem 1.4rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+    }
+
+    .blog-item:last-child { border-bottom: none; }
+
+    .blog-item:hover { background: var(--surface2); }
+
+    .blog-item-title { font-size: .96rem; font-weight: 500; margin-bottom: .2rem; }
+
+    .blog-item-desc { font-size: .82rem; color: var(--muted); }
+
+    .blog-item-date {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .73rem; color: var(--muted); white-space: nowrap; flex-shrink: 0;
+    }
+
+    .blog-placeholder {
+      text-align: center; padding: 2.5rem 1rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .blog-placeholder .prompt-inline { font-size: .95rem; margin-bottom: .6rem; }
+
+    .blog-placeholder p { color: var(--muted); font-size: .85rem; }
+
+    /* ─── FOOTER ────────────────────────────────── */
     footer {
-      text-align: center;
-      padding: 2rem 1rem;
-      color: var(--muted);
-      font-size: .8rem;
       border-top: 1px solid var(--border);
-      margin-top: 3rem;
+      padding: 1.5rem; text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted);
     }
 
-    /* Theme toggle */
-    .theme-toggle {
-      position: fixed;
-      top: 1rem;
-      right: 1rem;
-      z-index: 100;
-      display: inline-flex;
-      align-items: center;
-      cursor: pointer;
-      background: none;
-      border: none;
-      padding: 0;
+    /* ─── RESPONSIVE ────────────────────────────── */
+    @media (max-width: 620px) {
+      .cards-grid, .projects-grid { grid-template-columns: 1fr; }
+      .connect-grid { grid-template-columns: 1fr; }
+      .nav-links a { padding: .3rem .4rem; font-size: .8rem; }
+      .hero h1 { letter-spacing: -.02em; }
     }
-
-    .toggle-track {
-      width: 52px;
-      height: 28px;
-      border-radius: 14px;
-      background: var(--border);
-      border: 1.5px solid var(--border);
-      position: relative;
-      transition: background .25s ease, border-color .25s ease;
-    }
-
-    [data-theme="dark"] .toggle-track {
-      background: var(--accent);
-      border-color: var(--accent);
-    }
-
-    .toggle-thumb {
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform .25s ease;
-      box-shadow: 0 1px 3px rgba(0,0,0,.2);
-    }
-
-    [data-theme="dark"] .toggle-thumb {
-      transform: translateX(24px);
-    }
-
-    .toggle-thumb svg {
-      width: 12px;
-      height: 12px;
-      fill: none;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .icon-sun  { display: block; stroke: #f59e0b; }
-    .icon-moon { display: none;  stroke: #6366f1; }
-
-    [data-theme="dark"] .icon-sun  { display: none; }
-    [data-theme="dark"] .icon-moon { display: block; }
   </style>
 </head>
 <body>
 
-  <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
-    <span class="toggle-track">
-      <span class="toggle-thumb">
-        <!-- Sun -->
-        <svg class="icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="4"/>
-          <line x1="12" y1="2"  x2="12" y2="5"/>
-          <line x1="12" y1="19" x2="12" y2="22"/>
-          <line x1="2"  y1="12" x2="5"  y2="12"/>
-          <line x1="19" y1="12" x2="22" y2="12"/>
-          <line x1="4.22"  y1="4.22"  x2="6.34"  y2="6.34"/>
-          <line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/>
-          <line x1="4.22"  y1="19.78" x2="6.34"  y2="17.66"/>
-          <line x1="17.66" y1="6.34"  x2="19.78" y2="4.22"/>
-        </svg>
-        <!-- Moon -->
-        <svg class="icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
-      </span>
-    </span>
-  </button>
+  <!-- ═══════════════════ NAV ═══════════════════ -->
+  <nav>
+    <span class="nav-logo mono" data-page="home">rr.dev</span>
+    <ul class="nav-links">
+      <li><a data-page="home"     class="active">home</a></li>
+      <li><a data-page="about">about</a></li>
+      <li><a data-page="projects">projects</a></li>
+      <li><a data-page="blog">blog</a></li>
+    </ul>
+    <button class="theme-btn mono" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
+      <span class="mode-dark">[dark]</span><span class="mode-light">[light]</span>
+    </button>
+  </nav>
 
-  <header>
-    <h1>Roman Rabodzei</h1>
-    <p>Principal Azure Cloud and DevOps Engineer with a security-minded focus</p>
-    <div class="social-links">
-      <a href="https://linkedin.com/in/romanrabodzei" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-        LinkedIn
-      </a>
-      <a href="https://github.com/romanrabodzei" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-        GitHub
-      </a>
-    </div>
-  </header>
+  <!-- ═══════════════════ HOME ═══════════════════ -->
+  <div id="page-home" class="page active">
 
-  <main>
+    <section class="hero">
+      <div class="container">
+        <p class="hero-prompt mono">&gt;&nbsp;hello,&nbsp;world<span class="cursor"></span></p>
+        <h1>Roman <span class="accent">Rabodzei</span></h1>
+        <p class="tagline">
+          Principal Azure Cloud and DevOps Engineer<br>
+          with a security-minded focus.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary"   data-goto="blog">read my blog →</a>
+          <a class="btn btn-secondary" data-goto="projects">view projects →</a>
+          <a class="btn btn-ghost"     data-goto="about">about me</a>
+        </div>
+      </div>
+    </section>
 
-    <!-- About -->
-    <section class="about">
-      <h2>About me</h2>
-      <p>
+    <section class="cards-section container">
+      <p class="section-label mono">AZURE &amp; CLOUD ENGINEERING AT A GLANCE</p>
+      <div class="cards-grid">
+
+        <!-- About snippet -->
+        <div class="card">
+          <span class="card-tag mono">principal cloud engineer</span>
+          <h3>About Me</h3>
+          <p>17+ years managing on-premise and cloud infrastructure with a security-minded focus. DevOps, Kubernetes, and IaC — always seeking untapped potential for growth and innovation.</p>
+          <span class="card-link mono" data-goto="about">more about me →</span>
+        </div>
+
+        <!-- Stats -->
+        <div class="card">
+          <div class="stats-list">
+            <div class="stat">
+              <span class="stat-num mono">17<span class="accent">+</span></span>
+              <span class="stat-label">years of experience</span>
+            </div>
+            <div class="stat">
+              <span class="stat-num mono">20<span class="accent">+</span></span>
+              <span class="stat-label">industry certifications</span>
+            </div>
+            <div class="stat">
+              <span class="stat-num mono">5<span class="accent">×</span></span>
+              <span class="stat-label">Kubernetes certified (Kubestronaut)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tech Stack -->
+        <div class="card">
+          <h3>⚙ Tech Stack</h3>
+          <p>The tools I reach for most often.</p>
+          <div class="tags">
+            <span>Azure</span><span>Kubernetes</span><span>Terraform</span>
+            <span>Bicep</span><span>GitHub Actions</span><span>ArgoCD</span>
+            <span>Helm</span><span>PowerShell</span><span>Python</span>
+            <span>Docker</span><span>Azure DevOps</span><span>Entra ID</span>
+          </div>
+        </div>
+
+        <!-- Connect -->
+        <div class="card">
+          <h3>🔗 Connect</h3>
+          <p>Find me on the internet.</p>
+          <div class="connect-grid">
+            <a class="connect-item" href="https://linkedin.com/in/romanrabodzei" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              LinkedIn
+            </a>
+            <a class="connect-item" href="https://github.com/romanrabodzei" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+              GitHub
+            </a>
+            <a class="connect-item" href="https://www.buymeacoffee.com/romanrabodzei" target="_blank" rel="noopener">
+              ☕ Buy me a coffee
+            </a>
+            <a class="connect-item" href="https://paypal.me/romanrabodzey" target="_blank" rel="noopener">
+              💙 PayPal
+            </a>
+          </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="card">
+          <h3>⏱ Timeline</h3>
+          <p>Career &amp; certification milestones.</p>
+          <ul class="timeline-list">
+            <li><span class="yr">2026</span> CNCF Kubestronaut</li>
+            <li><span class="yr">2025</span> Azure Cybersecurity Architect Expert</li>
+            <li><span class="yr">2024</span> CKA, CKAD &amp; CKS Certified</li>
+            <li><span class="yr">2023</span> HashiCorp Terraform Associate</li>
+            <li><span class="yr">2022</span> Azure Solutions Architect Expert</li>
+            <li><span class="yr">2007</span> Started IT career</li>
+          </ul>
+        </div>
+
+        <!-- Latest Posts -->
+        <div class="card">
+          <h3>✦ Latest Posts</h3>
+          <p class="prompt-inline mono">&gt; blog.init()</p>
+          <p>Writing about Azure architecture, Kubernetes security, and DevOps patterns. First post is up — more coming soon.</p>
+          <span class="card-link mono" data-goto="blog">go to blog →</span>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <!-- ═══════════════════ ABOUT ═══════════════════ -->
+  <div id="page-about" class="page">
+    <div class="container">
+
+      <div class="page-header">
+        <p class="pg-prompt mono">&gt; about.me()</p>
+        <h1>Roman <span class="accent">Rabodzei</span></h1>
+        <p>Principal Azure Cloud and DevOps Engineer with a security-minded focus.</p>
+      </div>
+
+      <p class="about-bio">
         Reliable IT Engineer with over 17 years of experience managing on-premise and cloud-based
         infrastructure and solutions with a security-minded focus. Skilled in applying DevOps principles
         and agile methodologies to deliver high-quality products and services in a fast-paced and
@@ -290,162 +592,298 @@
         effectively with stakeholders, demonstrating resiliency even in challenging situations. Always
         seeking untapped potential for growth and innovation.
       </p>
-    </section>
 
-    <!-- Certifications -->
-    <section>
-      <h2>Licenses &amp; Certifications</h2>
+      <h2 class="section-heading">Licenses &amp; Certifications</h2>
 
-      <!-- Expert -->
-      <div class="cert-group">
-        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/4F48A8397F604892?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
-          <img src="images/azure-devops-engineer-expert.png" alt="Azure DevOps Engineer Expert" />
-          <span>Azure DevOps Engineer Expert</span>
-        </a>
-        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/977678304216884B?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
-          <img src="images/azure-solutions-architect-expert.png" alt="Azure Solutions Architect Expert" />
-          <span>Azure Solutions Architect Expert</span>
-        </a>
-        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/AB0829F37921442E?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
-          <img src="images/azure-cybersecurity-architect-exper.png" alt="Azure Cybersecurity Architect Expert" />
-          <span>Azure Cybersecurity Architect Expert</span>
-        </a>
-        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/185BD79D4B1F186B?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
-          <img src="images/azure-virtual-desktop-specialty.png" alt="Azure Virtual Desktop Specialty" />
-          <span>Azure Virtual Desktop Specialty</span>
-        </a>
+      <!-- Expert & Specialty -->
+      <div class="cert-group-wrap">
+        <p class="cert-section-label mono">Expert &amp; Specialty</p>
+        <div class="cert-group">
+          <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/4F48A8397F604892?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+            <img src="images/azure-devops-engineer-expert.png" alt="Azure DevOps Engineer Expert">
+            <span>DevOps Engineer Expert</span>
+          </a>
+          <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/977678304216884B?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+            <img src="images/azure-solutions-architect-expert.png" alt="Azure Solutions Architect Expert">
+            <span>Solutions Architect Expert</span>
+          </a>
+          <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/AB0829F37921442E?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+            <img src="images/azure-cybersecurity-architect-exper.png" alt="Azure Cybersecurity Architect Expert">
+            <span>Cybersecurity Architect Expert</span>
+          </a>
+          <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/185BD79D4B1F186B?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+            <img src="images/azure-virtual-desktop-specialty.png" alt="Azure Virtual Desktop Specialty">
+            <span>Virtual Desktop Specialty</span>
+          </a>
+        </div>
       </div>
 
       <!-- Associate -->
-      <div class="cert-group">
-        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/AC60B90FD780DE2E?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
-          <img src="images/azure-administrator-associate.png" alt="Azure Administrator Associate" />
-          <span>Azure Administrator Associate</span>
-        </a>
-        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/BE0BFA3983B667C2?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
-          <img src="images/azure-network-engineer-associate.png" alt="Azure Network Engineer Associate" />
-          <span>Azure Network Engineer Associate</span>
-        </a>
-        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/9D7DF5C09F3B647C?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
-          <img src="images/azure-data-engineer-associate.png" alt="Azure Data Engineer Associate" />
-          <span>Azure Data Engineer Associate</span>
-        </a>
-        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/C1E9CFDD8F78D793?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
-          <img src="images/azure-ai-engineer-associate.png" alt="Azure AI Engineer Associate" />
-          <span>Azure AI Engineer Associate</span>
-        </a>
-        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/82A596ACA31366A7?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
-          <img src="images/azure-security-engineer-associate.png" alt="Azure Security Engineer Associate" />
-          <span>Azure Security Engineer Associate</span>
-        </a>
-        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/F7D70FE59B762680?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
-          <img src="images/azure-identity-and-access-administrator-associate.png" alt="Azure Identity and Access Administrator Associate" />
-          <span>Azure Identity &amp; Access Administrator</span>
-        </a>
-        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/31872132664101B9?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
-          <img src="images/azure-security-operations-analyst-associate.png" alt="Azure Security Operations Analyst Associate" />
-          <span>Azure Security Operations Analyst</span>
-        </a>
+      <div class="cert-group-wrap">
+        <p class="cert-section-label mono">Associate</p>
+        <div class="cert-group">
+          <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/AC60B90FD780DE2E?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+            <img src="images/azure-administrator-associate.png" alt="Azure Administrator Associate">
+            <span>Administrator Associate</span>
+          </a>
+          <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/BE0BFA3983B667C2?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+            <img src="images/azure-network-engineer-associate.png" alt="Azure Network Engineer Associate">
+            <span>Network Engineer Associate</span>
+          </a>
+          <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/9D7DF5C09F3B647C?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+            <img src="images/azure-data-engineer-associate.png" alt="Azure Data Engineer Associate">
+            <span>Data Engineer Associate</span>
+          </a>
+          <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/C1E9CFDD8F78D793?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+            <img src="images/azure-ai-engineer-associate.png" alt="Azure AI Engineer Associate">
+            <span>AI Engineer Associate</span>
+          </a>
+          <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/82A596ACA31366A7?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+            <img src="images/azure-security-engineer-associate.png" alt="Azure Security Engineer Associate">
+            <span>Security Engineer Associate</span>
+          </a>
+          <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/F7D70FE59B762680?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+            <img src="images/azure-identity-and-access-administrator-associate.png" alt="Identity and Access Administrator">
+            <span>Identity &amp; Access Admin</span>
+          </a>
+          <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/31872132664101B9?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+            <img src="images/azure-security-operations-analyst-associate.png" alt="Security Operations Analyst">
+            <span>Security Operations Analyst</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- AWS -->
+      <div class="cert-group-wrap">
+        <p class="cert-section-label mono">AWS</p>
+        <div class="cert-group">
+          <a class="cert-badge" href="https://www.credly.com/users/romanrabodzei" target="_blank" rel="noopener">
+            <img src="images/aws-certified-sysops-administrator-associate.png" alt="AWS Certified SysOps Administrator Associate">
+            <span>AWS SysOps Admin Associate</span>
+          </a>
+        </div>
       </div>
 
       <!-- HashiCorp & GitHub -->
-      <div class="cert-group">
-        <a class="cert-badge" href="https://www.credly.com/badges/ba5079d6-5069-433c-98c3-65caaaace2bd" target="_blank" rel="noopener">
-          <img src="images/hashicorp-certified-terraform-associate.png" alt="HashiCorp Certified: Terraform Associate" />
-          <span>HashiCorp Terraform Associate</span>
-        </a>
-        <a class="cert-badge" href="https://www.credly.com/badges/8932b5c9-712d-4c55-943b-801e9509928a" target="_blank" rel="noopener">
-          <img src="images/github-foundations.png" alt="GitHub Foundations" />
-          <span>GitHub Foundations</span>
-        </a>
-        <a class="cert-badge" href="https://www.credly.com/badges/69e9bac6-dff2-4748-aee6-ce89a05589ab" target="_blank" rel="noopener">
-          <img src="images/github-administration.png" alt="GitHub Administration" />
-          <span>GitHub Administration</span>
-        </a>
-        <a class="cert-badge" href="https://www.credly.com/badges/a1441f60-5e8f-4a3a-b621-13928524a993" target="_blank" rel="noopener">
-          <img src="images/github-actions.png" alt="GitHub Actions" />
-          <span>GitHub Actions</span>
-        </a>
-        <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/C519684A242ECCD1?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
-          <img src="images/github-copilot.png" alt="GitHub Copilot" />
-          <span>GitHub Copilot</span>
-        </a>
-        <a class="cert-badge" href="https://www.credly.com/badges/734b474d-3e13-4595-b1ba-4395056e9902/public_url" target="_blank" rel="noopener">
-          <img src="images/github-advanced-security.png" alt="GitHub Advanced Security" />
-          <span>GitHub Advanced Security</span>
-        </a>
+      <div class="cert-group-wrap">
+        <p class="cert-section-label mono">HashiCorp &amp; GitHub</p>
+        <div class="cert-group">
+          <a class="cert-badge" href="https://www.credly.com/badges/ba5079d6-5069-433c-98c3-65caaaace2bd" target="_blank" rel="noopener">
+            <img src="images/hashicorp-certified-terraform-associate.png" alt="HashiCorp Terraform Associate">
+            <span>Terraform Associate</span>
+          </a>
+          <a class="cert-badge" href="https://www.credly.com/badges/8932b5c9-712d-4c55-943b-801e9509928a" target="_blank" rel="noopener">
+            <img src="images/github-foundations.png" alt="GitHub Foundations">
+            <span>GitHub Foundations</span>
+          </a>
+          <a class="cert-badge" href="https://www.credly.com/badges/69e9bac6-dff2-4748-aee6-ce89a05589ab" target="_blank" rel="noopener">
+            <img src="images/github-administration.png" alt="GitHub Administration">
+            <span>GitHub Administration</span>
+          </a>
+          <a class="cert-badge" href="https://www.credly.com/badges/a1441f60-5e8f-4a3a-b621-13928524a993" target="_blank" rel="noopener">
+            <img src="images/github-actions.png" alt="GitHub Actions">
+            <span>GitHub Actions</span>
+          </a>
+          <a class="cert-badge" href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/C519684A242ECCD1?sharingId=B3C1155BC65B52A1" target="_blank" rel="noopener">
+            <img src="images/github-copilot.png" alt="GitHub Copilot">
+            <span>GitHub Copilot</span>
+          </a>
+          <a class="cert-badge" href="https://www.credly.com/badges/734b474d-3e13-4595-b1ba-4395056e9902/public_url" target="_blank" rel="noopener">
+            <img src="images/github-advanced-security.png" alt="GitHub Advanced Security">
+            <span>GitHub Advanced Security</span>
+          </a>
+        </div>
       </div>
 
       <!-- Kubernetes -->
-      <div class="cert-group">
-        <a class="cert-badge" href="https://www.credly.com/badges/91f7bb44-7111-4c48-9aa0-0d4cc11437c8" target="_blank" rel="noopener">
-          <img src="images/kcna-kubernetes-and-cloud-native-associate.png" alt="KCNA" />
-          <span>KCNA</span>
-        </a>
-        <a class="cert-badge" href="https://www.credly.com/badges/aedff2c5-6b61-4a2c-9cc1-7b9f8e0ffc52" target="_blank" rel="noopener">
-          <img src="images/kcsa-kubernetes-and-cloud-native-security-associate.png" alt="KCSA" />
-          <span>KCSA</span>
-        </a>
-        <a class="cert-badge" href="https://www.credly.com/badges/9d63f183-0027-42d7-a824-ddba56a51fe2" target="_blank" rel="noopener">
-          <img src="images/cka-certified-kubernetes-administrator.png" alt="CKA" />
-          <span>CKA</span>
-        </a>
-        <a class="cert-badge" href="https://www.credly.com/badges/a6af1bae-c7ff-4440-959d-faa8e90d6ec3" target="_blank" rel="noopener">
-          <img src="images/ckad-certified-kubernetes-application-developer.png" alt="CKAD" />
-          <span>CKAD</span>
-        </a>
-        <a class="cert-badge" href="https://www.credly.com/badges/bc980418-7b86-4262-9d6c-f1ffb68e81be" target="_blank" rel="noopener">
-          <img src="images/cks-certified-kubernetes-security-specialist.png" alt="CKS" />
-          <span>CKS</span>
-        </a>
-        <a class="cert-badge" href="https://www.credly.com/badges/ed60be19-2dab-421e-bddf-43f2d43a256c" target="_blank" rel="noopener">
-          <img src="images/kubestronaut.png" alt="CNCF Kubestronaut" />
-          <span>CNCF Kubestronaut</span>
-        </a>
+      <div class="cert-group-wrap">
+        <p class="cert-section-label mono">Kubernetes / CNCF</p>
+        <div class="cert-group">
+          <a class="cert-badge" href="https://www.credly.com/badges/91f7bb44-7111-4c48-9aa0-0d4cc11437c8" target="_blank" rel="noopener">
+            <img src="images/kcna-kubernetes-and-cloud-native-associate.png" alt="KCNA">
+            <span>KCNA</span>
+          </a>
+          <a class="cert-badge" href="https://www.credly.com/badges/aedff2c5-6b61-4a2c-9cc1-7b9f8e0ffc52" target="_blank" rel="noopener">
+            <img src="images/kcsa-kubernetes-and-cloud-native-security-associate.png" alt="KCSA">
+            <span>KCSA</span>
+          </a>
+          <a class="cert-badge" href="https://www.credly.com/badges/9d63f183-0027-42d7-a824-ddba56a51fe2" target="_blank" rel="noopener">
+            <img src="images/cka-certified-kubernetes-administrator.png" alt="CKA">
+            <span>CKA</span>
+          </a>
+          <a class="cert-badge" href="https://www.credly.com/badges/a6af1bae-c7ff-4440-959d-faa8e90d6ec3" target="_blank" rel="noopener">
+            <img src="images/ckad-certified-kubernetes-application-developer.png" alt="CKAD">
+            <span>CKAD</span>
+          </a>
+          <a class="cert-badge" href="https://www.credly.com/badges/bc980418-7b86-4262-9d6c-f1ffb68e81be" target="_blank" rel="noopener">
+            <img src="images/cks-certified-kubernetes-security-specialist.png" alt="CKS">
+            <span>CKS</span>
+          </a>
+          <a class="cert-badge" href="https://www.credly.com/badges/ed60be19-2dab-421e-bddf-43f2d43a256c" target="_blank" rel="noopener">
+            <img src="images/kubestronaut.png" alt="CNCF Kubestronaut">
+            <span>CNCF Kubestronaut</span>
+          </a>
+        </div>
       </div>
-    </section>
 
-    <!-- Support -->
-    <section>
-      <h2>Support</h2>
+      <h2 class="section-heading">Support</h2>
       <div class="support-links">
-        <a href="https://www.buymeacoffee.com/romanrabodzei" target="_blank" rel="noopener">
-          ☕ Buy me a coffee
-        </a>
-        <a href="https://paypal.me/romanrabodzey" target="_blank" rel="noopener">
-          💙 PayPal
+        <a class="support-link" href="https://www.buymeacoffee.com/romanrabodzei" target="_blank" rel="noopener">☕ Buy me a coffee</a>
+        <a class="support-link" href="https://paypal.me/romanrabodzey" target="_blank" rel="noopener">💙 PayPal</a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════ PROJECTS ═══════════════════ -->
+  <div id="page-projects" class="page">
+    <div class="container">
+
+      <div class="page-header">
+        <p class="pg-prompt mono">&gt; projects.list()</p>
+        <h1>Open Source <span class="accent">Projects</span></h1>
+        <p>Infrastructure as Code templates, automation, and tools for Azure and Kubernetes.</p>
+      </div>
+
+      <div class="projects-grid">
+
+        <div class="project-card">
+          <h3>azure-container-apps</h3>
+          <div class="tags"><span>Azure</span><span>Bicep</span><span>Terraform</span><span>GitHub Actions</span></div>
+          <p class="proj-desc">IaC templates for deploying Azure Container Apps — a fully managed Kubernetes-based platform. Supports both Bicep and Terraform with automated CI linting pipelines.</p>
+          <div class="proj-footer">
+            <div class="tags"><span>IaC</span><span>Containers</span></div>
+            <a href="https://github.com/romanrabodzei/Azure-Container-Apps" target="_blank" rel="noopener">view on GitHub →</a>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <h3>azure-kubernetes-service</h3>
+          <div class="tags"><span>Kubernetes</span><span>Helm</span><span>ArgoCD</span><span>Bicep</span><span>Terraform</span></div>
+          <p class="proj-desc">Production-ready AKS cluster setup with GitOps via ArgoCD, Helm chart deployments, and infrastructure templates covering networking, security, and monitoring.</p>
+          <div class="proj-footer">
+            <div class="tags"><span>AKS</span><span>GitOps</span></div>
+            <a href="https://github.com/romanrabodzei/azure-kubernetes-service" target="_blank" rel="noopener">view on GitHub →</a>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <h3>azure-update-manager</h3>
+          <div class="tags"><span>Azure</span><span>Bicep</span><span>Terraform</span><span>Azure DevOps</span></div>
+          <p class="proj-desc">IaC deployment templates for Azure Update Manager — unified update governance across Azure, on-premises, and multi-cloud environments from a single dashboard.</p>
+          <div class="proj-footer">
+            <div class="tags"><span>Governance</span><span>Patching</span></div>
+            <a href="https://github.com/romanrabodzei/Azure-Update-Manager" target="_blank" rel="noopener">view on GitHub →</a>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <h3>multiple-sonarqube-aks</h3>
+          <div class="tags"><span>AKS</span><span>Helm</span><span>ArgoCD</span><span>Bicep</span><span>Azure DevOps</span></div>
+          <p class="proj-desc">Architecture and automation for running multiple isolated SonarQube instances on AKS using GitOps. Includes runbooks for version upgrades and onboarding new instances.</p>
+          <div class="proj-footer">
+            <div class="tags"><span>SonarQube</span><span>GitOps</span></div>
+            <a href="https://github.com/romanrabodzei/multiple-sonarqube-aks" target="_blank" rel="noopener">view on GitHub →</a>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <h3>azure-policies</h3>
+          <div class="tags"><span>Azure Policy</span><span>PowerShell</span><span>JSON</span></div>
+          <p class="proj-desc">A curated collection of Azure Policy definitions for governance — covering allowed locations, permitted VM SKUs, resource tagging enforcement, and compliance guardrails.</p>
+          <div class="proj-footer">
+            <div class="tags"><span>Governance</span><span>Compliance</span></div>
+            <a href="https://github.com/romanrabodzei/azure-policies" target="_blank" rel="noopener">view on GitHub →</a>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <h3>azure-entraid</h3>
+          <div class="tags"><span>Azure</span><span>Entra ID</span><span>PowerShell</span><span>Identity</span></div>
+          <p class="proj-desc">Identity Protection tools for Microsoft Entra ID — automating security configurations, conditional access policies, and identity governance across the tenant.</p>
+          <div class="proj-footer">
+            <div class="tags"><span>Security</span><span>IAM</span></div>
+            <a href="https://github.com/romanrabodzei/azure-entraid" target="_blank" rel="noopener">view on GitHub →</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ BLOG ═══════════════════ -->
+  <div id="page-blog" class="page">
+    <div class="container">
+
+      <div class="page-header">
+        <p class="pg-prompt mono">&gt; blog.posts()</p>
+        <h1>Blog <span class="accent">Posts</span></h1>
+        <p>Thoughts on Azure, Kubernetes, DevOps patterns, and cloud security.</p>
+      </div>
+
+      <div class="blog-list">
+        <a class="blog-item" href="blog/becoming-kubestronaut.html">
+          <div>
+            <div class="blog-item-title">Becoming a CNCF Kubestronaut: Passing All 5 Kubernetes Certifications</div>
+            <div class="blog-item-desc">My journey through KCNA, KCSA, CKA, CKAD, and CKS — what I studied, what tripped me up, and what I actually learned.</div>
+          </div>
+          <div class="blog-item-date">May 2026</div>
         </a>
       </div>
-    </section>
 
-  </main>
+      <div class="blog-placeholder">
+        <p class="prompt-inline mono">&gt; more_posts.soon()</p>
+        <p>More coming. Topics: Azure architecture deep-dives, Kubernetes security, IaC best practices.</p>
+      </div>
 
+    </div>
+  </div>
+
+  <!-- ═══════════════════ FOOTER ═══════════════════ -->
   <footer>
-    &copy; <span id="year"></span> Roman Rabodzei
+    <span class="mono">&copy; <span id="year"></span> Roman Rabodzei</span>
   </footer>
 
   <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
-
-    const root = document.documentElement;
-    const btn = document.getElementById('themeToggle');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const saved = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
-
-    function applyTheme(theme) {
-      if (theme === 'dark') {
-        root.setAttribute('data-theme', 'dark');
-      } else {
-        root.removeAttribute('data-theme');
-      }
-      localStorage.setItem('theme', theme);
+    // ─── Navigation ───────────────────────────────────────────
+    function navigate(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+      const el = document.getElementById('page-' + page);
+      if (el) { el.classList.add('active'); window.scrollTo(0, 0); }
+      const link = document.querySelector(`.nav-links a[data-page="${page}"]`);
+      if (link) link.classList.add('active');
+      history.replaceState(null, '', '#' + page);
     }
 
+    document.querySelectorAll('[data-page]').forEach(el => {
+      el.addEventListener('click', e => { e.preventDefault(); navigate(el.dataset.page); });
+    });
+
+    document.querySelectorAll('[data-goto]').forEach(el => {
+      el.addEventListener('click', e => { e.preventDefault(); navigate(el.dataset.goto); });
+    });
+
+    navigate(window.location.hash.slice(1) || 'home');
+
+    // ─── Theme ────────────────────────────────────────────────
+    const html = document.documentElement;
+
+    function applyTheme(t) {
+      html.setAttribute('data-theme', t);
+      localStorage.setItem('theme', t);
+    }
+
+    const saved = localStorage.getItem('theme') ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     applyTheme(saved);
 
-    btn.addEventListener('click', () => {
-      applyTheme(root.hasAttribute('data-theme') ? 'light' : 'dark');
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
     });
+
+    // ─── Year ─────────────────────────────────────────────────
+    document.getElementById('year').textContent = new Date().getFullYear();
   </script>
 
 </body>
