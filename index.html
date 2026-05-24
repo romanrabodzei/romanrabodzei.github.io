@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,15 +11,15 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:          #121211;
-      --surface:     #1c1c1a;
-      --surface2:    #242422;
-      --border:      #2e2d2a;
-      --text:        #e4e2dd;
-      --muted:       #888680;
-      --accent:      #c4c2bb;
-      --accent-dim:  rgba(196, 194, 187, 0.08);
-      --accent-glow: rgba(196, 194, 187, 0.18);
+      --bg:          #060d16;
+      --surface:     #0b1624;
+      --surface2:    #101e30;
+      --border:      #16304a;
+      --text:        #f0ede8;
+      --muted:       #5280a8;
+      --accent:      #60a5fa;
+      --accent-dim:  rgba(96, 165, 250, 0.10);
+      --accent-glow: rgba(96, 165, 250, 0.25);
     }
 
     [data-theme="light"] {
@@ -28,10 +28,10 @@
       --surface2:    #eeedea;
       --border:      #d6d4cf;
       --text:        #1c1b18;
-      --muted:       #8c8a84;
-      --accent:      #3d3c38;
-      --accent-dim:  rgba(61, 60, 56, 0.07);
-      --accent-glow: rgba(61, 60, 56, 0.18);
+      --muted:       #456080;
+      --accent:      #0369a1;
+      --accent-dim:  rgba(3, 105, 161, 0.08);
+      --accent-glow: rgba(3, 105, 161, 0.20);
     }
 
     html { scroll-behavior: smooth; }
@@ -117,11 +117,11 @@
     .hero {
       min-height: calc(88vh - 46px);
       display: flex; align-items: center;
-      background: radial-gradient(ellipse 60% 60% at 15% 50%, rgba(196,194,187,0.04) 0%, transparent 70%);
+      background: radial-gradient(ellipse 60% 60% at 15% 50%, rgba(96,165,250,0.06) 0%, transparent 70%);
     }
 
     [data-theme="light"] .hero {
-      background: radial-gradient(ellipse 60% 60% at 15% 50%, rgba(61,60,56,0.04) 0%, transparent 70%);
+      background: radial-gradient(ellipse 60% 60% at 15% 50%, rgba(3,105,161,0.05) 0%, transparent 70%);
     }
 
     .hero .container-wide {
@@ -181,11 +181,11 @@
 
     .btn:hover { opacity: .82; transform: translateY(-1px); }
 
-    .btn-primary   { background: var(--accent); color: #121211; border-color: var(--accent); font-weight: 600; }
+    .btn-primary   { background: var(--accent); color: #060d16; border-color: var(--accent); font-weight: 600; }
     .btn-secondary { background: var(--surface); color: var(--text); border-color: var(--border); }
     .btn-ghost     { background: transparent; color: var(--muted); border-color: var(--border); }
 
-    [data-theme="light"] .btn-primary { color: #f7f6f3; }
+    [data-theme="light"] .btn-primary { color: #ffffff; }
 
     /* ─── HOME CARDS ────────────────────────────── */
     .cards-section { padding-bottom: 4.5rem; }
@@ -221,12 +221,12 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: .68rem; color: var(--accent);
       background: var(--accent-dim);
-      border: 1px solid rgba(196,194,187,0.20);
+      border: 1px solid rgba(96,165,250,0.22);
       border-radius: 4px; padding: .15rem .5rem;
       margin-bottom: .8rem;
     }
 
-    [data-theme="light"] .card-tag { border-color: rgba(61,60,56,0.20); }
+    [data-theme="light"] .card-tag { border-color: rgba(3,105,161,0.22); }
 
     .card-link {
       font-family: 'JetBrains Mono', monospace;
@@ -393,7 +393,10 @@
     .project-card h3 {
       font-family: 'JetBrains Mono', monospace;
       font-size: .92rem; font-weight: 500; color: var(--accent);
+      display: flex; align-items: center; gap: .4em;
     }
+
+    .project-card h3 svg { flex-shrink: 0; opacity: .85; }
 
     .project-card .proj-desc { font-size: .875rem; color: var(--muted); line-height: 1.65; flex: 1; }
 
@@ -409,6 +412,42 @@
     }
 
     .proj-footer a:hover { opacity: .75; }
+
+    /* ─── PROJECTS VIEW TOGGLE ───────────────────── */
+    .view-toggle {
+      display: flex; align-items: center; gap: .25rem;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: .25rem;
+    }
+
+    .view-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 2rem; height: 2rem; border-radius: 5px;
+      border: none; background: transparent; color: var(--muted);
+      cursor: pointer; transition: background .15s, color .15s;
+    }
+
+    .view-btn.active { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+    .view-btn:not(.active):hover { color: var(--text); }
+
+    /* list view overrides */
+    .projects-grid.list-view { grid-template-columns: 1fr; gap: .6rem; }
+
+    .projects-grid.list-view .project-card {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      grid-template-rows: auto auto;
+      grid-template-areas: "name tags link" "desc desc desc";
+      align-items: center;
+      column-gap: 1rem;
+      row-gap: .35rem;
+      padding: .85rem 1.2rem;
+    }
+    .projects-grid.list-view .project-card h3         { grid-area: name; margin: 0; white-space: nowrap; }
+    .projects-grid.list-view .project-card > .tags    { grid-area: tags; flex-wrap: nowrap; }
+    .projects-grid.list-view .proj-desc               { grid-area: desc; margin: 0; }
+    .projects-grid.list-view .proj-footer             { grid-area: link; padding-top: 0; }
+    .projects-grid.list-view .proj-footer .tags       { display: none; }
 
     /* ─── BLOG PAGE ─────────────────────────────── */
     .blog-list {
@@ -750,16 +789,26 @@
   <div id="page-projects" class="page">
     <div class="container">
 
-      <div class="page-header">
-        <p class="pg-prompt mono">&gt; projects.list()</p>
-        <h1>Open Source <span class="accent">Projects</span></h1>
-        <p>Infrastructure as Code templates, automation, and tools for Azure and Kubernetes.</p>
+      <div class="page-header" style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+        <div>
+          <p class="pg-prompt mono">&gt; projects.list()</p>
+          <h1>Open Source <span class="accent">Projects</span></h1>
+          <p>Infrastructure as Code templates, automation, and tools for Azure and Kubernetes.</p>
+        </div>
+        <div class="view-toggle" role="group" aria-label="View mode">
+          <button class="view-btn active" id="btn-grid" aria-label="Grid view" title="Grid view">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3A1.5 1.5 0 0 1 15 10.5v3A1.5 1.5 0 0 1 13.5 15h-3A1.5 1.5 0 0 1 9 13.5v-3z"/></svg>
+          </button>
+          <button class="view-btn" id="btn-list" aria-label="List view" title="List view">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/></svg>
+          </button>
+        </div>
       </div>
 
-      <div class="projects-grid">
+      <div class="projects-grid" id="projects-grid">
 
         <div class="project-card">
-          <h3>azure-container-apps</h3>
+          <h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>azure-container-apps</h3>
           <div class="tags"><span>Azure</span><span>Bicep</span><span>Terraform</span><span>GitHub Actions</span></div>
           <p class="proj-desc">IaC templates for deploying Azure Container Apps — a fully managed Kubernetes-based platform. Supports both Bicep and Terraform with automated CI linting pipelines.</p>
           <div class="proj-footer">
@@ -769,7 +818,7 @@
         </div>
 
         <div class="project-card">
-          <h3>azure-kubernetes-service</h3>
+          <h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>azure-kubernetes-service</h3>
           <div class="tags"><span>Kubernetes</span><span>Helm</span><span>ArgoCD</span><span>Bicep</span><span>Terraform</span></div>
           <p class="proj-desc">Production-ready AKS cluster setup with GitOps via ArgoCD, Helm chart deployments, and infrastructure templates covering networking, security, and monitoring.</p>
           <div class="proj-footer">
@@ -779,7 +828,7 @@
         </div>
 
         <div class="project-card">
-          <h3>azure-update-manager</h3>
+          <h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>azure-update-manager</h3>
           <div class="tags"><span>Azure</span><span>Bicep</span><span>Terraform</span><span>Azure DevOps</span></div>
           <p class="proj-desc">IaC deployment templates for Azure Update Manager — unified update governance across Azure, on-premises, and multi-cloud environments from a single dashboard.</p>
           <div class="proj-footer">
@@ -789,7 +838,7 @@
         </div>
 
         <div class="project-card">
-          <h3>multiple-sonarqube-aks</h3>
+          <h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>multiple-sonarqube-aks</h3>
           <div class="tags"><span>AKS</span><span>Helm</span><span>ArgoCD</span><span>Bicep</span><span>Azure DevOps</span></div>
           <p class="proj-desc">Architecture and automation for running multiple isolated SonarQube instances on AKS using GitOps. Includes runbooks for version upgrades and onboarding new instances.</p>
           <div class="proj-footer">
@@ -799,7 +848,7 @@
         </div>
 
         <div class="project-card">
-          <h3>azure-policies</h3>
+          <h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>azure-policies</h3>
           <div class="tags"><span>Azure Policy</span><span>PowerShell</span><span>JSON</span></div>
           <p class="proj-desc">A curated collection of Azure Policy definitions for governance — covering allowed locations, permitted VM SKUs, resource tagging enforcement, and compliance guardrails.</p>
           <div class="proj-footer">
@@ -809,7 +858,7 @@
         </div>
 
         <div class="project-card">
-          <h3>azure-entraid</h3>
+          <h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>azure-entraid</h3>
           <div class="tags"><span>Azure</span><span>Entra ID</span><span>PowerShell</span><span>Identity</span></div>
           <p class="proj-desc">Identity Protection tools for Microsoft Entra ID — automating security configurations, conditional access policies, and identity governance across the tenant.</p>
           <div class="proj-footer">
@@ -856,6 +905,28 @@
   </footer>
 
   <script>
+    // ─── Projects view toggle ─────────────────────────────────
+    (function () {
+      const grid = document.getElementById('projects-grid');
+      const btnGrid = document.getElementById('btn-grid');
+      const btnList = document.getElementById('btn-list');
+      if (!grid || !btnGrid || !btnList) return;
+
+      const saved = localStorage.getItem('projectsView') || 'grid';
+      if (saved === 'list') { grid.classList.add('list-view'); btnList.classList.add('active'); btnGrid.classList.remove('active'); }
+
+      btnGrid.addEventListener('click', () => {
+        grid.classList.remove('list-view');
+        btnGrid.classList.add('active'); btnList.classList.remove('active');
+        localStorage.setItem('projectsView', 'grid');
+      });
+      btnList.addEventListener('click', () => {
+        grid.classList.add('list-view');
+        btnList.classList.add('active'); btnGrid.classList.remove('active');
+        localStorage.setItem('projectsView', 'list');
+      });
+    })();
+
     // ─── Navigation ───────────────────────────────────────────
     function navigate(page) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -885,7 +956,7 @@
       localStorage.setItem('theme', t);
     }
 
-    const saved = localStorage.getItem('theme') || 'light';
+    const saved = localStorage.getItem('theme') || 'dark';
     applyTheme(saved);
 
     document.getElementById('themeToggle').addEventListener('click', () => {
