@@ -100,7 +100,9 @@
       transition: color .15s;
     }
 
-    .back-link:hover { color: var(--accent); }
+    @media (hover: hover) {
+      .back-link:hover { color: var(--accent); }
+    }
 
     .theme-toggle {
       display: flex; align-items: center; justify-content: center;
@@ -111,7 +113,9 @@
       transition: border-color .15s, color .15s, background .15s;
     }
 
-    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    @media (hover: hover) {
+      .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    }
 
     .theme-toggle svg { width: 15px; height: 15px; }
 
@@ -558,7 +562,11 @@ k8s/helm/
     shareBtn.addEventListener('click', async () => {
       const shareData = { title: document.title, url: location.href };
       if (navigator.share) {
-        try { await navigator.share(shareData); } catch (e) {}
+        try {
+          await navigator.share(shareData);
+          shareBtn.classList.add('copied');
+          setTimeout(() => shareBtn.classList.remove('copied'), 1500);
+        } catch (e) {}
         return;
       }
       try {
