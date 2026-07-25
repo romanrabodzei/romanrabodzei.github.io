@@ -384,17 +384,17 @@
 
       <p>
         Two small web apps share one <strong>App Service Plan</strong>: a <strong>FastAPI</strong>
-        backend that owns all the data, and a server-rendered <strong>web UI</strong> that talks to it
-        over its internal hostname. Pipelines POST a deployment event after every run — success or
+        backend that owns all the data, and a server-rendered <strong>web UI</strong> that acts as the
+        human-facing layer over the API. Pipelines POST a deployment event after every run — success or
         failure — and a daily Azure Function scans App Registrations across tenants and posts what it
         finds. Everything lands in <strong>Cosmos DB Serverless</strong>, with signing keys and shared
         secrets pulled from <strong>Key Vault</strong> at runtime rather than baked into app settings.
       </p>
 
       <p>
-        The interesting part isn't any single piece — it's that a pipeline event, a scheduled scan, and
-        a human clicking around a dashboard all go through the exact same authentication and data layer,
-        just with different keys and different scopes.
+        The interesting part isn't any single piece — it's that pipeline events, scheduled scans, and 
+        human-facing operations all converge on the same API and data layer, while keeping their own 
+        authentication paths and trust boundaries.
       </p>
 
       <h2>Every pipeline gets its own key, and only its own key</h2>
@@ -486,11 +486,11 @@
       <h2>Practical takeaways</h2>
 
       <p>
-        The pattern that made this worth building: one write path, multiple trust levels. Pipelines,
-        a scheduled function, and human admins all end up at the same API and the same database, but
-        each with credentials scoped to exactly what they need — a pipeline can write its own deployment
-        events and nothing else, a scanning function can write monitoring data and nothing else, and only
-        an admin key can read any of it back out.
+        The pattern that made this worth building: one write path, multiple trust levels. Pipelines, 
+        scheduled jobs, and human admins all end up at the same API and data layer, but cross the boundary 
+        with credentials scoped to their role. Deployment integrations can submit deployment events, 
+        monitoring integrations can submit monitoring data, while administrative operations stay behind 
+        a separate trust boundary.
       </p>
 
       <p>
