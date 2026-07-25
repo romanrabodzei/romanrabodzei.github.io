@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,27 +11,15 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:          #060d16;
-      --surface:     #0b1624;
-      --surface2:    #101e30;
-      --border:      #16304a;
-      --text:        #f0ede8;
-      --muted:       #5280a8;
-      --accent:      #60a5fa;
-      --accent-dim:  rgba(96, 165, 250, 0.10);
-      --accent-glow: rgba(96, 165, 250, 0.25);
-    }
-
-    [data-theme="light"] {
-      --bg:          #f7f6f3;
+      --bg:          #f5f5f7;
       --surface:     #ffffff;
-      --surface2:    #eeedea;
-      --border:      #d6d4cf;
-      --text:        #1c1b18;
-      --muted:       #456080;
-      --accent:      #0369a1;
-      --accent-dim:  rgba(3, 105, 161, 0.08);
-      --accent-glow: rgba(3, 105, 161, 0.20);
+      --surface2:    #f5f5f7;
+      --border:      #d2d2d7;
+      --text:        #1d1d1f;
+      --muted:       #6e6e73;
+      --accent:      #0071e3;
+      --accent-dim:  rgba(0, 113, 227, 0.08);
+      --accent-glow: rgba(0, 113, 227, 0.20);
     }
 
     html { scroll-behavior: smooth; }
@@ -91,24 +79,6 @@
       background: var(--accent);
     }
 
-    /* Theme button */
-    .theme-btn {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: .75rem;
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: .28rem .55rem;
-      cursor: pointer; color: var(--muted);
-      white-space: nowrap; flex-shrink: 0;
-      transition: border-color .15s;
-    }
-
-    .theme-btn:hover { border-color: var(--accent); }
-
-    [data-theme="dark"]  .theme-btn .mode-dark  { color: var(--accent); }
-    [data-theme="light"] .theme-btn .mode-light { color: var(--accent); }
-
     /* ─── PAGE ROUTING ──────────────────────────── */
     .page { display: none; }
     .page.active { display: block; }
@@ -117,11 +87,7 @@
     .hero {
       min-height: calc(88vh - 46px);
       display: flex; align-items: center;
-      background: radial-gradient(ellipse 60% 60% at 15% 50%, rgba(96,165,250,0.06) 0%, transparent 70%);
-    }
-
-    [data-theme="light"] .hero {
-      background: radial-gradient(ellipse 60% 60% at 15% 50%, rgba(3,105,161,0.05) 0%, transparent 70%);
+      background: radial-gradient(ellipse 60% 60% at 15% 50%, rgba(0,113,227,0.05) 0%, transparent 70%);
     }
 
     .hero .container-wide {
@@ -181,11 +147,9 @@
 
     .btn:hover { opacity: .82; transform: translateY(-1px); }
 
-    .btn-primary   { background: var(--accent); color: #060d16; border-color: var(--accent); font-weight: 600; }
+    .btn-primary   { background: var(--accent); color: #ffffff; border-color: var(--accent); font-weight: 600; }
     .btn-secondary { background: var(--surface); color: var(--text); border-color: var(--border); }
     .btn-ghost     { background: transparent; color: var(--muted); border-color: var(--border); }
-
-    [data-theme="light"] .btn-primary { color: #ffffff; }
 
     /* ─── HOME CARDS ────────────────────────────── */
     .cards-section { padding-bottom: 4.5rem; }
@@ -221,12 +185,10 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: .68rem; color: var(--accent);
       background: var(--accent-dim);
-      border: 1px solid rgba(96,165,250,0.22);
+      border: 1px solid rgba(0,113,227,0.22);
       border-radius: 4px; padding: .15rem .5rem;
       margin-bottom: .8rem;
     }
-
-    [data-theme="light"] .card-tag { border-color: rgba(3,105,161,0.22); }
 
     .card-link {
       font-family: 'JetBrains Mono', monospace;
@@ -512,9 +474,6 @@
       <li><a data-page="projects">projects</a></li>
       <li><a data-page="blog">blog</a></li>
     </ul>
-    <button class="theme-btn mono" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
-      <span class="mode-dark">[dark]</span><span class="mode-light">[light]</span>
-    </button>
   </nav>
 
   <!-- ═══════════════════ HOME ═══════════════════ -->
@@ -536,7 +495,7 @@
     </section>
 
     <section class="cards-section container-wide">
-      <p class="section-label mono">AZURE CLOUD &nbsp;·&nbsp; DEVOPS &nbsp;·&nbsp; AI</p>
+      <p class="section-label mono">AZURE CLOUD &nbsp;·&nbsp; DEVOPS &nbsp;·&nbsp; SECURITY &nbsp;·&nbsp; AI</p>
       <div class="cards-grid">
 
         <!-- About snippet -->
@@ -947,21 +906,6 @@
     });
 
     navigate(window.location.hash.slice(1) || 'home');
-
-    // ─── Theme ────────────────────────────────────────────────
-    const html = document.documentElement;
-
-    function applyTheme(t) {
-      html.setAttribute('data-theme', t);
-      localStorage.setItem('theme', t);
-    }
-
-    const saved = localStorage.getItem('theme') || 'dark';
-    applyTheme(saved);
-
-    document.getElementById('themeToggle').addEventListener('click', () => {
-      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-    });
 
     // ─── Year ─────────────────────────────────────────────────
     document.getElementById('year').textContent = new Date().getFullYear();
