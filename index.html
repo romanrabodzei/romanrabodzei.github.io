@@ -499,21 +499,20 @@
 
     /* ─── BLOG PAGE ─────────────────────────────── */
     .blog-list {
-      border: 1px solid var(--border); border-radius: 10px;
-      overflow: hidden; margin-bottom: 2.5rem;
+      display: flex; flex-direction: column; gap: .9rem;
+      margin-bottom: 2.5rem;
     }
 
     .blog-item {
       display: flex; align-items: center; justify-content: space-between; gap: 1rem;
       padding: 1.15rem 1.4rem;
       background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      transition: background .15s;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: background .15s, border-color .15s;
     }
 
-    .blog-item:last-child { border-bottom: none; }
-
-    .blog-item:hover { background: var(--surface2); }
+    .blog-item:hover { background: var(--surface2); border-color: var(--accent-glow); }
 
     .blog-item-title { font-size: .96rem; font-weight: 500; margin-bottom: .2rem; }
 
