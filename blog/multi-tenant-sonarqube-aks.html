@@ -174,6 +174,7 @@
     .article-content p {
       font-size: .975rem; line-height: 1.85;
       color: var(--text); margin-bottom: 1.35rem;
+      text-align: justify;
     }
 
     .article-content h2 {
@@ -367,8 +368,9 @@
 
       <p>
         Somewhere around the third time a team lead asked "can we get our own SonarQube instance?"
-        I realized I had two options: keep clicking "New Namespace" in the Azure portal until my mouse
-        wore out, or actually build something that scales past copy-paste. This post is about the
+        I realized I had two options: keep spinning up a new Windows VM, installing IIS, and hand-configuring
+        each instance from scratch — which is how I used to run it — or actually build something that
+        scales past copy-paste. This post is about the
         second option — running <strong>multiple SonarQube instances on a single AKS cluster</strong>,
         provisioned by Bicep and reconciled continuously by ArgoCD, so that "spin up instance number five"
         is a Git commit, not a Tuesday afternoon.
