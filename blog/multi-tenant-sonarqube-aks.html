@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloning SonarQube Five Times Without Losing My Mind — Roman Rabodzei</title>
+  <meta name="description" content="How I run five SonarQube instances on one AKS cluster with ArgoCD's app-of-apps pattern, Key Vault-backed secrets, and Cilium default-deny — without a single manual helm upgrade.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #06090f;
+      --surface:     #0b1524;
+      --surface2:    #101e30;
+      --border:      #182d42;
+      --text:        #dce8f4;
+      --muted:       #6a8ba8;
+      --accent:      #4fc3f7;
+      --accent-dim:  rgba(79, 195, 247, 0.10);
+    }
+
+    [data-theme="light"] {
+      --bg:          #f2f6fb;
+      --surface:     #ffffff;
+      --surface2:    #e8f0f8;
+      --border:      #c4d4e4;
+      --text:        #0c1c2c;
+      --muted:       #486a86;
+      --accent:      #0277bd;
+      --accent-dim:  rgba(2, 119, 189, 0.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace; }
+    a { color: inherit; }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: .7rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+
+    .nav-logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600; font-size: 1.05rem;
+      color: var(--accent); text-decoration: none;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+
+    .back-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .82rem; color: var(--muted);
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    .back-link:hover { color: var(--accent); }
+
+    .theme-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; background: none;
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: .28rem .55rem; cursor: pointer; color: var(--muted);
+      transition: border-color .15s;
+    }
+
+    .theme-btn:hover { border-color: var(--accent); }
+
+    [data-theme="dark"]  .theme-btn .mode-dark  { color: var(--accent); }
+    [data-theme="light"] .theme-btn .mode-light { color: var(--accent); }
+
+    /* ARTICLE */
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+
+    .article-header {
+      padding: 3rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+
+    .article-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted); margin-bottom: .75rem;
+    }
+
+    .article-title {
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      font-weight: 700; line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .article-title .accent { color: var(--accent); }
+
+    .article-meta {
+      display: flex; flex-wrap: wrap; gap: .75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; color: var(--muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .article-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+    .article-tags span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem; padding: .15rem .5rem;
+      border-radius: 4px; border: 1px solid var(--border);
+      color: var(--muted); background: var(--surface);
+    }
+
+    /* HERO IMAGE */
+    .article-hero {
+      margin-bottom: 2.5rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .article-hero svg { display: block; width: 100%; height: auto; }
+
+    /* CONTENT */
+    .article-content { padding-bottom: 4rem; }
+
+    .article-content p {
+      font-size: .975rem; line-height: 1.85;
+      color: var(--text); margin-bottom: 1.35rem;
+    }
+
+    .article-content h2 {
+      font-size: 1.2rem; font-weight: 600;
+      margin: 2.25rem 0 1rem;
+      padding-bottom: .5rem; border-bottom: 1px solid var(--border);
+    }
+
+    .article-content h3 {
+      font-size: 1rem; font-weight: 600;
+      margin: 1.75rem 0 .6rem; color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .article-content ul, .article-content ol {
+      margin: .75rem 0 1.35rem 1.5rem;
+      display: flex; flex-direction: column; gap: .45rem;
+    }
+
+    .article-content li { font-size: .975rem; line-height: 1.75; color: var(--text); }
+
+    .article-content strong { color: var(--text); }
+
+    .article-content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .85em; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 3px;
+      padding: .1em .35em; color: var(--accent);
+    }
+
+    .article-content pre {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1rem 1.15rem;
+      overflow-x: auto; margin: 1rem 0 1.5rem;
+    }
+
+    .article-content pre code {
+      background: none; border: none; padding: 0;
+      color: var(--text); font-size: .82rem; line-height: 1.6;
+    }
+
+    .cert-row {
+      display: flex; flex-wrap: wrap; gap: .5rem;
+      margin: 1.25rem 0;
+    }
+
+    .cert-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; padding: .3rem .75rem;
+      background: var(--accent-dim); border: 1px solid rgba(79,195,247,0.25);
+      border-radius: 20px; color: var(--accent);
+    }
+
+    [data-theme="light"] .cert-pill { border-color: rgba(2,119,189,0.25); }
+
+    .callout {
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px; padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+    }
+
+    .callout p { margin-bottom: 0; }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem; text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-logo mono" href="../index.html">rr.dev</a>
+    <div class="nav-right">
+      <a class="back-link mono" href="../index.html#blog">← back to blog</a>
+      <button class="theme-btn mono" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
+        <span class="mode-dark">[dark]</span><span class="mode-light">[light]</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="article-header">
+      <p class="article-label mono">&gt; blog.post()</p>
+      <h1 class="article-title">Cloning SonarQube Five Times Without Losing My <span class="accent">Mind</span>: A GitOps Story on AKS</h1>
+      <div class="article-meta">
+        <span>Roman Rabodzei</span>
+        <span>·</span>
+        <span>July 2026</span>
+        <span>·</span>
+        <span>~9 min read</span>
+      </div>
+      <div class="article-tags">
+        <span>SonarQube</span>
+        <span>AKS</span>
+        <span>ArgoCD</span>
+        <span>GitOps</span>
+        <span>Azure</span>
+        <span>Kubernetes</span>
+        <span>DevOps</span>
+      </div>
+    </header>
+
+    <figure class="article-hero">
+      <svg viewBox="0 0 1200 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Architecture diagram: Internet through a WAF Application Gateway into an AKS cluster, where ArgoCD fans out four SonarQube instances backed by a private PostgreSQL server and Key Vault secrets">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#4fc3f7"></path>
+          </marker>
+        </defs>
+        <rect width="1200" height="560" fill="#0b1524"></rect>
+
+        <!-- stars -->
+        <g fill="#4fc3f7" opacity=".35">
+          <circle cx="60" cy="40" r="1.6"></circle>
+          <circle cx="140" cy="90" r="1.2"></circle>
+          <circle cx="1120" cy="60" r="1.6"></circle>
+          <circle cx="1050" cy="130" r="1.2"></circle>
+          <circle cx="980" cy="45" r="1.4"></circle>
+          <circle cx="30" cy="480" r="1.4"></circle>
+          <circle cx="1150" cy="500" r="1.6"></circle>
+        </g>
+
+        <!-- Internet -->
+        <g>
+          <circle cx="90" cy="90" r="34" fill="none" stroke="#6a8ba8" stroke-width="2"></circle>
+          <path d="M56 90 h68 M90 56 v68 M67 68 q23 22 46 0 M67 112 q23 -22 46 0" fill="none" stroke="#6a8ba8" stroke-width="1.4"></path>
+          <text x="90" y="146" text-anchor="middle" fill="#dce8f4" font-family="JetBrains Mono, monospace" font-size="15">Internet</text>
+        </g>
+
+        <line x1="128" y1="90" x2="230" y2="90" stroke="#4fc3f7" stroke-width="2" marker-end="url(#arrow)"></line>
+        <text x="178" y="76" text-anchor="middle" fill="#6a8ba8" font-family="JetBrains Mono, monospace" font-size="12">HTTPS</text>
+
+        <!-- App Gateway -->
+        <rect x="232" y="55" width="200" height="70" rx="10" fill="#101e30" stroke="#4fc3f7" stroke-width="1.6"></rect>
+        <text x="332" y="86" text-anchor="middle" fill="#dce8f4" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600">Application Gateway</text>
+        <text x="332" y="106" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="12">WAF v2</text>
+
+        <line x1="332" y1="125" x2="332" y2="180" stroke="#4fc3f7" stroke-width="2" marker-end="url(#arrow)"></line>
+
+        <!-- AKS boundary -->
+        <rect x="120" y="182" width="960" height="330" rx="14" fill="none" stroke="#182d42" stroke-width="1.6" stroke-dasharray="6 5"></rect>
+        <text x="145" y="210" fill="#6a8ba8" font-family="JetBrains Mono, monospace" font-size="13">AKS cluster</text>
+
+        <!-- ArgoCD -->
+        <rect x="232" y="222" width="200" height="64" rx="10" fill="#0b1524" stroke="#4fc3f7" stroke-width="1.6"></rect>
+        <text x="332" y="248" text-anchor="middle" fill="#dce8f4" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600">ArgoCD</text>
+        <text x="332" y="266" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11">app-of-apps · GitOps</text>
+
+        <line x1="130" y1="254" x2="230" y2="254" stroke="#6a8ba8" stroke-width="1.6" marker-end="url(#arrow)"></line>
+        <text x="90" y="240" text-anchor="middle" fill="#6a8ba8" font-family="JetBrains Mono, monospace" font-size="11">git push</text>
+        <path d="M60 254 q-20 0 -20 30 v40" fill="none" stroke="#6a8ba8" stroke-width="1.6"></path>
+
+        <!-- fan out to sonarqube instances -->
+        <g stroke="#4fc3f7" stroke-width="1.6" fill="none">
+          <path d="M332 286 v20 h-140 v34" marker-end="url(#arrow)"></path>
+          <path d="M332 286 v20 h-46 v34" marker-end="url(#arrow)"></path>
+          <path d="M332 286 v20 h48 v34" marker-end="url(#arrow)"></path>
+          <path d="M332 286 v20 h142 v34" marker-end="url(#arrow)"></path>
+        </g>
+
+        <!-- SonarQube instance boxes -->
+        <g font-family="JetBrains Mono, monospace">
+          <rect x="122" y="342" width="120" height="58" rx="8" fill="#101e30" stroke="#38546f" stroke-width="1.4"></rect>
+          <text x="182" y="368" text-anchor="middle" fill="#dce8f4" font-size="12" font-weight="600">SonarQube</text>
+          <text x="182" y="385" text-anchor="middle" fill="#6a8ba8" font-size="10">team-alpha</text>
+
+          <rect x="256" y="342" width="120" height="58" rx="8" fill="#101e30" stroke="#38546f" stroke-width="1.4"></rect>
+          <text x="316" y="368" text-anchor="middle" fill="#dce8f4" font-size="12" font-weight="600">SonarQube</text>
+          <text x="316" y="385" text-anchor="middle" fill="#6a8ba8" font-size="10">team-beta</text>
+
+          <rect x="390" y="342" width="120" height="58" rx="8" fill="#101e30" stroke="#38546f" stroke-width="1.4"></rect>
+          <text x="450" y="368" text-anchor="middle" fill="#dce8f4" font-size="12" font-weight="600">SonarQube</text>
+          <text x="450" y="385" text-anchor="middle" fill="#6a8ba8" font-size="10">team-gamma</text>
+
+          <rect x="524" y="342" width="120" height="58" rx="8" fill="#101e30" stroke="#38546f" stroke-width="1.4"></rect>
+          <text x="584" y="368" text-anchor="middle" fill="#dce8f4" font-size="12" font-weight="600">SonarQube</text>
+          <text x="584" y="385" text-anchor="middle" fill="#6a8ba8" font-size="10">team-delta …</text>
+        </g>
+
+        <!-- down to postgres -->
+        <line x1="332" y1="400" x2="332" y2="440" stroke="#4fc3f7" stroke-width="2" marker-end="url(#arrow)"></line>
+        <rect x="212" y="442" width="240" height="58" rx="10" fill="#0b1524" stroke="#4fc3f7" stroke-width="1.6"></rect>
+        <text x="332" y="468" text-anchor="middle" fill="#dce8f4" font-family="JetBrains Mono, monospace" font-size="13" font-weight="600">PostgreSQL Flexible Server</text>
+        <text x="332" y="486" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11">private endpoint only</text>
+
+        <!-- Key Vault side -->
+        <line x1="720" y1="254" x2="820" y2="254" stroke="#6a8ba8" stroke-width="1.6" marker-end="url(#arrow)"></line>
+        <rect x="822" y="222" width="200" height="64" rx="10" fill="#0b1524" stroke="#6a8ba8" stroke-width="1.6"></rect>
+        <text x="922" y="248" text-anchor="middle" fill="#dce8f4" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600">Key Vault</text>
+        <text x="922" y="266" text-anchor="middle" fill="#6a8ba8" font-family="JetBrains Mono, monospace" font-size="11">CSI Secrets Store</text>
+        <path d="M720 254 h-160" fill="none" stroke="none"></path>
+
+        <text x="600" y="536" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="11">names are placeholders — the real thing has more coffee involved</text>
+      </svg>
+    </figure>
+
+    <article class="article-content">
+
+      <p>
+        Somewhere around the third time a team lead asked "can we get our own SonarQube instance?"
+        I realized I had two options: keep clicking "New Namespace" in the Azure portal until my mouse
+        wore out, or actually build something that scales past copy-paste. This post is about the
+        second option — running <strong>multiple SonarQube instances on a single AKS cluster</strong>,
+        provisioned by Bicep and reconciled continuously by ArgoCD, so that "spin up instance number five"
+        is a Git commit, not a Tuesday afternoon.
+      </p>
+
+      <p>
+        Fair warning: this post is about the architecture and the patterns, not any particular client's
+        domain names, resource groups, or org charts — those are staying exactly where they belong,
+        which is nowhere near the public internet.
+      </p>
+
+      <h2>The shape of the thing</h2>
+
+      <p>
+        At a high level: traffic hits an <strong>Application Gateway</strong> running in WAF mode, which
+        is wired to the cluster's Ingress resources via <strong>AGIC</strong> (Application Gateway
+        Ingress Controller) — so the moment you add an Ingress object, AGIC rewrites the Gateway's
+        routing rules for you. No manual backend pool editing, which is good, because manually editing
+        backend pools is how Fridays get ruined.
+      </p>
+
+      <p>
+        Inside the cluster, each SonarQube instance lives in its own namespace, with its own Helm
+        release, its own Ingress, and its own slice of a shared <strong>PostgreSQL Flexible Server</strong>
+        reachable only over a private endpoint. Nothing about SonarQube's data plane touches the public
+        internet — the only public surface is the Gateway itself.
+      </p>
+
+      <h2>GitOps, or: how I stopped SSH-ing into things at 11pm</h2>
+
+      <p>
+        Every instance is deployed by <strong>ArgoCD</strong> using the <code>app-of-apps</code> pattern:
+        a single root <code>Application</code> watches a folder in Git, and every
+        <code>app-&lt;instance&gt;.yaml</code> file dropped into that folder automatically becomes its
+        own ArgoCD Application — no manual <code>argocd app create</code>, no clicking through a UI five
+        times and hoping you didn't fat-finger a namespace name on instance number four.
+      </p>
+
+      <pre><code>k8s/argocd/
+├── app-of-apps.yaml          # the root app — watches this folder
+├── app-team-alpha.yaml
+├── app-team-beta.yaml
+├── app-team-gamma.yaml
+└── app-team-delta.yaml       # copy, rename, done
+
+k8s/helm/
+├── team-alpha/
+│   ├── chart-values.yaml     # image tag, JDBC settings, plugins
+│   ├── namespace.yaml
+│   ├── secret-provider-class.yaml
+│   ├── ingress.yaml
+│   └── network-policy.yaml
+└── team-beta/ (same shape)</code></pre>
+
+      <p>
+        Adding a sixth instance is, genuinely, <code>cp -r</code>, sed a few names, git push, and go get
+        coffee. ArgoCD polls every few minutes, notices the new Application, and reconciles namespace,
+        secrets, ingress, and the Helm chart itself — in that order, automatically. The most technical
+        part of "provisioning a new tenant" is now typing the team's name correctly.
+      </p>
+
+      <div class="callout">
+        <p><strong>selfHeal: true</strong> is doing a lot of quiet heroic work here. Somebody manually
+        edits a ConfigMap in production because "it's just a quick fix"? ArgoCD notices the drift within
+        a few minutes and politely reverts it back to whatever Git says reality should be. Git wins.
+        Always.</p>
+      </div>
+
+      <h2>Secrets that never touch a YAML file</h2>
+
+      <p>
+        Nobody wants database passwords sitting in a Git-tracked <code>values.yaml</code>, so this setup
+        leans on the <strong>AKS Secrets Store CSI driver</strong> pointed at Azure Key Vault. Each
+        namespace gets a <code>SecretProviderClass</code> that pulls the connection details from Key
+        Vault and materializes them as a native Kubernetes Secret, which the Helm chart then consumes as
+        environment variables to build the JDBC URL at pod startup.
+      </p>
+
+      <pre><code>Key Vault ──[CSI driver]──► SecretProviderClass
+                                  │
+                       (auto-creates K8s Secret)
+                                  │
+                       postgres-host / username / password
+                                  │
+                       env vars → JDBC connection string</code></pre>
+
+      <p>
+        The kubelet's managed identity is the only thing with permission to read those secrets — no
+        pod identity dance required, no developer laptop ever needs to know a production database
+        password exists.
+      </p>
+
+      <h2>Cilium says "no" by default</h2>
+
+      <p>
+        Each namespace ships with a handful of <code>CiliumNetworkPolicy</code> resources: allow traffic
+        within the namespace, allow the Application Gateway to reach the SonarQube pod on its port, and
+        allow egress for the things SonarQube actually needs (the database, Key Vault, DNS, plugin
+        downloads). The moment any policy targets a namespace, Cilium flips it to default-deny for that
+        direction — so anything not explicitly listed simply doesn't happen. Which is exactly the kind
+        of boring, predictable behavior you want from a security control.
+      </p>
+
+      <h2>One login to rule them all</h2>
+
+      <p>
+        Every instance is wired up to <strong>SAML SSO via Microsoft Entra ID</strong>, with
+        Just-in-Time provisioning — group membership in Entra decides whether you land as an admin or a
+        regular user in SonarQube, synced automatically on login. Nobody remembers a SonarQube-specific
+        password because nobody has one. The default <code>admin</code> account still exists as a
+        break-glass fallback, tucked safely away, changed from the factory default before it ever saw
+        daylight (yes, I checked — twice).
+      </p>
+
+      <h2>Bonus round: making Copilot read the dashboards for me</h2>
+
+      <p>
+        The genuinely fun part: SonarQube ships an MCP (Model Context Protocol) server, which means
+        GitHub Copilot in VS Code can query issues, quality gates, and metrics directly — no more
+        alt-tabbing to a browser to check whether a PR broke the quality gate. You just ask:
+      </p>
+
+      <pre><code>Show me all open critical and blocker issues in team-alpha's project.</code></pre>
+
+      <p>
+        …and Copilot calls the MCP tool, reads the live data, and hands back a table with file and line
+        references. It's a small thing, but "AI reads my code quality dashboard so I don't have to
+        context-switch" is exactly the kind of small thing that adds up to a genuinely better afternoon.
+      </p>
+
+      <h2>Practical takeaways</h2>
+
+      <p>
+        Multiplying SonarQube instances used to mean multiplying the manual work — a new App Registration,
+        a new Ingress, a new set of copy-pasted YAML with one typo waiting to happen. Templating the
+        Helm values, automating the ArgoCD Application registration, and pushing secrets through Key
+        Vault instead of Git turned "provision a new tenant" from an afternoon into a five-minute PR.
+      </p>
+
+      <p>
+        If you're staring down a similar "everyone wants their own instance of X" problem: model the
+        instance as data (a values file + an ArgoCD Application manifest), not as a one-off manual
+        deployment. Future-you, at 11pm on a Friday, will send present-you a thank-you note.
+      </p>
+
+    </article>
+  </div>
+
+  <footer>
+    <span class="mono">&copy; <span id="year"></span> Roman Rabodzei &nbsp;·&nbsp; <a href="../index.html#blog" style="color: var(--accent);">← back to blog</a></span>
+  </footer>
+
+  <script>
+    const html = document.documentElement;
+
+    function applyTheme(t) {
+      html.setAttribute('data-theme', t);
+      localStorage.setItem('theme', t);
+    }
+
+    const saved = localStorage.getItem('theme') ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    applyTheme(saved);
+
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
