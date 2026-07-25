@@ -51,13 +51,7 @@
       position: sticky; top: 0; z-index: 100;
       background: var(--bg); border-bottom: 1px solid var(--border);
       padding: .7rem 1.5rem;
-      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-    }
-
-    .nav-logo {
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 600; font-size: 1.05rem;
-      color: var(--accent); text-decoration: none;
+      display: flex; align-items: center; justify-content: flex-end; gap: 1rem;
     }
 
     .nav-right { display: flex; align-items: center; gap: 1rem; }
@@ -215,7 +209,6 @@
 <body>
 
   <nav>
-    <a class="nav-logo mono" href="../index.html">rr.dev</a>
     <div class="nav-right">
       <a class="back-link mono" href="../index.html#blog">← back to blog</a>
       <button class="theme-btn mono" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
