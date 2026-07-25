@@ -389,10 +389,14 @@
     .page-header > p { color: var(--muted); font-size: .975rem; }
 
     /* ─── ABOUT PAGE ────────────────────────────── */
-    .about-bio {
+    .about-bio { margin-bottom: 3rem; }
+
+    .about-bio p {
       font-size: .96rem; line-height: 1.85; color: var(--text);
-      margin-bottom: 3rem; text-align: justify;
+      text-align: justify; margin-bottom: 1.25rem;
     }
+
+    .about-bio p:last-child { margin-bottom: 0; }
 
     .exp-entry { margin-bottom: 2.5rem; }
     .exp-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1.2rem; margin-bottom: .3rem; }
@@ -720,21 +724,12 @@
         <p>Principal Azure Cloud, DevOps &amp; AI Engineer with a security-minded focus.</p>
       </div>
 
-      <p class="about-bio">
-        Reliable IT Engineer with over 18 years of experience managing on-premise and cloud-based
-        infrastructure and solutions with a security-minded focus. Skilled in applying DevOps principles,
-        agile methodologies, and AI-assisted engineering to deliver high-quality products and services
-        in a fast-paced and collaborative environment. Progressive experience in the field marked by
-        continuous contributions above and beyond requirements. Experienced in using various tools and
-        technologies to automate, monitor, and optimize development and deployment processes —
-        including designing AI-powered cloud operations using Azure OpenAI and building AI-driven
-        automation pipelines, as well as architecting an AI-powered cloud control plane (Copilot) enabling
-        teams to safely observe, analyze, and operate Azure infrastructure across multi-subscription
-        and multi-tenant environments. Meticulous attention to detail with deep technical knowledge. Adept at
-        working with cross-functional teams and communicating effectively with stakeholders,
-        demonstrating resiliency even in challenging situations. Always seeking untapped potential for
-        growth and innovation.
-      </p>
+      <div class="about-bio">
+        <p>Hey there 👋 Let me introduce myself. I'm a cloud and platform engineer with 18+ years of experience building, operating, and improving infrastructure — from traditional on-premises environments to modern Azure and Kubernetes platforms.</p>
+        <p>My work spans cloud architecture, DevOps, Kubernetes, Infrastructure as Code, security, and platform engineering. I enjoy turning complex infrastructure into secure, automated, and repeatable platforms — whether that means designing enterprise Azure environments, building AKS platforms, implementing CI/CD and GitOps, or improving observability and governance.</p>
+        <p>More recently, I've been extending that experience into AI-powered cloud operations and AI platform engineering, working with Azure AI, LLMs, MCP, and agentic systems. I'm particularly interested in where cloud infrastructure, security, automation, and AI meet — and how AI can become a useful and secure part of the engineering platform rather than just another application running on it.</p>
+        <p>I'm always exploring what's next, experimenting with new technologies, and looking for better ways to build things.</p>
+      </div>
 
       <h2 class="section-heading">Licenses &amp; Certifications</h2>
 
