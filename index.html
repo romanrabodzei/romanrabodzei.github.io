@@ -419,6 +419,8 @@
 
     .cert-group-wrap { margin-bottom: 2.25rem; }
 
+    .project-group-wrap { margin-bottom: 2.5rem; }
+
     .cert-group { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: .75rem; }
 
     .cert-badge {
@@ -861,12 +863,6 @@
         <a class="support-link" href="images/roman-rabodzei-resume.pdf" target="_blank" rel="noopener">📄 Download Resume</a>
       </div>
 
-      <h2 class="section-heading">Support</h2>
-      <div class="support-links">
-        <a class="support-link" href="https://www.buymeacoffee.com/romanrabodzei" target="_blank" rel="noopener">☕ Buy me a coffee</a>
-        <a class="support-link" href="https://paypal.me/romanrabodzey" target="_blank" rel="noopener">💙 PayPal</a>
-      </div>
-
     </div>
   </div>
 
@@ -890,48 +886,58 @@
         </div>
       </div>
 
-      <div class="projects-grid" id="projects-grid">
+      <div class="project-group-wrap">
+        <p class="cert-section-label mono">Featured Engineering</p>
+        <div class="projects-grid" id="projects-grid">
 
-        <div class="project-card">
-          <h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>filebrowser-on-azure-container-apps</h3>
-          <div class="tags"><span>Azure</span><span>Bicep</span><span>Terraform</span><span>GitHub Actions</span></div>
-          <p class="proj-desc">IaC templates for deploying Azure Container Apps — a fully managed Kubernetes-based platform. Supports both Bicep and Terraform with automated CI linting pipelines.</p>
-          <div class="proj-footer">
-            <div class="tags"><span>IaC</span><span>Containers</span></div>
-            <a href="https://github.com/romanrabodzei/Azure-Container-Apps" target="_blank" rel="noopener">view on GitHub →</a>
+          <div class="project-card">
+            <h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>multiple-sonarqube-on-aks</h3>
+            <div class="tags"><span>AKS</span><span>Helm</span><span>ArgoCD</span><span>Bicep</span><span>Azure DevOps</span></div>
+            <p class="proj-desc">Architecture and automation for running multiple isolated SonarQube instances on AKS using GitOps. Includes runbooks for version upgrades and onboarding new instances.</p>
+            <div class="proj-footer">
+              <div class="tags"><span>SonarQube</span><span>GitOps</span></div>
+              <a href="https://github.com/romanrabodzei/multiple-sonarqube-aks" target="_blank" rel="noopener">view on GitHub →</a>
+            </div>
           </div>
-        </div>
 
-        <div class="project-card">
-          <h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>azure-update-manager</h3>
-          <div class="tags"><span>Azure</span><span>Bicep</span><span>Terraform</span><span>Azure DevOps</span></div>
-          <p class="proj-desc">IaC deployment templates for Azure Update Manager — unified update governance across Azure, on-premises, and multi-cloud environments from a single dashboard.</p>
-          <div class="proj-footer">
-            <div class="tags"><span>Governance</span><span>Patching</span></div>
-            <a href="https://github.com/romanrabodzei/Azure-Update-Manager" target="_blank" rel="noopener">view on GitHub →</a>
+          <div class="project-card">
+            <h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>azure-update-manager</h3>
+            <div class="tags"><span>Azure</span><span>Bicep</span><span>Terraform</span><span>Azure DevOps</span></div>
+            <p class="proj-desc">IaC deployment templates for Azure Update Manager — unified update governance across Azure, on-premises, and multi-cloud environments from a single dashboard.</p>
+            <div class="proj-footer">
+              <div class="tags"><span>Governance</span><span>Patching</span></div>
+              <a href="https://github.com/romanrabodzei/Azure-Update-Manager" target="_blank" rel="noopener">view on GitHub →</a>
+            </div>
           </div>
-        </div>
 
-        <div class="project-card">
-          <h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>multiple-sonarqube-on-aks</h3>
-          <div class="tags"><span>AKS</span><span>Helm</span><span>ArgoCD</span><span>Bicep</span><span>Azure DevOps</span></div>
-          <p class="proj-desc">Architecture and automation for running multiple isolated SonarQube instances on AKS using GitOps. Includes runbooks for version upgrades and onboarding new instances.</p>
-          <div class="proj-footer">
-            <div class="tags"><span>SonarQube</span><span>GitOps</span></div>
-            <a href="https://github.com/romanrabodzei/multiple-sonarqube-aks" target="_blank" rel="noopener">view on GitHub →</a>
+        </div>
+      </div>
+
+      <div class="project-group-wrap">
+        <p class="cert-section-label mono">Labs / Open Source</p>
+        <div class="projects-grid">
+
+          <div class="project-card">
+            <h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>filebrowser-on-azure-container-apps</h3>
+            <div class="tags"><span>Azure</span><span>Bicep</span><span>Terraform</span><span>GitHub Actions</span></div>
+            <p class="proj-desc">IaC templates for deploying Azure Container Apps — a fully managed Kubernetes-based platform. Supports both Bicep and Terraform with automated CI linting pipelines.</p>
+            <div class="proj-footer">
+              <div class="tags"><span>IaC</span><span>Containers</span></div>
+              <a href="https://github.com/romanrabodzei/Azure-Container-Apps" target="_blank" rel="noopener">view on GitHub →</a>
+            </div>
           </div>
-        </div>
 
-        <div class="project-card">
-          <h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>transmission-in-docker</h3>
-          <div class="tags"><span>Docker</span><span>Docker Compose</span><span>Transmission</span></div>
-          <p class="proj-desc">A ready-to-run Dockerized Transmission BitTorrent client setup with Docker Compose — simple configuration for self-hosted, persistent torrent downloading.</p>
-          <div class="proj-footer">
-            <div class="tags"><span>Self-hosted</span><span>Containers</span></div>
-            <a href="https://github.com/romanrabodzei/transmission-docker" target="_blank" rel="noopener">view on GitHub →</a>
+          <div class="project-card">
+            <h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>transmission-in-docker</h3>
+            <div class="tags"><span>Docker</span><span>Docker Compose</span><span>Transmission</span></div>
+            <p class="proj-desc">A ready-to-run Dockerized Transmission BitTorrent client setup with Docker Compose — simple configuration for self-hosted, persistent torrent downloading.</p>
+            <div class="proj-footer">
+              <div class="tags"><span>Self-hosted</span><span>Containers</span></div>
+              <a href="https://github.com/romanrabodzei/transmission-docker" target="_blank" rel="noopener">view on GitHub →</a>
+            </div>
           </div>
-        </div>
 
+        </div>
       </div>
     </div>
   </div>
@@ -979,21 +985,24 @@
   <script>
     // ─── Projects view toggle ─────────────────────────────────
     (function () {
-      const grid = document.getElementById('projects-grid');
+      const grids = document.querySelectorAll('.projects-grid');
       const btnGrid = document.getElementById('btn-grid');
       const btnList = document.getElementById('btn-list');
-      if (!grid || !btnGrid || !btnList) return;
+      if (!grids.length || !btnGrid || !btnList) return;
 
       const saved = localStorage.getItem('projectsView') || 'grid';
-      if (saved === 'list') { grid.classList.add('list-view'); btnList.classList.add('active'); btnGrid.classList.remove('active'); }
+      if (saved === 'list') {
+        grids.forEach(g => g.classList.add('list-view'));
+        btnList.classList.add('active'); btnGrid.classList.remove('active');
+      }
 
       btnGrid.addEventListener('click', () => {
-        grid.classList.remove('list-view');
+        grids.forEach(g => g.classList.remove('list-view'));
         btnGrid.classList.add('active'); btnList.classList.remove('active');
         localStorage.setItem('projectsView', 'grid');
       });
       btnList.addEventListener('click', () => {
-        grid.classList.add('list-view');
+        grids.forEach(g => g.classList.add('list-view'));
         btnList.classList.add('active'); btnGrid.classList.remove('active');
         localStorage.setItem('projectsView', 'list');
       });
