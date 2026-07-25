@@ -6,8 +6,7 @@
   <title>Roman Rabodzei — Principal Azure Cloud &amp; DevOps Engineer</title>
   <meta name="description" content="Roman Rabodzei — Principal Azure Cloud, DevOps &amp; AI Engineer with a security-minded focus. 18+ years managing on-premise and cloud infrastructure, Kubernetes, IaC, and AI-powered cloud operations.">
   <meta name="color-scheme" content="light dark">
-  <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#000000">
   <link rel="canonical" href="https://romanrabodzei.github.io/">
 
   <meta property="og:type" content="website">
@@ -1013,8 +1012,7 @@
       localStorage.setItem('theme', t);
     }
 
-    const savedTheme = localStorage.getItem('theme')
-      || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const savedTheme = localStorage.getItem('theme') || 'dark';
     applyTheme(savedTheme);
 
     document.getElementById('themeToggle').addEventListener('click', () => {
