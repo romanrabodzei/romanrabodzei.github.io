@@ -362,6 +362,8 @@
 
     .latest-posts-list a:hover { color: var(--accent); }
 
+    .latest-posts-list a .accent { color: var(--accent); }
+
     /* ─── PAGE HEADER ───────────────────────────── */
     .page-header {
       padding: 3rem 0 2rem;
@@ -646,10 +648,9 @@
         <!-- Latest Posts -->
         <div class="card">
           <h3>✦ Latest Posts</h3>
-          <p class="prompt-inline mono">&gt; blog.init()</p>
           <ul class="latest-posts-list mono">
-            <li><a href="blog/multi-tenant-sonarqube-aks.html">&gt; Cloning SonarQube Five Times Without Losing My Mind: A GitOps Story on AKS</a></li>
-            <li><a href="blog/becoming-kubestronaut.html">&gt; Becoming a CNCF Kubestronaut: Passing All 5 Kubernetes Certifications</a></li>
+            <li><a href="blog/multi-tenant-sonarqube-aks.html"><span class="accent">&gt;</span> Cloning SonarQube Five Times Without Losing My Mind: A GitOps Story on AKS</a></li>
+            <li><a href="blog/becoming-kubestronaut.html"><span class="accent">&gt;</span> Becoming a CNCF Kubestronaut: Passing All 5 Kubernetes Certifications</a></li>
           </ul>
           <span class="card-link mono" data-goto="blog">go to blog →</span>
         </div>
