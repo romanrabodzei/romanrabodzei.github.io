@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stop Asking Me What's Deployed Where — Roman Rabodzei</title>
+  <meta name="description" content="How I built a deployment registry and App Registration secret-expiry tracker on Azure — FastAPI, Cosmos DB Serverless, Key Vault-backed JWT auth, and a rate limiter that actually holds up.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #f5f5f7;
+      --surface:     #ffffff;
+      --surface2:    #f5f5f7;
+      --border:      #d2d2d7;
+      --text:        #1d1d1f;
+      --muted:       #6e6e73;
+      --accent:      #0071e3;
+      --accent-dim:  rgba(0, 113, 227, 0.08);
+    }
+
+    [data-theme="dark"] {
+      --bg:          #000000;
+      --surface:     #1c1c1e;
+      --surface2:    #2c2c2e;
+      --border:      #38383a;
+      --text:        #f5f5f7;
+      --muted:       #98989d;
+      --accent:      #0a84ff;
+      --accent-dim:  rgba(10, 132, 255, 0.14);
+    }
+
+    html { scroll-behavior: smooth; background: var(--bg); overflow-x: hidden; }
+
+    body {
+      position: relative;
+      z-index: 0;
+      overflow-x: hidden;
+      max-width: 100vw;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      transition: background .2s, color .2s;
+    }
+
+    /* AMBIENT BACKGROUND */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(0,113,227,0.16) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,190,255,0.12) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(0,113,227,0.10) 0%, transparent 45%);
+      filter: blur(90px);
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    [data-theme="dark"] body::before {
+      background:
+        radial-gradient(circle at 18% 22%, rgba(10,132,255,0.32) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,92,230,0.22) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(10,132,255,0.18) 0%, transparent 45%);
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity: .5;
+      -webkit-mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace; }
+    a { color: inherit; }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: .7rem 1.5rem;
+      display: flex; align-items: center; justify-content: flex-end; gap: 1rem;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+
+    .back-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .82rem; color: var(--muted);
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    @media (hover: hover) {
+      .back-link:hover { color: var(--accent); }
+    }
+
+    .theme-toggle {
+      display: flex; align-items: center; justify-content: center;
+      width: 2rem; height: 2rem; flex-shrink: 0;
+      border-radius: 50%; border: 1px solid var(--border);
+      background: var(--surface); color: var(--muted);
+      cursor: pointer;
+      transition: border-color .15s, color .15s, background .15s;
+    }
+
+    @media (hover: hover) {
+      .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    }
+
+    .theme-toggle svg { width: 15px; height: 15px; }
+
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-sun  { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+
+    .theme-toggle .icon-copied { display: none; }
+    .theme-toggle.copied .icon-share  { display: none; }
+    .theme-toggle.copied .icon-copied { display: block; }
+
+    /* ARTICLE */
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+
+    .article-header {
+      padding: 3rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+
+    .article-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted); margin-bottom: .75rem;
+    }
+
+    .article-title {
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      font-weight: 700; line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .article-title .accent { color: var(--accent); }
+
+    .article-meta {
+      display: flex; flex-wrap: wrap; gap: .75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; color: var(--muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .article-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+    .article-tags span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem; padding: .15rem .5rem;
+      border-radius: 4px; border: 1px solid var(--border);
+      color: var(--muted); background: var(--surface);
+    }
+
+    /* HERO IMAGE */
+    .article-hero {
+      margin-bottom: 2.5rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .article-hero svg { display: block; width: 100%; height: auto; }
+
+    /* CONTENT */
+    .article-content { padding-bottom: 4rem; }
+
+    .article-content p {
+      font-size: .975rem; line-height: 1.85;
+      color: var(--text); margin-bottom: 1.35rem;
+      text-align: justify;
+    }
+
+    .article-content h2 {
+      font-size: 1.2rem; font-weight: 600;
+      margin: 2.25rem 0 1rem;
+      padding-bottom: .5rem; border-bottom: 1px solid var(--border);
+    }
+
+    .article-content h3 {
+      font-size: 1rem; font-weight: 600;
+      margin: 1.75rem 0 .6rem; color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .article-content ul, .article-content ol {
+      margin: .75rem 0 1.35rem 1.5rem;
+      display: flex; flex-direction: column; gap: .45rem;
+    }
+
+    .article-content li { font-size: .975rem; line-height: 1.75; color: var(--text); }
+
+    .article-content strong { color: var(--text); }
+
+    .article-content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .85em; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 3px;
+      padding: .1em .35em; color: var(--accent);
+    }
+
+    .article-content pre {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1rem 1.15rem;
+      overflow-x: auto; margin: 1rem 0 1.5rem;
+      max-width: 100%; box-sizing: border-box;
+    }
+
+    .article-content pre code {
+      background: none; border: none; padding: 0;
+      color: var(--text); font-size: .82rem; line-height: 1.6;
+    }
+
+    .callout {
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px; padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+    }
+
+    .callout p { margin-bottom: 0; }
+
+    /* FOOTER */
+    footer {
+      position: relative; z-index: 1;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 1.5rem; text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-right">
+      <a class="back-link mono" href="../index.html#blog">← back to blog</a>
+      <button class="theme-toggle" id="shareBtn" title="Share this post" aria-label="Share this post">
+        <svg class="icon-share" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        <svg class="icon-copied" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </button>
+      <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="article-header">
+      <p class="article-label mono">&gt; blog.post()</p>
+      <h1 class="article-title">Stop Asking Me "What's Deployed <span class="accent">Where</span>": Building an Azure Deployment Registry</h1>
+      <div class="article-meta">
+        <span>Roman Rabodzei</span>
+        <span>·</span>
+        <span>July 2026</span>
+        <span>·</span>
+        <span>~8 min read</span>
+      </div>
+      <div class="article-tags">
+        <span>Azure</span>
+        <span>FastAPI</span>
+        <span>Cosmos DB</span>
+        <span>Key Vault</span>
+        <span>DevOps</span>
+        <span>Security</span>
+      </div>
+    </header>
+
+    <figure class="article-hero">
+      <svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Architecture diagram: deploy pipelines and a credential-scanning function feed a registry API, a browser talks to a registry web app, both apps sit in one App Service Plan, and the API writes out to Cosmos DB and Key Vault">
+        <defs>
+          <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#4fc3f7"></path>
+          </marker>
+        </defs>
+        <rect width="1200" height="600" fill="#0b1524"></rect>
+
+        <!-- stars -->
+        <g fill="#4fc3f7" opacity=".35">
+          <circle cx="1120" cy="60" r="1.6"></circle>
+          <circle cx="1050" cy="130" r="1.2"></circle>
+          <circle cx="980" cy="45" r="1.4"></circle>
+          <circle cx="40" cy="480" r="1.4"></circle>
+          <circle cx="1150" cy="520" r="1.6"></circle>
+          <circle cx="1100" cy="440" r="1.1"></circle>
+        </g>
+
+        <!-- Deploy Pipelines -->
+        <rect x="60" y="90" width="220" height="70" rx="10" fill="#101e30" stroke="#4fc3f7" stroke-width="1.6"></rect>
+        <text x="170" y="120" text-anchor="middle" fill="#dce8f4" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600">Deploy Pipelines</text>
+        <text x="170" y="140" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11">multiple CI/CD sources</text>
+
+        <!-- Credential Scanner -->
+        <rect x="60" y="210" width="220" height="70" rx="10" fill="#101e30" stroke="#4fc3f7" stroke-width="1.6"></rect>
+        <text x="170" y="240" text-anchor="middle" fill="#dce8f4" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600">Credential Scanner</text>
+        <text x="170" y="260" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11">daily Function App</text>
+
+        <!-- Browser -->
+        <circle cx="110" cy="370" r="30" fill="none" stroke="#6a8ba8" stroke-width="1.8"></circle>
+        <path d="M80 370 h60 M110 340 v60 M91 356 q19 18 38 0 M91 384 q19 -18 38 0" fill="none" stroke="#6a8ba8" stroke-width="1.3"></path>
+        <text x="110" y="422" text-anchor="middle" fill="#dce8f4" font-family="JetBrains Mono, monospace" font-size="13">Browser</text>
+
+        <!-- entry paths -->
+        <g fill="none" stroke="#6a8ba8" stroke-width="1.6">
+          <path d="M280 125 H330 V150 H390" marker-end="url(#arrow2)"></path>
+          <path d="M280 245 H330 V182 H390" marker-end="url(#arrow2)"></path>
+          <path d="M140 370 H330 V264 H390" marker-end="url(#arrow2)"></path>
+        </g>
+
+        <!-- App Service Plan block -->
+        <rect x="350" y="70" width="380" height="250" rx="14" fill="#0e1a2a" stroke="#4fc3f7" stroke-width="1.6"></rect>
+        <text x="372" y="98" fill="#6a8ba8" font-family="JetBrains Mono, monospace" font-size="12">App Service Plan</text>
+
+        <!-- Registry API -->
+        <rect x="390" y="116" width="300" height="70" rx="10" fill="#0b1524" stroke="#4fc3f7" stroke-width="1.6"></rect>
+        <text x="540" y="146" text-anchor="middle" fill="#dce8f4" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600">Registry API</text>
+        <text x="540" y="166" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11">FastAPI · REST</text>
+
+        <line x1="540" y1="186" x2="540" y2="222" stroke="#6a8ba8" stroke-width="1.6" marker-end="url(#arrow2)"></line>
+
+        <!-- Registry Web -->
+        <rect x="390" y="222" width="300" height="70" rx="10" fill="#0b1524" stroke="#4fc3f7" stroke-width="1.6"></rect>
+        <text x="540" y="252" text-anchor="middle" fill="#dce8f4" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600">Registry Web</text>
+        <text x="540" y="272" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11">server-rendered UI</text>
+
+        <!-- out to Cosmos DB, aligned with API -->
+        <line x1="690" y1="151" x2="850" y2="151" stroke="#6a8ba8" stroke-width="1.6" marker-end="url(#arrow2)"></line>
+        <rect x="852" y="119" width="210" height="70" rx="10" fill="#0b1524" stroke="#6a8ba8" stroke-width="1.6"></rect>
+        <text x="957" y="149" text-anchor="middle" fill="#dce8f4" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600">Cosmos DB</text>
+        <text x="957" y="169" text-anchor="middle" fill="#6a8ba8" font-family="JetBrains Mono, monospace" font-size="11">serverless · per-source</text>
+
+        <!-- out to Key Vault, aligned with Web -->
+        <line x1="690" y1="257" x2="850" y2="257" stroke="#6a8ba8" stroke-width="1.6" marker-end="url(#arrow2)"></line>
+        <rect x="852" y="225" width="210" height="70" rx="10" fill="#0b1524" stroke="#6a8ba8" stroke-width="1.6"></rect>
+        <text x="957" y="255" text-anchor="middle" fill="#dce8f4" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600">Key Vault</text>
+        <text x="957" y="275" text-anchor="middle" fill="#6a8ba8" font-family="JetBrains Mono, monospace" font-size="11">secrets &amp; signing keys</text>
+
+        <!-- down to App Insights -->
+        <line x1="540" y1="320" x2="540" y2="368" stroke="#6a8ba8" stroke-width="1.6" marker-end="url(#arrow2)"></line>
+        <rect x="440" y="370" width="200" height="60" rx="10" fill="#0b1524" stroke="#6a8ba8" stroke-width="1.6"></rect>
+        <text x="540" y="394" text-anchor="middle" fill="#dce8f4" font-family="JetBrains Mono, monospace" font-size="12" font-weight="600">App Insights</text>
+        <text x="540" y="412" text-anchor="middle" fill="#6a8ba8" font-family="JetBrains Mono, monospace" font-size="10">+ Log Analytics</text>
+
+        <text x="600" y="560" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="11">names are placeholders — the real thing tracks a lot more than this diagram admits</text>
+      </svg>
+    </figure>
+
+    <article class="article-content">
+
+      <p>
+        Every platform team eventually hits the same wall: someone asks "wait, is version 3.2 actually
+        live for that customer, or did we roll back?" and the honest answer involves opening three
+        pipeline run histories, a spreadsheet nobody trusts, and a Slack thread from four months ago.
+        Separately — and much more quietly — an App Registration credential expires somewhere in a
+        tenant nobody's looked at recently, and a production integration falls over on a Tuesday morning
+        with an error message that doesn't mention "expired secret" anywhere near the top.
+      </p>
+
+      <p>
+        This post is about the tool I built to make both of those problems boring: a small deployment
+        registry that every pipeline reports to after every run, paired with a daily scan that watches
+        App Registration secrets and certificates before they quietly expire. Names and identifiers below
+        are all placeholders — the actual thing runs against real customer environments, which stay
+        exactly where they are.
+      </p>
+
+      <h2>The shape of the thing</h2>
+
+      <p>
+        Two small web apps share one <strong>App Service Plan</strong>: a <strong>FastAPI</strong>
+        backend that owns all the data, and a server-rendered <strong>web UI</strong> that talks to it
+        over its internal hostname. Pipelines POST a deployment event after every run — success or
+        failure — and a daily Azure Function scans App Registrations across tenants and posts what it
+        finds. Everything lands in <strong>Cosmos DB Serverless</strong>, with signing keys and shared
+        secrets pulled from <strong>Key Vault</strong> at runtime rather than baked into app settings.
+      </p>
+
+      <p>
+        The interesting part isn't any single piece — it's that a pipeline event, a scheduled scan, and
+        a human clicking around a dashboard all go through the exact same authentication and data layer,
+        just with different keys and different scopes.
+      </p>
+
+      <h2>Every pipeline gets its own key, and only its own key</h2>
+
+      <p>
+        Pipelines authenticate with a short-lived <strong>HMAC-signed JWT</strong> (5-minute expiry),
+        signed with a <em>named</em> API key issued per integration and stored in Key Vault. The API
+        doesn't require a key identifier in the token — it tries every currently active named key in
+        turn until one verifies, which sounds inefficient until you realize it means onboarding a new
+        pipeline is just "generate a key, drop it in a pipeline variable," with zero coordination needed
+        on the token-signing side.
+      </p>
+
+      <pre><code>signature = HMAC-SHA512(key=NAMED_API_KEY, msg=jwt_header_and_payload)
+# API iterates active named keys from Key Vault until one verifies.
+# No shared secret across integrations — deactivating one key
+# doesn't touch anyone else's pipeline.</code></pre>
+
+      <p>
+        Each named key can be individually rotated or deactivated from the web UI without touching
+        pipeline variables or redeploying anything — deactivation is a flag flip that takes effect on
+        the next request, not a Key Vault operation that needs propagation time. A replay-protection
+        cache (one entry per token, TTL matched to the token's own expiry) means a captured token is
+        useless the second time it's presented, even inside its 5-minute window.
+      </p>
+
+      <div class="callout">
+        <p><strong>Deliberate non-goal:</strong> the admin login rate limiter is intentionally an
+        in-memory, per-instance counter — not distributed across replicas or backed by a shared store.
+        For a single-instance deployment that's a feature (no extra moving parts); it's explicitly
+        documented as a limitation the day this needs to scale horizontally.</p>
+      </div>
+
+      <h2>One event shape, several very different pipelines</h2>
+
+      <p>
+        Different pipeline families send slightly different field names for the same concept —
+        one integration's "environment" comes from a deploy parameter called <code>Environment</code>,
+        another's comes from a parameter called <code>Subscription</code>. Rather than forcing every
+        team to agree on a shared schema up front (a fight nobody wins), the API accepts the
+        source-specific shape and normalizes it on the way in.
+      </p>
+
+      <p>
+        Every deployment record gets a <strong>deterministic ID</strong> — a hash of customer, environment,
+        source, product, and version — so re-posting the same event twice updates the same document
+        instead of creating a duplicate. Whichever record is the newest for a given
+        customer/environment/product combination gets flagged current; the previous one is demoted
+        automatically in the same write. No cleanup job, no "which one is the real one" ambiguity.
+      </p>
+
+      <h2>The feature nobody asked for that turned out to matter most</h2>
+
+      <p>
+        The deployment tracking was the pitch. The part people actually thank me for is the
+        <strong>credential expiry tracker</strong>. A daily function walks App Registrations across every
+        connected tenant, reads out the secrets, certificates, and federated credentials attached to
+        each one, and posts a snapshot to the same API. The dashboard surfaces a simple traffic light —
+        active, expiring within 30 days, or already expired — and shows a dismissible banner the moment
+        anything crosses into "expiring soon."
+      </p>
+
+      <p>
+        Federated credentials (the keyless, OIDC-based kind used by modern CI/CD) don't expire the same
+        way certificates and secrets do, so they're tracked for visibility but deliberately excluded from
+        the expiry countdown — showing a "days remaining" number that will never move would just be
+        noise.
+      </p>
+
+      <h2>Locking down the login page</h2>
+
+      <p>
+        The admin login endpoint has a sliding-window rate limiter: five failed attempts from an IP
+        within five minutes and that IP gets throttled with a <code>429</code> and a
+        <code>Retry-After</code> header — including on a request with the <em>correct</em> key, because
+        the limiter blocks by source, not by whether the credential was right. Client IP is read from
+        the first hop of the forwarding header, which is safe specifically because the app only ever
+        sits directly behind the platform's own front door — that assumption is written down explicitly
+        so future-me doesn't get surprised if a CDN or gateway ever gets added in front of it.
+      </p>
+
+      <ul>
+        <li>Successful login clears that IP's counter; other IPs are never affected.</li>
+        <li>Session cookie is <code>HttpOnly; Secure; SameSite=Strict</code>, HMAC-signed, 8-hour TTL.</li>
+        <li>Every login attempt — success, failure, or rate-limited — emits a structured audit event with
+          client IP, user agent, and timestamp. Never the credential itself.</li>
+      </ul>
+
+      <h2>Practical takeaways</h2>
+
+      <p>
+        The pattern that made this worth building: one write path, multiple trust levels. Pipelines,
+        a scheduled function, and human admins all end up at the same API and the same database, but
+        each with credentials scoped to exactly what they need — a pipeline can write its own deployment
+        events and nothing else, a scanning function can write monitoring data and nothing else, and only
+        an admin key can read any of it back out.
+      </p>
+
+      <p>
+        If you're tracking anything across more than a couple of teams — deployments, credentials,
+        compliance status, whatever — resist the urge to make everyone agree on one schema before you
+        start. Let each source send what it naturally has, normalize centrally, and spend your actual
+        design effort on the auth boundary instead. That's the part that's hard to retrofit later.
+      </p>
+
+    </article>
+  </div>
+
+  <footer>
+    <span class="mono">&copy; <span id="year"></span> Roman Rabodzei &nbsp;·&nbsp; <a href="../index.html#blog" style="color: var(--accent);">← back to blog</a></span>
+  </footer>
+
+  <script>
+    const html = document.documentElement;
+
+    function applyTheme(t) {
+      html.setAttribute('data-theme', t);
+      localStorage.setItem('theme', t);
+    }
+
+    const saved = localStorage.getItem('theme') || 'dark';
+    applyTheme(saved);
+
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', async () => {
+      const shareData = { title: document.title, url: location.href };
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          shareBtn.classList.add('copied');
+          setTimeout(() => shareBtn.classList.remove('copied'), 1500);
+        } catch (e) {}
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(location.href);
+        shareBtn.classList.add('copied');
+        setTimeout(() => shareBtn.classList.remove('copied'), 1500);
+      } catch (e) {}
+    });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
