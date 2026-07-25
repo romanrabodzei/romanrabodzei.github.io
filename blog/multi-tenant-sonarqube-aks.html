@@ -33,7 +33,7 @@
       --accent-dim:  rgba(10, 132, 255, 0.14);
     }
 
-    html { scroll-behavior: smooth; background: var(--bg); }
+    html { scroll-behavior: smooth; background: var(--bg); overflow-x: hidden; }
 
     body {
       position: relative;
@@ -217,6 +217,7 @@
       background: var(--surface2); border: 1px solid var(--border);
       border-radius: 8px; padding: 1rem 1.15rem;
       overflow-x: auto; margin: 1rem 0 1.5rem;
+      max-width: 100%; box-sizing: border-box;
     }
 
     .article-content pre code {
