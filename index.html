@@ -349,6 +349,10 @@
       font-size: .73rem; color: var(--accent); flex-shrink: 0;
     }
 
+    .timeline-list li.timeline-gap { padding-left: 1.15rem; }
+    .timeline-list li.timeline-gap::before { content: none; }
+    .timeline-list li.timeline-gap .dots { color: var(--accent); letter-spacing: .2rem; }
+
     /* Prompt inline */
     .prompt-inline {
       font-family: 'JetBrains Mono', monospace;
@@ -691,6 +695,7 @@
             <li><span class="yr">2026 Jan</span> GitHub Copilot</li>
             <li><span class="yr">2025 Dec</span> CKS, KCSA &amp; KCNA Certified</li>
             <li><span class="yr">2021 Aug</span> Joined rinf.tech as Azure DevOps Engineer</li>
+            <li class="timeline-gap"><span class="dots">...</span></li>
             <li><span class="yr">2007 Aug</span> Started IT career as Windows System Engineer</li>
           </ul>
         </div>
