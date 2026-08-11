@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Two New Azure AI Certifications, One Blog Post — Roman Rabodzei</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #f5f5f7;
+      --surface:     #ffffff;
+      --surface2:    #f5f5f7;
+      --border:      #d2d2d7;
+      --text:        #1d1d1f;
+      --muted:       #6e6e73;
+      --accent:      #0071e3;
+      --accent-dim:  rgba(0, 113, 227, 0.08);
+    }
+
+    [data-theme="dark"] {
+      --bg:          #000000;
+      --surface:     #1c1c1e;
+      --surface2:    #2c2c2e;
+      --border:      #38383a;
+      --text:        #f5f5f7;
+      --muted:       #98989d;
+      --accent:      #0a84ff;
+      --accent-dim:  rgba(10, 132, 255, 0.14);
+    }
+
+    html { scroll-behavior: smooth; background: var(--bg); overflow-x: hidden; }
+
+    body {
+      position: relative;
+      z-index: 0;
+      overflow-x: hidden;
+      max-width: 100vw;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      transition: background .2s, color .2s;
+    }
+
+    /* AMBIENT BACKGROUND */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(0,113,227,0.16) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,190,255,0.12) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(0,113,227,0.10) 0%, transparent 45%);
+      filter: blur(90px);
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    [data-theme="dark"] body::before {
+      background:
+        radial-gradient(circle at 18% 22%, rgba(10,132,255,0.32) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,92,230,0.22) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(10,132,255,0.18) 0%, transparent 45%);
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity: .5;
+      -webkit-mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace; }
+    a { color: inherit; }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: .7rem 1.5rem;
+      display: flex; align-items: center; justify-content: flex-end; gap: 1rem;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+
+    .back-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .82rem; color: var(--muted);
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    @media (hover: hover) {
+      .back-link:hover { color: var(--accent); }
+    }
+
+    .theme-toggle {
+      display: flex; align-items: center; justify-content: center;
+      width: 2rem; height: 2rem; flex-shrink: 0;
+      border-radius: 50%; border: 1px solid var(--border);
+      background: var(--surface); color: var(--muted);
+      cursor: pointer;
+      transition: border-color .15s, color .15s, background .15s;
+    }
+
+    @media (hover: hover) {
+      .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    }
+
+    .theme-toggle svg { width: 15px; height: 15px; }
+
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-sun  { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+
+    .theme-toggle .icon-copied { display: none; }
+    .theme-toggle.copied .icon-share  { display: none; }
+    .theme-toggle.copied .icon-copied { display: block; }
+
+    /* ARTICLE */
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+
+    .article-header {
+      padding: 3rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+
+    .article-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted); margin-bottom: .75rem;
+    }
+
+    .article-title {
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      font-weight: 700; line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .article-title .accent { color: var(--accent); }
+
+    .article-meta {
+      display: flex; flex-wrap: wrap; gap: .75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; color: var(--muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .article-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+    .article-tags span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem; padding: .15rem .5rem;
+      border-radius: 4px; border: 1px solid var(--border);
+      color: var(--muted); background: var(--surface);
+    }
+
+    /* HERO IMAGE */
+    .article-hero {
+      margin-bottom: 2.5rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .article-hero svg { display: block; width: 100%; height: auto; }
+
+    /* CONTENT */
+    .article-content { padding-bottom: 4rem; }
+
+    .article-content p {
+      font-size: .975rem; line-height: 1.85;
+      color: var(--text); margin-bottom: 1.35rem;
+      text-align: justify;
+    }
+
+    .article-content h2 {
+      font-size: 1.2rem; font-weight: 600;
+      margin: 2.25rem 0 1rem;
+      padding-bottom: .5rem; border-bottom: 1px solid var(--border);
+    }
+
+    .article-content h3 {
+      font-size: 1rem; font-weight: 600;
+      margin: 1.75rem 0 .6rem; color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .article-content ul, .article-content ol {
+      margin: .75rem 0 1.35rem 1.5rem;
+      display: flex; flex-direction: column; gap: .45rem;
+    }
+
+    .article-content li { font-size: .975rem; line-height: 1.75; color: var(--text); }
+
+    .article-content strong { color: var(--text); }
+
+    .article-content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .85em; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 3px;
+      padding: .1em .35em; color: var(--accent);
+    }
+
+    .callout {
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px; padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+    }
+
+    .callout p { margin-bottom: 0; }
+
+    /* FOOTER */
+    footer {
+      position: relative; z-index: 1;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 1.5rem; text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-right">
+      <a class="back-link mono" href="../index.html#blog">← back to blog</a>
+      <button class="theme-toggle" id="shareBtn" title="Share this post" aria-label="Share this post">
+        <svg class="icon-share" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        <svg class="icon-copied" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </button>
+      <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="article-header">
+      <p class="article-label mono">&gt; blog.post()</p>
+      <h1 class="article-title">Two New Azure AI Certifications, <span class="accent">One Blog Post</span></h1>
+      <div class="article-meta">
+        <span>Roman Rabodzei</span>
+        <span>·</span>
+        <span>Aug 2026</span>
+        <span>·</span>
+        <span>~7 min read</span>
+      </div>
+      <div class="article-tags">
+        <span>Azure AI</span>
+        <span>AI-103</span>
+        <span>AI-200</span>
+        <span>Microsoft Foundry</span>
+        <span>Certifications</span>
+      </div>
+    </header>
+
+    <figure class="article-hero">
+      <svg viewBox="0 0 1200 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration of two badge shields side by side, connected by a circuit-like line, representing two related certifications">
+        <rect width="1200" height="500" fill="#06090f"></rect>
+
+        <g fill="#dce8f4">
+          <circle cx="80" cy="70" r="1.6" opacity=".8"></circle>
+          <circle cx="180" cy="130" r="1.1" opacity=".5"></circle>
+          <circle cx="1080" cy="90" r="1.6" opacity=".8"></circle>
+          <circle cx="1000" cy="180" r="1.1" opacity=".5"></circle>
+          <circle cx="600" cy="40" r="1.2" opacity=".6"></circle>
+          <circle cx="60" cy="420" r="1.2" opacity=".5"></circle>
+          <circle cx="1140" cy="440" r="1.2" opacity=".5"></circle>
+        </g>
+
+        <!-- connecting line -->
+        <path d="M430 250 L770 250" stroke="#4fc3f7" stroke-width="3" stroke-dasharray="6 8" opacity=".6"></path>
+        <circle cx="600" cy="250" r="8" fill="#4fc3f7"></circle>
+
+        <!-- badge 1 -->
+        <g transform="translate(400,250)">
+          <path d="M0,-110 L95,-55 L95,55 L0,110 L-95,55 L-95,-55 Z" fill="#101e30" stroke="#38546f" stroke-width="3"></path>
+          <path d="M0,-80 L70,-40 L70,40 L0,80 L-70,40 L-70,-40 Z" fill="none" stroke="#4fc3f7" stroke-width="3"></path>
+          <text x="0" y="8" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="26" font-weight="600">AI-103</text>
+        </g>
+
+        <!-- badge 2 -->
+        <g transform="translate(800,250)">
+          <path d="M0,-110 L95,-55 L95,55 L0,110 L-95,55 L-95,-55 Z" fill="#101e30" stroke="#38546f" stroke-width="3"></path>
+          <path d="M0,-80 L70,-40 L70,40 L0,80 L-70,40 L-70,-40 Z" fill="none" stroke="#4fc3f7" stroke-width="3"></path>
+          <text x="0" y="8" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="26" font-weight="600">AI-200</text>
+        </g>
+
+        <text x="600" y="475" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="12">agents on top · back-end underneath</text>
+      </svg>
+    </figure>
+
+    <article class="article-content">
+
+      <p>
+        This month I passed two Azure AI certifications back to back: <strong>Azure AI Apps and Agents
+        Developer Associate (AI-103)</strong> and <strong>Azure AI Cloud Developer Associate (AI-200)</strong>.
+        They're new, they're closely related, and I kept getting asked the same three questions about
+        both — so here's one post covering what they are, how they differ, and how I prepped for each.
+      </p>
+
+      <h2>What are these certifications, actually?</h2>
+
+      <p>
+        Both are part of Microsoft's refreshed AI Engineer track, and both replaced ground that used
+        to be covered loosely by AI-102 (Azure AI Engineer Associate, now retired). Instead of one broad
+        exam, Microsoft split the AI engineer role into two more focused certifications.
+      </p>
+
+      <h3>AI-103 — Azure AI Apps and Agents Developer Associate</h3>
+      <p>
+        This one is about the "front" of an AI solution: planning and managing an Azure AI solution,
+        implementing generative AI and agentic solutions, computer vision, text analysis, and
+        information extraction — all built around <strong>Microsoft Foundry</strong>. If you're building
+        agents, wiring up tools, or orchestrating generative AI workflows, this is the exam that
+        validates it.
+      </p>
+
+      <h3>AI-200 — Azure AI Cloud Developer Associate</h3>
+      <p>
+        This one is about the "back" of the same solution — the plumbing that makes an AI app
+        production-ready. It covers developing containerized solutions on Azure, building AI solutions
+        with Azure data management services (including vector databases), connecting to and consuming
+        Azure services, and securing/monitoring/troubleshooting what you built. Less prompt engineering,
+        more Azure SDKs, messaging, containers, and observability.
+      </p>
+
+      <div class="callout">
+        <p><strong>How to think about it:</strong> AI-103 asks "can you build the agent and make it useful?" AI-200 asks "can you ship it, secure it, and keep it running?" Together they cover the full lifecycle of an Azure AI solution — which is probably why Microsoft designed them as a pair.</p>
+      </div>
+
+      <h2>Why I took both</h2>
+
+      <p>
+        I'd already been doing this work in practice — building agentic solutions on Microsoft Foundry
+        for one project, and hardening the Azure back-end (containers, Key Vault, monitoring, messaging)
+        for another. Taking both exams close together meant the overlapping fundamentals (Azure AI
+        services, responsible AI, security basics) only needed to be studied once, and I could sit both
+        while that context was still fresh.
+      </p>
+
+      <h2>How I prepped</h2>
+
+      <p>
+        Neither exam has a Microsoft Learn training path or practice assessment yet since they're new,
+        so I leaned on the official study guides and my own hands-on experience. If you're searching
+        for outside opinions on Medium or Reddit, there isn't much yet either — these certifications
+        are too fresh for a real community of write-ups to exist. That's part of why I wanted to publish
+        this: it's currently thin ground.
+      </p>
+
+      <ul>
+        <li>Start with the <strong>official study guides</strong> — <code>aka.ms/AI103-StudyGuide</code> and <code>aka.ms/AI200-StudyGuide</code>. They list every skill measured, and both exams are graded strictly against that list.</li>
+        <li>Use the <strong>exam sandbox</strong> to get comfortable with the interactive question formats before test day — the layout differs from older certs like AI-102.</li>
+        <li>For AI-103, get hands-on in <strong>Microsoft Foundry</strong>: create an agent, add tools, wire up generative AI and vision/text/extraction features. Reading about it isn't enough — the questions assume you've clicked through the actual portal flows.</li>
+        <li>For AI-200, get hands-on with <strong>Azure Container Apps or AKS</strong>, a vector-capable data store (Azure AI Search or Cosmos DB with vector indexing), and Azure Monitor/App Insights. Know how managed identity, Key Vault, and messaging (Service Bus/Event Hubs) fit into an AI solution's back end.</li>
+        <li>Both exams run <strong>120 minutes</strong> and are proctored — budget time accordingly and expect performance-based/interactive question types, not just multiple choice.</li>
+      </ul>
+
+      <h2>Practical takeaways</h2>
+
+      <p>
+        If you already work across both the application and infrastructure layers of AI solutions on
+        Azure, these two exams map cleanly onto real project work rather than testing trivia. I'd
+        recommend AI-103 first if your day-to-day leans toward building agents and generative AI
+        features, and AI-200 first if you spend more time on the Azure plumbing — containers, data,
+        security, and observability. Either way, doing both gives a genuinely complete picture of
+        what it takes to ship an AI solution on Azure, not just prototype one.
+      </p>
+
+      <p>
+        Since these certifications are brand new, expect the study material and community write-ups
+        to catch up over the next few months. For now, the official study guides plus real hands-on
+        time in Microsoft Foundry and the Azure portal are the best prep you can get.
+      </p>
+
+    </article>
+  </div>
+
+  <footer>
+    <span class="mono">&copy; <span id="year"></span> Roman Rabodzei &nbsp;·&nbsp; <a href="../index.html#blog" style="color: var(--accent);">← back to blog</a></span>
+  </footer>
+
+  <script>
+    const html = document.documentElement;
+
+    function applyTheme(t) {
+      html.setAttribute('data-theme', t);
+      localStorage.setItem('theme', t);
+    }
+
+    const saved = localStorage.getItem('theme') || 'dark';
+    applyTheme(saved);
+
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', async () => {
+      const shareData = { title: document.title, url: location.href };
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          shareBtn.classList.add('copied');
+          setTimeout(() => shareBtn.classList.remove('copied'), 1500);
+        } catch (e) {}
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(location.href);
+        shareBtn.classList.add('copied');
+        setTimeout(() => shareBtn.classList.remove('copied'), 1500);
+      } catch (e) {}
+    });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
