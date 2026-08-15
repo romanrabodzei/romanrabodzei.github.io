@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supply Chain Security in Azure Pipelines — Roman Rabodzei</title>
+  <meta name="description" content="How to add SBOM generation, Cosign image signing, and ACR attestation storage to Azure Pipelines — plus admission-time verification with Ratify on AKS.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #f5f5f7;
+      --surface:     #ffffff;
+      --surface2:    #f5f5f7;
+      --border:      #d2d2d7;
+      --text:        #1d1d1f;
+      --muted:       #6e6e73;
+      --accent:      #0071e3;
+      --accent-dim:  rgba(0, 113, 227, 0.08);
+    }
+
+    [data-theme="dark"] {
+      --bg:          #000000;
+      --surface:     #1c1c1e;
+      --surface2:    #2c2c2e;
+      --border:      #38383a;
+      --text:        #f5f5f7;
+      --muted:       #98989d;
+      --accent:      #0a84ff;
+      --accent-dim:  rgba(10, 132, 255, 0.14);
+    }
+
+    html { scroll-behavior: smooth; background: var(--bg); overflow-x: hidden; }
+
+    body {
+      position: relative;
+      z-index: 0;
+      overflow-x: hidden;
+      max-width: 100vw;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      transition: background .2s, color .2s;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(0,113,227,0.16) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,190,255,0.12) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(0,113,227,0.10) 0%, transparent 45%);
+      filter: blur(90px);
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    [data-theme="dark"] body::before {
+      background:
+        radial-gradient(circle at 18% 22%, rgba(10,132,255,0.32) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,92,230,0.22) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(10,132,255,0.18) 0%, transparent 45%);
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity: .5;
+      -webkit-mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace; }
+    a { color: inherit; }
+
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: .7rem 1.5rem;
+      display: flex; align-items: center; justify-content: flex-end; gap: 1rem;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+
+    .back-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .82rem; color: var(--muted);
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    @media (hover: hover) { .back-link:hover { color: var(--accent); } }
+
+    .theme-toggle {
+      display: flex; align-items: center; justify-content: center;
+      width: 2rem; height: 2rem; flex-shrink: 0;
+      border-radius: 50%; border: 1px solid var(--border);
+      background: var(--surface); color: var(--muted);
+      cursor: pointer;
+      transition: border-color .15s, color .15s, background .15s;
+    }
+
+    @media (hover: hover) { .theme-toggle:hover { border-color: var(--accent); color: var(--accent); } }
+
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-sun  { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+    .theme-toggle .icon-copied { display: none; }
+    .theme-toggle.copied .icon-share  { display: none; }
+    .theme-toggle.copied .icon-copied { display: block; }
+
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+
+    .article-header {
+      padding: 3rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+
+    .article-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted); margin-bottom: .75rem;
+    }
+
+    .article-title {
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      font-weight: 700; line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .article-title .accent { color: var(--accent); }
+
+    .article-meta {
+      display: flex; flex-wrap: wrap; gap: .75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; color: var(--muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .article-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+    .article-tags span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem; padding: .15rem .5rem;
+      border-radius: 4px; border: 1px solid var(--border);
+      color: var(--muted); background: var(--surface);
+    }
+
+    .article-hero {
+      margin-bottom: 2.5rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .article-hero svg { display: block; width: 100%; height: auto; }
+
+    .article-content { padding-bottom: 4rem; }
+
+    .article-content p {
+      font-size: .975rem; line-height: 1.85;
+      color: var(--text); margin-bottom: 1.35rem;
+      text-align: justify;
+    }
+
+    .article-content h2 {
+      font-size: 1.2rem; font-weight: 600;
+      margin: 2.25rem 0 1rem;
+      padding-bottom: .5rem; border-bottom: 1px solid var(--border);
+    }
+
+    .article-content h3 {
+      font-size: 1rem; font-weight: 600;
+      margin: 1.75rem 0 .6rem; color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .article-content ul, .article-content ol {
+      margin: .75rem 0 1.35rem 1.5rem;
+      display: flex; flex-direction: column; gap: .45rem;
+    }
+
+    .article-content li { font-size: .975rem; line-height: 1.75; color: var(--text); }
+
+    .article-content strong { color: var(--text); }
+
+    .article-content a { color: var(--accent); text-decoration: none; }
+    .article-content a:hover { text-decoration: underline; }
+
+    .article-content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .85em; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 3px;
+      padding: .1em .35em; color: var(--accent);
+    }
+
+    .article-content pre {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1rem 1.15rem;
+      overflow-x: auto; margin: 1rem 0 1.5rem;
+      max-width: 100%; box-sizing: border-box;
+    }
+
+    .article-content pre code {
+      background: none; border: none; padding: 0;
+      color: var(--text); font-size: .82rem; line-height: 1.6;
+    }
+
+    .callout {
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px; padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+    }
+
+    .callout p { margin-bottom: 0; }
+
+    .ref-block {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1rem 1.25rem;
+      margin: 2.5rem 0 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted);
+    }
+
+    .ref-block a { color: var(--accent); }
+
+    footer {
+      position: relative; z-index: 1;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 1.5rem; text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-right">
+      <a class="back-link mono" href="../index.html#blog">← back to blog</a>
+      <button class="theme-toggle" id="shareBtn" title="Share this post" aria-label="Share this post">
+        <svg class="icon-share" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        <svg class="icon-copied" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </button>
+      <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="article-header">
+      <p class="article-label mono">&gt; blog.post()</p>
+      <h1 class="article-title">Supply Chain Security <span class="accent">in Azure Pipelines</span></h1>
+      <div class="article-meta">
+        <span>Roman Rabodzei</span>
+        <span>·</span>
+        <span>Aug 2026</span>
+        <span>·</span>
+        <span>~10 min read</span>
+      </div>
+      <div class="article-tags">
+        <span>Azure DevOps</span>
+        <span>Security</span>
+        <span>SBOM</span>
+        <span>Cosign</span>
+        <span>ACR</span>
+        <span>DevSecOps</span>
+        <span>Supply Chain</span>
+      </div>
+    </header>
+
+    <figure class="article-hero" aria-label="Illustration of a supply chain security pipeline with signing and verification stages">
+      <svg viewBox="30 0 1010 445" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pipeline diagram showing build, SBOM generation, signing, ACR storage, verification and deployment stages">
+        <rect width="1200" height="500" fill="#06090f"></rect>
+
+        <!-- grid dots -->
+        <g fill="#dce8f4" opacity=".3">
+          <circle cx="60"  cy="60"  r="1.4"></circle>
+          <circle cx="1100" cy="80" r="1.4"></circle>
+          <circle cx="600" cy="35"  r="1.1"></circle>
+          <circle cx="50"  cy="440" r="1.1"></circle>
+          <circle cx="1150" cy="430" r="1.1"></circle>
+        </g>
+
+        <!-- pipeline stages -->
+        <defs>
+          <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#30d158"></path>
+          </marker>
+          <marker id="arrowBlueS" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#4fc3f7"></path>
+          </marker>
+        </defs>
+
+        <!-- stage: BUILD -->
+        <rect x="60" y="180" width="120" height="60" rx="8" fill="#101e30" stroke="#38546f" stroke-width="1.5"></rect>
+        <text x="120" y="207" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">BUILD</text>
+        <text x="120" y="224" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">docker build</text>
+
+        <!-- arrow -->
+        <line x1="182" y1="210" x2="218" y2="210" stroke="#38546f" stroke-width="1.5" marker-end="url(#arrowGreen)"></line>
+
+        <!-- stage: SBOM -->
+        <rect x="220" y="180" width="120" height="60" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="1.8"></rect>
+        <text x="280" y="207" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">SBOM</text>
+        <text x="280" y="224" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="9">syft · spdx-json</text>
+
+        <!-- arrow -->
+        <line x1="342" y1="210" x2="378" y2="210" stroke="#38546f" stroke-width="1.5" marker-end="url(#arrowGreen)"></line>
+
+        <!-- stage: SIGN -->
+        <rect x="380" y="180" width="120" height="60" rx="8" fill="#101e30" stroke="#30d158" stroke-width="1.8"></rect>
+        <text x="440" y="207" text-anchor="middle" fill="#30d158" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">SIGN</text>
+        <text x="440" y="224" text-anchor="middle" fill="#30d158" font-family="JetBrains Mono, monospace" font-size="9">cosign · OIDC</text>
+
+        <!-- arrow -->
+        <line x1="502" y1="210" x2="538" y2="210" stroke="#38546f" stroke-width="1.5" marker-end="url(#arrowGreen)"></line>
+
+        <!-- stage: ACR -->
+        <rect x="540" y="155" width="120" height="110" rx="8" fill="#101e30" stroke="#0a84ff" stroke-width="2"></rect>
+        <text x="600" y="182" text-anchor="middle" fill="#0a84ff" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">ACR</text>
+        <line x1="555" y1="192" x2="645" y2="192" stroke="#38546f" stroke-width="1"></line>
+        <text x="600" y="210" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">image</text>
+        <text x="600" y="224" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">signature</text>
+        <text x="600" y="238" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">SBOM attestation</text>
+        <text x="600" y="254" text-anchor="middle" fill="#0a84ff" font-family="JetBrains Mono, monospace" font-size="8">OCI artifacts ✓</text>
+
+        <!-- arrow -->
+        <line x1="662" y1="210" x2="698" y2="210" stroke="#38546f" stroke-width="1.5" marker-end="url(#arrowGreen)"></line>
+
+        <!-- stage: VERIFY (Ratify) -->
+        <rect x="700" y="180" width="130" height="60" rx="8" fill="#101e30" stroke="#30d158" stroke-width="1.8"></rect>
+        <text x="765" y="204" text-anchor="middle" fill="#30d158" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">VERIFY</text>
+        <text x="765" y="219" text-anchor="middle" fill="#30d158" font-family="JetBrains Mono, monospace" font-size="9">Ratify · admission</text>
+        <text x="765" y="232" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">Azure Policy</text>
+
+        <!-- arrow -->
+        <line x1="832" y1="210" x2="868" y2="210" stroke="#38546f" stroke-width="1.5" marker-end="url(#arrowGreen)"></line>
+
+        <!-- stage: DEPLOY -->
+        <rect x="870" y="180" width="120" height="60" rx="8" fill="#101e30" stroke="#38546f" stroke-width="1.5"></rect>
+        <text x="930" y="207" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">DEPLOY</text>
+        <text x="930" y="224" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">AKS · verified only</text>
+
+        <!-- SLSA level badges -->
+        <rect x="300" y="310" width="90" height="28" rx="5" fill="#1a1208" stroke="#ff9f0a" stroke-width="1.2"></rect>
+        <text x="345" y="329" text-anchor="middle" fill="#ff9f0a" font-family="JetBrains Mono, monospace" font-size="10">SLSA L1</text>
+
+        <rect x="410" y="310" width="90" height="28" rx="5" fill="#0d1f0d" stroke="#30d158" stroke-width="1.2"></rect>
+        <text x="455" y="329" text-anchor="middle" fill="#30d158" font-family="JetBrains Mono, monospace" font-size="10">SLSA L2</text>
+
+        <rect x="520" y="310" width="90" height="28" rx="5" fill="#0d1f0d" stroke="#30d158" stroke-width="1.2"></rect>
+        <text x="565" y="329" text-anchor="middle" fill="#30d158" font-family="JetBrains Mono, monospace" font-size="10">SLSA L3</text>
+
+        <!-- connecting dots to stages -->
+        <line x1="345" y1="310" x2="280" y2="240" stroke="#38546f" stroke-width="1" stroke-dasharray="4 4" opacity=".5"></line>
+        <line x1="455" y1="310" x2="440" y2="240" stroke="#38546f" stroke-width="1" stroke-dasharray="4 4" opacity=".5"></line>
+        <line x1="565" y1="310" x2="580" y2="265" stroke="#38546f" stroke-width="1" stroke-dasharray="4 4" opacity=".5"></line>
+
+        <!-- keyless signing label -->
+        <text x="440" y="155" text-anchor="middle" fill="#30d158" font-family="JetBrains Mono, monospace" font-size="10">keyless signing via Azure AD OIDC →</text>
+
+        <!-- bottom label -->
+        <text x="600" y="420" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="11">every deployed image is signed, attested, and verified at admission</text>
+      </svg>
+    </figure>
+
+    <article class="article-content">
+
+      <p>
+        Software supply chain attacks have moved from theoretical concern to operational reality. The
+        incidents that made headlines — SolarWinds, the xz backdoor, repeated compromised base images —
+        share a common thread: the attack happened below the application layer, in the dependencies and
+        build artifacts that teams implicitly trust. The response from the industry has converged on a
+        few concrete tools and practices: software bills of materials (SBOMs), cryptographic image signing,
+        and admission-time verification. This post walks through wiring all three into Azure Pipelines
+        with Azure Container Registry and Ratify on AKS.
+      </p>
+
+      <h2>The threat model and what we're actually defending against</h2>
+
+      <p>
+        Before adding security tooling, it's worth being precise about what it protects. The supply
+        chain threat model has three main attack surfaces:
+      </p>
+      <ul>
+        <li><strong>Compromised dependencies:</strong> a package you depend on is tampered with upstream. An SBOM lets you inventory what's in your image and cross-reference against vulnerability feeds or known-compromised package versions.</li>
+        <li><strong>Tampered build artifacts:</strong> an image in your registry is replaced or modified after it was built and tested. A cryptographic signature on the image digest lets you detect this at deploy time.</li>
+        <li><strong>Unauthorised images:</strong> a workload is deployed from an image that was never built by your CI pipeline. Admission-time signature verification enforces that only pipeline-signed images run in your cluster.</li>
+      </ul>
+      <p>
+        None of these controls are a silver bullet. They don't prevent a vulnerability in your application
+        code, and they don't protect against a compromised CI environment with signing keys. But together
+        they close the most common attack paths and give you the audit trail to detect and respond when
+        something does go wrong.
+      </p>
+
+      <h2>SLSA: a framework for placing where you are</h2>
+
+      <p>
+        The Supply-chain Levels for Software Artifacts (SLSA) framework gives a structured vocabulary
+        for supply chain security maturity. The levels relevant to a typical Azure DevOps / AKS setup are:
+      </p>
+      <ul>
+        <li><strong>SLSA Level 1:</strong> provenance exists — the build system generates a record of how the artifact was produced. An SBOM stored alongside the image satisfies the basic provenance requirement.</li>
+        <li><strong>SLSA Level 2:</strong> provenance is signed — the build system cryptographically signs the provenance. Cosign signing with an OIDC-based identity (your Azure DevOps service connection or managed identity) satisfies this.</li>
+        <li><strong>SLSA Level 3:</strong> the build is hardened — the build environment itself is tamper-resistant, the provenance is non-forgeable, and the signing identity is tied to the specific pipeline run. Keyless Cosign signing with short-lived OIDC tokens from the pipeline identity, stored as OCI attestations in ACR, gets you to Level 3 for the provenance piece.</li>
+      </ul>
+      <p>
+        Most teams starting out should target Level 2 as the initial goal. It's achievable in a single
+        sprint and closes the most common attack paths. Level 3 hardening requires additional investment
+        in build environment isolation that's worth planning separately.
+      </p>
+
+      <h2>Generating SBOMs with Syft in Azure Pipelines</h2>
+
+      <p>
+        <a href="https://github.com/anchore/syft" target="_blank" rel="noopener">Syft</a> from Anchore
+        is the most practical SBOM generator for container images in a CI pipeline. It supports SPDX
+        and CycloneDX output formats, runs as a single binary with no daemon, and can scan an image
+        from a local docker daemon or a registry reference.
+      </p>
+      <p>
+        Add it as a step after your image build, before the push:
+      </p>
+
+      <pre><code>- task: Bash@3
+  displayName: 'Install Syft'
+  inputs:
+    targetType: inline
+    script: curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
+- task: Bash@3
+  displayName: 'Generate SBOM (SPDX)'
+  inputs:
+    targetType: inline
+    script: |
+      syft $(IMAGE_TAG) \
+        -o spdx-json \
+        --file sbom.spdx.json</code></pre>
+
+      <p>
+        The output file <code>sbom.spdx.json</code> is the artifact you'll attach to the image as an
+        OCI attestation in the next step. Store it as a pipeline artifact for audit purposes as well —
+        having an out-of-band copy in Azure Artifacts means you can reconstruct what was in an image even
+        if the ACR attestation is somehow lost.
+      </p>
+
+      <div class="callout">
+        <p><strong>On SBOM completeness:</strong> Syft's analysis is best-effort for dynamically linked
+        dependencies and anything installed via custom scripts in your Dockerfile. Treat the SBOM as
+        a strong approximation, not an exhaustive inventory — and schedule regular re-scans against
+        updated vulnerability databases, not just at build time.</p>
+      </div>
+
+      <h2>Signing images with Cosign</h2>
+
+      <p>
+        <a href="https://github.com/sigstore/cosign" target="_blank" rel="noopener">Cosign</a> from
+        Sigstore handles image signing and attestation storage. The most robust approach on Azure is
+        <strong>keyless signing</strong>: rather than managing a long-lived signing key, Cosign uses
+        an OIDC token from your pipeline identity to request a short-lived certificate from Sigstore's
+        Fulcio CA. The certificate binds the signature to the pipeline run identity, and the certificate
+        issuance is recorded in Sigstore's Rekor transparency log.
+      </p>
+      <p>
+        For Azure DevOps, the pipeline identity is your service connection's managed identity. Configure
+        Cosign to use it:
+      </p>
+
+      <pre><code>- task: Bash@3
+  displayName: 'Install Cosign'
+  inputs:
+    targetType: inline
+    script: |
+      curl -sSfL https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64 \
+        -o /usr/local/bin/cosign && chmod +x /usr/local/bin/cosign
+
+- task: AzureCLI@2
+  displayName: 'Sign image and attach SBOM attestation'
+  inputs:
+    azureSubscription: $(SERVICE_CONNECTION)
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      # ACR login via managed identity
+      az acr login --name $(ACR_NAME)
+
+      # Sign the image (keyless, OIDC via Azure AD)
+      COSIGN_EXPERIMENTAL=1 cosign sign \
+        --yes \
+        $(ACR_LOGIN_SERVER)/$(IMAGE_NAME)@$(IMAGE_DIGEST)
+
+      # Attach SBOM as an OCI attestation
+      COSIGN_EXPERIMENTAL=1 cosign attest \
+        --yes \
+        --predicate sbom.spdx.json \
+        --type spdxjson \
+        $(ACR_LOGIN_SERVER)/$(IMAGE_NAME)@$(IMAGE_DIGEST)</code></pre>
+
+      <p>
+        A few important details here. Sign the image by <strong>digest</strong>, not by tag. Tags are
+        mutable — signing a tag gives you a signature on whatever the tag pointed to at signing time,
+        which is not what you want. The digest is immutable and uniquely identifies the image layers.
+        You can get the digest from the <code>docker push</code> output or by running
+        <code>docker inspect --format='{{index .RepoDigests 0}}' &lt;image&gt;</code>.
+      </p>
+      <p>
+        Signatures and attestations are stored in ACR as separate OCI objects linked to the signed
+        image. They're retained as long as the image is retained, and they don't affect the image pull
+        behaviour for existing clients — verification is opt-in until you enforce it at admission.
+      </p>
+
+      <h2>Enforcing verification at admission with Ratify</h2>
+
+      <p>
+        <a href="https://ratify.dev" target="_blank" rel="noopener">Ratify</a> is a CNCF project that
+        integrates with the Gatekeeper OPA admission controller to verify OCI artifacts — signatures,
+        SBOMs, vulnerability scan results — before a pod is admitted to the cluster. On AKS, it works
+        with Azure Policy's built-in Kubernetes integration.
+      </p>
+      <p>
+        Install Ratify via Helm and configure it with a <code>Store</code> pointing at your ACR using
+        workload identity (the right approach — avoid static credentials):
+      </p>
+
+      <pre><code>apiVersion: config.ratify.deislabs.io/v1beta1
+kind: Store
+metadata:
+  name: store-oras
+spec:
+  name: oras
+  parameters:
+    authProvider:
+      name: azureWorkloadIdentity
+      clientID: $(RATIFY_CLIENT_ID)
+---
+apiVersion: config.ratify.deislabs.io/v1beta1
+kind: Verifier
+metadata:
+  name: verifier-cosign
+spec:
+  name: cosign
+  artifactTypes: application/vnd.dev.cosign.artifact.sig.v1+json
+  parameters:
+    key: https://fulcio.sigstore.dev  # keyless: validates against Fulcio root</code></pre>
+
+      <p>
+        With Ratify installed, apply an Azure Policy assignment that enforces the
+        <code>Kubernetes cluster containers should only use allowed images</code> built-in with a
+        Ratify-backed constraint template. Any pod attempting to use an unsigned or unattested image
+        will be rejected at admission — not at runtime — with a clear policy violation message.
+      </p>
+
+      <h3>// start in audit mode</h3>
+      <p>
+        Before enforcing, run Ratify in audit mode for at least one release cycle. Audit mode reports
+        violations without blocking deployments. Use this period to catch any legitimate images
+        (infrastructure components, third-party operators) that pull from registries or use digests
+        that won't pass Cosign verification, and decide whether to add exceptions or migrate those
+        images into your signing pipeline.
+      </p>
+
+      <h2>Putting it together: the full pipeline sequence</h2>
+
+      <p>
+        The complete sequence in an Azure Pipeline, in order:
+      </p>
+      <ol>
+        <li>Build the container image from source.</li>
+        <li>Push the image to ACR and capture the digest from the push output.</li>
+        <li>Run Syft against the image to generate an SPDX SBOM.</li>
+        <li>Sign the image digest with Cosign using the pipeline's managed identity (keyless).</li>
+        <li>Attach the SBOM as a Cosign attestation against the same digest.</li>
+        <li>Store the SBOM as a pipeline artifact for out-of-band audit.</li>
+        <li>At deploy time, Ratify verifies the signature and attestation before AKS admits the pod.</li>
+      </ol>
+      <p>
+        The incremental cost of this sequence is low — Syft and Cosign are fast single-binary tools that
+        add roughly 30–60 seconds to a typical build pipeline. The operational overhead post-setup is
+        minimal: once Ratify is in enforce mode, unsigned images simply don't run, and the failure
+        message tells you exactly why.
+      </p>
+
+      <h2>What this doesn't solve</h2>
+
+      <p>
+        It's worth being direct about the limits. This setup gives you strong guarantees that what
+        runs in your cluster was built by your CI pipeline and hasn't been tampered with since. It
+        does not give you:
+      </p>
+      <ul>
+        <li>A guarantee that the code in the image is free of vulnerabilities. An SBOM enables you to check against CVE databases, but you need to integrate that check separately (Trivy, Grype, Microsoft Defender for Containers).</li>
+        <li>Protection against a compromised pipeline. If an attacker can modify your pipeline YAML or the build agent, they can sign malicious images legitimately. This is why pipeline-as-code review and branch protection matter as much as the signing itself.</li>
+        <li>Supply chain security for your base images. If you pull <code>ubuntu:24.04</code> and it's compromised upstream, Cosign signing your layer on top of it doesn't help. Using ACR's image import feature to pull base images through your registry, scanning them on import, and signing them yourself closes this gap.</li>
+      </ul>
+      <p>
+        Supply chain security is a posture you improve over time, not a binary you flip on. Getting
+        SBOM generation and signature enforcement in place is the right first step — it establishes the
+        audit trail and the enforcement point that everything else builds on.
+      </p>
+
+      <div class="ref-block">
+        <strong>Further reading:</strong><br><br>
+        <a href="https://slsa.dev" target="_blank" rel="noopener">SLSA Framework — slsa.dev</a><br>
+        <a href="https://github.com/sigstore/cosign" target="_blank" rel="noopener">Cosign — Sigstore</a><br>
+        <a href="https://ratify.dev/docs/" target="_blank" rel="noopener">Ratify Documentation</a><br>
+        <a href="https://learn.microsoft.com/en-us/azure/container-registry/container-registry-oci-artifacts" target="_blank" rel="noopener">OCI Artifacts in Azure Container Registry — Microsoft Learn</a>
+      </div>
+
+    </article>
+  </div>
+
+  <footer>
+    <span class="mono">&copy; <span id="year"></span> Roman Rabodzei &nbsp;·&nbsp; <a href="../index.html#blog" style="color: var(--accent);">← back to blog</a></span>
+  </footer>
+
+  <script>
+    const html = document.documentElement;
+
+    function applyTheme(t) {
+      html.setAttribute('data-theme', t);
+      localStorage.setItem('theme', t);
+    }
+
+    const saved = localStorage.getItem('theme') || 'dark';
+    applyTheme(saved);
+
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', async () => {
+      const shareData = { title: document.title, url: location.href };
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          shareBtn.classList.add('copied');
+          setTimeout(() => shareBtn.classList.remove('copied'), 1500);
+        } catch (e) {}
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(location.href);
+        shareBtn.classList.add('copied');
+        setTimeout(() => shareBtn.classList.remove('copied'), 1500);
+      } catch (e) {}
+    });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
