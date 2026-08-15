@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karpenter on AKS in Production — Roman Rabodzei</title>
+  <meta name="description" content="A practitioner's guide to running Node Auto Provisioning (Karpenter) on AKS — NodePools, AKSNodeClass, spot fallback, scale-to-zero, and GitOps deployment patterns.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #f5f5f7;
+      --surface:     #ffffff;
+      --surface2:    #f5f5f7;
+      --border:      #d2d2d7;
+      --text:        #1d1d1f;
+      --muted:       #6e6e73;
+      --accent:      #0071e3;
+      --accent-dim:  rgba(0, 113, 227, 0.08);
+    }
+
+    [data-theme="dark"] {
+      --bg:          #000000;
+      --surface:     #1c1c1e;
+      --surface2:    #2c2c2e;
+      --border:      #38383a;
+      --text:        #f5f5f7;
+      --muted:       #98989d;
+      --accent:      #0a84ff;
+      --accent-dim:  rgba(10, 132, 255, 0.14);
+    }
+
+    html { scroll-behavior: smooth; background: var(--bg); overflow-x: hidden; }
+
+    body {
+      position: relative;
+      z-index: 0;
+      overflow-x: hidden;
+      max-width: 100vw;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      transition: background .2s, color .2s;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(0,113,227,0.16) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,190,255,0.12) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(0,113,227,0.10) 0%, transparent 45%);
+      filter: blur(90px);
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    [data-theme="dark"] body::before {
+      background:
+        radial-gradient(circle at 18% 22%, rgba(10,132,255,0.32) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,92,230,0.22) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(10,132,255,0.18) 0%, transparent 45%);
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity: .5;
+      -webkit-mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace; }
+    a { color: inherit; }
+
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: .7rem 1.5rem;
+      display: flex; align-items: center; justify-content: flex-end; gap: 1rem;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+
+    .back-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .82rem; color: var(--muted);
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    @media (hover: hover) { .back-link:hover { color: var(--accent); } }
+
+    .theme-toggle {
+      display: flex; align-items: center; justify-content: center;
+      width: 2rem; height: 2rem; flex-shrink: 0;
+      border-radius: 50%; border: 1px solid var(--border);
+      background: var(--surface); color: var(--muted);
+      cursor: pointer;
+      transition: border-color .15s, color .15s, background .15s;
+    }
+
+    @media (hover: hover) { .theme-toggle:hover { border-color: var(--accent); color: var(--accent); } }
+
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-sun  { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+    .theme-toggle .icon-copied { display: none; }
+    .theme-toggle.copied .icon-share  { display: none; }
+    .theme-toggle.copied .icon-copied { display: block; }
+
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+
+    .article-header {
+      padding: 3rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+
+    .article-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted); margin-bottom: .75rem;
+    }
+
+    .article-title {
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      font-weight: 700; line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .article-title .accent { color: var(--accent); }
+
+    .article-meta {
+      display: flex; flex-wrap: wrap; gap: .75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; color: var(--muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .article-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+    .article-tags span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem; padding: .15rem .5rem;
+      border-radius: 4px; border: 1px solid var(--border);
+      color: var(--muted); background: var(--surface);
+    }
+
+    .article-hero {
+      margin-bottom: 2.5rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .article-hero svg { display: block; width: 100%; height: auto; }
+
+    .article-content { padding-bottom: 4rem; }
+
+    .article-content p {
+      font-size: .975rem; line-height: 1.85;
+      color: var(--text); margin-bottom: 1.35rem;
+      text-align: justify;
+    }
+
+    .article-content h2 {
+      font-size: 1.2rem; font-weight: 600;
+      margin: 2.25rem 0 1rem;
+      padding-bottom: .5rem; border-bottom: 1px solid var(--border);
+    }
+
+    .article-content h3 {
+      font-size: 1rem; font-weight: 600;
+      margin: 1.75rem 0 .6rem; color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .article-content ul, .article-content ol {
+      margin: .75rem 0 1.35rem 1.5rem;
+      display: flex; flex-direction: column; gap: .45rem;
+    }
+
+    .article-content li { font-size: .975rem; line-height: 1.75; color: var(--text); }
+
+    .article-content strong { color: var(--text); }
+
+    .article-content a { color: var(--accent); text-decoration: none; }
+    .article-content a:hover { text-decoration: underline; }
+
+    .article-content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .85em; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 3px;
+      padding: .1em .35em; color: var(--accent);
+    }
+
+    .article-content pre {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1rem 1.15rem;
+      overflow-x: auto; margin: 1rem 0 1.5rem;
+      max-width: 100%; box-sizing: border-box;
+    }
+
+    .article-content pre code {
+      background: none; border: none; padding: 0;
+      color: var(--text); font-size: .82rem; line-height: 1.6;
+    }
+
+    .callout {
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px; padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+    }
+
+    .callout p { margin-bottom: 0; }
+
+    .ref-block {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1rem 1.25rem;
+      margin: 2.5rem 0 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted);
+    }
+
+    .ref-block a { color: var(--accent); }
+
+    footer {
+      position: relative; z-index: 1;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 1.5rem; text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-right">
+      <a class="back-link mono" href="../index.html#blog">← back to blog</a>
+      <button class="theme-toggle" id="shareBtn" title="Share this post" aria-label="Share this post">
+        <svg class="icon-share" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        <svg class="icon-copied" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </button>
+      <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="article-header">
+      <p class="article-label mono">&gt; blog.post()</p>
+      <h1 class="article-title">Karpenter on AKS <span class="accent">in Production</span></h1>
+      <div class="article-meta">
+        <span>Roman Rabodzei</span>
+        <span>·</span>
+        <span>Aug 2026</span>
+        <span>·</span>
+        <span>~11 min read</span>
+      </div>
+      <div class="article-tags">
+        <span>AKS</span>
+        <span>Kubernetes</span>
+        <span>Karpenter</span>
+        <span>Node Provisioning</span>
+        <span>Cost Optimization</span>
+        <span>GitOps</span>
+      </div>
+    </header>
+
+    <figure class="article-hero" aria-label="Illustration of Karpenter dynamically provisioning nodes on AKS">
+      <svg viewBox="0 0 1200 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cluster diagram showing on-demand and spot nodes being provisioned just-in-time from pending pods">
+        <rect width="1200" height="500" fill="#06090f"></rect>
+
+        <!-- grid dots -->
+        <g fill="#dce8f4" opacity=".3">
+          <circle cx="60"  cy="60"  r="1.4"></circle>
+          <circle cx="1100" cy="80" r="1.4"></circle>
+          <circle cx="600" cy="35"  r="1.1"></circle>
+          <circle cx="50"  cy="440" r="1.1"></circle>
+          <circle cx="1150" cy="430" r="1.1"></circle>
+          <circle cx="300" cy="460" r="0.9"></circle>
+          <circle cx="900" cy="455" r="0.9"></circle>
+        </g>
+
+        <!-- cluster boundary -->
+        <rect x="80" y="80" width="1040" height="340" rx="14" fill="none" stroke="#1e3a5f" stroke-width="1.5" stroke-dasharray="6 4"></rect>
+        <text x="100" y="103" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="11">AKS cluster</text>
+
+        <!-- system node (static) -->
+        <rect x="120" y="160" width="90" height="70" rx="8" fill="#101e30" stroke="#38546f" stroke-width="1.5"></rect>
+        <text x="165" y="191" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">system</text>
+        <text x="165" y="204" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">node</text>
+        <circle cx="165" cy="218" r="4" fill="#30d158"></circle>
+
+        <!-- on-demand nodes -->
+        <g>
+          <rect x="260" y="140" width="100" height="78" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="1.8"></rect>
+          <text x="310" y="169" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="9">on-demand</text>
+          <text x="310" y="182" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">D8ads_v5</text>
+          <text x="310" y="195" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">driverpool</text>
+          <circle cx="310" cy="208" r="4" fill="#30d158"></circle>
+
+          <rect x="380" y="140" width="100" height="78" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="1.8"></rect>
+          <text x="430" y="169" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="9">on-demand</text>
+          <text x="430" y="182" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">D8ads_v7</text>
+          <text x="430" y="195" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">driverpool</text>
+          <circle cx="430" cy="208" r="4" fill="#30d158"></circle>
+        </g>
+
+        <!-- spot nodes -->
+        <g>
+          <rect x="260" y="250" width="100" height="78" rx="8" fill="#101e30" stroke="#ff9f0a" stroke-width="1.8"></rect>
+          <text x="310" y="279" text-anchor="middle" fill="#ff9f0a" font-family="JetBrains Mono, monospace" font-size="9">spot</text>
+          <text x="310" y="292" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">E16ads_v5</text>
+          <text x="310" y="305" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">spotexecpool</text>
+          <circle cx="310" cy="318" r="4" fill="#30d158"></circle>
+
+          <rect x="380" y="250" width="100" height="78" rx="8" fill="#101e30" stroke="#ff9f0a" stroke-width="1.8"></rect>
+          <text x="430" y="279" text-anchor="middle" fill="#ff9f0a" font-family="JetBrains Mono, monospace" font-size="9">spot</text>
+          <text x="430" y="292" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">E16ads_v5</text>
+          <text x="430" y="305" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">spotexecpool</text>
+          <circle cx="430" cy="318" r="4" fill="#30d158"></circle>
+
+          <rect x="500" y="250" width="100" height="78" rx="8" fill="#101e30" stroke="#ff9f0a" stroke-width="1.8"></rect>
+          <text x="550" y="279" text-anchor="middle" fill="#ff9f0a" font-family="JetBrains Mono, monospace" font-size="9">spot</text>
+          <text x="550" y="292" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">E16ads_v7</text>
+          <text x="550" y="305" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">spotexecpool</text>
+          <circle cx="550" cy="318" r="4" fill="#30d158"></circle>
+        </g>
+
+        <!-- karpenter engine -->
+        <rect x="700" y="170" width="140" height="160" rx="10" fill="#101e30" stroke="#4fc3f7" stroke-width="2"></rect>
+        <text x="770" y="198" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600">Karpenter</text>
+        <text x="770" y="213" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="10">(NAP)</text>
+        <line x1="720" y1="225" x2="820" y2="225" stroke="#38546f" stroke-width="1"></line>
+        <text x="770" y="244" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">NodePool</text>
+        <text x="770" y="258" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">AKSNodeClass</text>
+        <text x="770" y="272" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">disruption</text>
+        <text x="770" y="286" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">consolidation</text>
+        <text x="770" y="300" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">scale-to-zero</text>
+        <text x="770" y="318" text-anchor="middle" fill="#30d158" font-family="JetBrains Mono, monospace" font-size="8">running ✓</text>
+
+        <!-- pending pod triggering provisioning -->
+        <rect x="940" y="195" width="90" height="50" rx="6" fill="#1a1208" stroke="#ff9f0a" stroke-width="1.5" stroke-dasharray="4 3"></rect>
+        <text x="985" y="216" text-anchor="middle" fill="#ff9f0a" font-family="JetBrains Mono, monospace" font-size="9">pod</text>
+        <text x="985" y="229" text-anchor="middle" fill="#ff9f0a" font-family="JetBrains Mono, monospace" font-size="9">Pending</text>
+        <text x="985" y="262" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="9">→ triggers provisioning</text>
+
+        <!-- arrows -->
+        <line x1="930" y1="220" x2="842" y2="240" stroke="#ff9f0a" stroke-width="1.5" marker-end="url(#arrowOrange)"></line>
+        <line x1="700" y1="240" x2="620" y2="240" stroke="#4fc3f7" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrowBlue)"></line>
+        <text x="640" y="232" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="8">just-in-time</text>
+
+        <defs>
+          <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#4fc3f7"></path>
+          </marker>
+          <marker id="arrowOrange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#ff9f0a"></path>
+          </marker>
+        </defs>
+
+        <!-- zone labels -->
+        <text x="260" y="135" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="10">zone-1 · zone-2 · zone-3</text>
+
+        <!-- legend -->
+        <rect x="100" y="390" width="12" height="12" rx="2" fill="none" stroke="#4fc3f7" stroke-width="1.5"></rect>
+        <text x="118" y="401" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="10">on-demand</text>
+        <rect x="220" y="390" width="12" height="12" rx="2" fill="none" stroke="#ff9f0a" stroke-width="1.5"></rect>
+        <text x="238" y="401" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="10">spot (w/ fallback)</text>
+        <circle cx="385" cy="396" r="5" fill="#30d158"></circle>
+        <text x="396" y="401" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="10">running</text>
+        <rect x="460" y="390" width="12" height="12" rx="2" fill="none" stroke="#ff9f0a" stroke-width="1.5" stroke-dasharray="3 2"></rect>
+        <text x="478" y="401" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="10">pending → provisioning</text>
+      </svg>
+    </figure>
+
+    <article class="article-content">
+
+      <p>
+        Node Auto Provisioning (NAP) — Microsoft's managed Karpenter offering on AKS — has been generally
+        available since mid-2024, and it's been quietly replacing cluster-autoscaler as the recommended
+        approach for clusters that need responsive, cost-efficient scaling. Having deployed and operated it
+        on a production data workload, I want to write down what actually matters in practice: not the
+        documentation overview, but the decisions that affect your bill and your on-call experience.
+      </p>
+
+      <h2>How Karpenter differs from cluster-autoscaler</h2>
+
+      <p>
+        Cluster-autoscaler works at the node pool level. You pre-define pools with specific VM SKUs, and
+        the autoscaler scales them up when pods are pending and down when utilisation drops. It's conservative
+        by design: it waits for evidence before removing a node, and it can only pick from SKUs you already
+        have pools for. The operational shape is: you pre-plan your pools, the autoscaler manages counts within them.
+      </p>
+      <p>
+        Karpenter works differently. Rather than scaling a pre-existing pool, it reads pending pod
+        requirements directly — resource requests, node selectors, taints, topology spread constraints —
+        and provisions exactly the right node just-in-time. It can pick from any SKU that satisfies the
+        declared constraints, making cost-optimal provisioning decisions without being locked into upfront
+        pool definitions. Consolidation is active and continuous: it watches for underutilised nodes and
+        reorganises them, bin-packing pods to free up nodes for deprovisioning. You define the rules;
+        Karpenter makes the decisions.
+      </p>
+      <p>
+        The practical difference becomes obvious for batch or bursty workloads. With cluster-autoscaler,
+        you'd size your pools for peak and accept idle capacity at off-peak. With Karpenter and
+        <code>WhenEmptyOrUnderutilized</code> consolidation, the cluster can truly scale to zero compute
+        when no workloads are running — paying only for the system node pool between job runs.
+      </p>
+
+      <h2>AKSNodeClass: image family and OS disk placement</h2>
+
+      <p>
+        <code>AKSNodeClass</code> is the Azure-specific CRD that tells Karpenter what kind of node image
+        and OS disk to use. For most workloads today, <code>imageFamily: AzureLinux</code> is the right
+        choice — it's the Microsoft-maintained image with first-class NAP support and the most timely
+        security patching cadence.
+      </p>
+      <p>
+        The more interesting decision is <code>osDiskSizeGB</code>. This setting matters more than it
+        initially appears: if the value you configure is small enough to fit on the SKU's local NVMe
+        resource disk, Karpenter will provision the OS disk as <strong>ephemeral</strong> — placed on
+        local NVMe — rather than creating a network-attached managed disk. For I/O-intensive workloads
+        that spill to disk or use <code>emptyDir</code> volumes for temporary data, this is a meaningful
+        difference in both performance and cost. No per-disk billing for the OS, and lower latency on
+        any workload that touches <code>/var/lib/kubelet</code>.
+      </p>
+
+      <pre><code>apiVersion: karpenter.azure.com/v1beta1
+kind: AKSNodeClass
+metadata:
+  name: driverpool
+spec:
+  imageFamily: AzureLinux
+  osDiskSizeGB: 128  # fits D8ads_v5 local NVMe → ephemeral OS, not managed disk</code></pre>
+
+      <p>
+        Verify this assumption once per image update: SSH to a freshly provisioned node and run
+        <code>df -h /var/lib/kubelet</code>. If the OS landed on the local NVMe you'll see the resource
+        disk; if it's a managed disk you'll see something like <code>/dev/sda</code>. The distinction
+        matters for workloads where kubelet root is on a hot path.
+      </p>
+
+      <h2>NodePool: requirements, taints, and limits</h2>
+
+      <p>
+        The <code>NodePool</code> is where the provisioning logic lives. Three decisions in the
+        <code>requirements</code> block matter most.
+      </p>
+
+      <h3>// instance-type: list, don't pin</h3>
+      <p>
+        Rather than pinning to a single SKU, list two or three closely related options. This gives
+        Karpenter flexibility to provision whichever has capacity available in the target zone.
+        For spot, this is essential: Azure spot capacity is regional and volatile, and a pool constrained
+        to one SKU will fail to provision when that SKU is exhausted.
+      </p>
+
+      <h3>// capacity-type: spot with on-demand fallback</h3>
+      <p>
+        <code>["spot", "on-demand"]</code> is the practical choice for batch workloads — spot pricing
+        when capacity is available, automatic fallback to on-demand otherwise. Karpenter handles the
+        preference ordering. For coordinator or driver-tier nodes where mid-job eviction would be costly,
+        <code>["on-demand"]</code> is the right call even if it costs more.
+      </p>
+
+      <h3>// taints: hard workload isolation</h3>
+      <p>
+        Taints enforce isolation without the pods needing to do anything beyond declaring a toleration.
+        A <code>NoSchedule</code> taint on a pool means only tolerating pods land there — no accidental
+        co-scheduling of platform pods onto expensive executor nodes. This also enables clean per-pool
+        cost attribution in Azure Cost Management.
+      </p>
+
+      <pre><code>apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: spotexecpool
+spec:
+  template:
+    spec:
+      nodeClassRef:
+        group: karpenter.azure.com
+        kind: AKSNodeClass
+        name: spotexecpool
+      requirements:
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - Standard_E16ads_v5
+            - Standard_E16ads_v7
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["spot", "on-demand"]   # spot preferred, on-demand fallback
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values: ["eastus2-1", "eastus2-2", "eastus2-3"]
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["amd64"]
+      taints:
+        - key: workload
+          value: spark-executor
+          effect: NoSchedule
+  limits:
+    cpu: "512"       # bounds blast radius: max ~32 E16 executor nodes
+    memory: "4Ti"
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 1m</code></pre>
+
+      <h2>Scale-to-zero and disruption tuning</h2>
+
+      <p>
+        <code>WhenEmptyOrUnderutilized</code> is the most aggressive consolidation policy. For batch
+        workloads with clear job boundaries — where the cluster should be quiet between runs — it's the
+        right choice. Karpenter will deprovision nodes as soon as they're empty or can be consolidated
+        elsewhere. The <code>consolidateAfter</code> window is how long it waits after a node becomes
+        underutilised before acting.
+      </p>
+      <p>
+        The window matters. For transient job pods that complete in minutes, a 1–2 minute consolidation
+        window means the cluster returns to near-zero compute cost shortly after each run completes.
+        For coordinator nodes handling longer-lived driver processes, a slightly longer window (2m) reduces
+        unnecessary churn. For truly stateful or sensitive workloads, <code>WhenEmpty</code> is the safer
+        policy: it only deprovisions nodes that have nothing running, never attempting to move live pods.
+      </p>
+
+      <div class="callout">
+        <p><strong>The cost implication of scale-to-zero:</strong> a cluster running nightly batch jobs
+        with Karpenter and <code>WhenEmptyOrUnderutilized</code> pays for executor compute only during
+        the job windows — not for idle capacity at 2pm. Combined with spot pricing on executor nodes,
+        this is often the single biggest lever on a data platform's AKS bill.</p>
+      </div>
+
+      <h2>Resource limits: bounding the blast radius</h2>
+
+      <p>
+        NodePool <code>limits</code> cap the total CPU and memory Karpenter will provision for that pool.
+        This is your circuit breaker. A misconfigured job that spawns thousands of executor pods won't
+        run up an unbounded bill — Karpenter simply won't provision nodes beyond the declared ceiling,
+        and the excess pods stay pending until capacity is freed.
+      </p>
+      <p>
+        Size limits based on your maximum intended concurrency, with headroom. If your largest job needs
+        at most 32 executor nodes at 16 vCPUs each, a CPU limit of 512 is a comfortable ceiling. Set it
+        too tight and you'll throttle legitimate peak workloads; set it too loose and you've defeated the
+        purpose. Review actual peak usage from Azure Monitor after a few weeks of production traffic and
+        adjust.
+      </p>
+
+      <h2>Multi-zone requirements</h2>
+
+      <p>
+        Explicitly listing the zones your workload can run in matters for two reasons: availability
+        (Karpenter won't attempt a zone where your SKU is unavailable) and spot quota (Azure spot quotas
+        are sometimes zone-specific). If you omit zone requirements and Karpenter tries to provision in
+        a zone with limited spot capacity for your target SKU, you'll see slow or failed provisioning
+        without an obvious error.
+      </p>
+      <p>
+        For workloads that use distributed storage or zone-affinity networking, you may also want to
+        constrain your NodePools to match the zones where that storage lives, to avoid cross-zone
+        traffic costs for high-throughput I/O paths.
+      </p>
+
+      <h2>Deploying NodePools via GitOps</h2>
+
+      <p>
+        If you're running ArgoCD for workload delivery, NAP configuration should be its own ArgoCD
+        <code>Application</code> with <code>sync-wave: "-1"</code>. This ensures <code>NodePool</code>
+        and <code>AKSNodeClass</code> resources are reconciled before any workload Application attempts
+        to schedule pods that depend on them. Without this, you risk a race where pods land on the wrong
+        pool or stay pending until the next sync cycle.
+      </p>
+
+      <pre><code>apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nap-config
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"  # provision before workload apps
+spec:
+  source:
+    repoURL: git@ssh.dev.azure.com:v3/your-org/your-repo/your-repo
+    targetRevision: main
+    path: k8s/nap
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true  # required: Karpenter owns status fields ArgoCD would otherwise conflict on</code></pre>
+
+      <p>
+        <code>ServerSideApply: true</code> is required. Karpenter manages certain fields on NodePool
+        objects (status, some annotations) that ArgoCD would overwrite or conflict with under a
+        client-side apply model. Without it, you'll see reconciliation errors that are non-obvious
+        to diagnose.
+      </p>
+
+      <h2>What to watch out for in production</h2>
+
+      <ul>
+        <li><strong>Azure Spot quota:</strong> spot quota is separate from regular compute quota and isn't always pre-provisioned. Verify your quota for the target SKU family in the target region before go-live. A provisioning failure at 2am on a critical batch job run is not the time to discover a quota gap.</li>
+        <li><strong>ARM API throttling:</strong> at high provisioning frequency — rapid successive job submissions — Karpenter can hit Azure Resource Manager rate limits. Monitor the <code>karpenter</code> namespace logs for provisioning delays, and if you see throttling, stagger job submissions or request a quota increase on ARM API calls.</li>
+        <li><strong>PodDisruptionBudgets and consolidation:</strong> Karpenter respects PDBs during consolidation. For long-running processes (driver pods mid-job, for example), set appropriate PDBs to prevent Karpenter from evicting them during an aggressive consolidation cycle.</li>
+        <li><strong>SKU availability at provisioning time:</strong> even with a well-designed NodePool requirements list, spot SKU availability can be zero during regional capacity crunches. Test your fallback behaviour before production, and consider whether a cold-start timeout SLA is acceptable for your workload.</li>
+        <li><strong>Node image updates:</strong> NAP updates node images periodically. This can trigger node replacement during a consolidation cycle. If your workloads are sensitive to node churn, set maintenance windows or use disruption budgets to control when replacements happen.</li>
+      </ul>
+
+      <h2>What I'd do differently starting a new project today</h2>
+
+      <p>
+        If I was setting up Karpenter on AKS from scratch right now:
+      </p>
+      <ol>
+        <li>Enable NAP at cluster creation time — retrofitting it onto an existing cluster that already has autoscaler-managed node pools requires careful migration sequencing.</li>
+        <li>Start with <code>WhenEmpty</code> consolidation and switch to <code>WhenEmptyOrUnderutilized</code> only after validating that workload disruption tolerance is in place (PDBs, toleration on retry logic).</li>
+        <li>Define pool limits conservatively on day one; loosen them based on actual observed peak rather than estimates.</li>
+        <li>Put NAP configuration in a dedicated ArgoCD Application with sync-wave -1 on day one — don't mix it with workload manifests and think you'll separate it later.</li>
+        <li>Verify ephemeral OS disk placement on every SKU in your NodePool list. Not all SKUs support it, and the behaviour difference between a local NVMe OS disk and a network-attached managed disk is significant for I/O-heavy workloads.</li>
+      </ol>
+      <p>
+        The recurring theme is that NAP's value — scale-to-zero, spot fallback, just-in-time provisioning —
+        only delivers fully when the NodePool design is deliberate. It's not a drop-in replacement for
+        cluster-autoscaler that you configure once and forget. The abstractions are richer, the knobs matter
+        more, and the cost implications of getting them right are real.
+      </p>
+
+      <div class="ref-block">
+        <strong>Further reading:</strong><br><br>
+        <a href="https://learn.microsoft.com/en-us/azure/aks/node-autoprovision" target="_blank" rel="noopener">AKS Node Autoprovision (Karpenter) — Microsoft Learn</a><br>
+        <a href="https://karpenter.sh/docs/" target="_blank" rel="noopener">Karpenter Documentation</a><br>
+        <a href="https://learn.microsoft.com/en-us/azure/aks/spot-node-pool" target="_blank" rel="noopener">Use Azure Spot VMs for AKS node pools — Microsoft Learn</a>
+      </div>
+
+    </article>
+  </div>
+
+  <footer>
+    <span class="mono">&copy; <span id="year"></span> Roman Rabodzei &nbsp;·&nbsp; <a href="../index.html#blog" style="color: var(--accent);">← back to blog</a></span>
+  </footer>
+
+  <script>
+    const html = document.documentElement;
+
+    function applyTheme(t) {
+      html.setAttribute('data-theme', t);
+      localStorage.setItem('theme', t);
+    }
+
+    const saved = localStorage.getItem('theme') || 'dark';
+    applyTheme(saved);
+
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', async () => {
+      const shareData = { title: document.title, url: location.href };
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          shareBtn.classList.add('copied');
+          setTimeout(() => shareBtn.classList.remove('copied'), 1500);
+        } catch (e) {}
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(location.href);
+        shareBtn.classList.add('copied');
+        setTimeout(() => shareBtn.classList.remove('copied'), 1500);
+      } catch (e) {}
+    });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
