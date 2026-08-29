@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Agents on Azure Don't Have to Be Expensive: From Use Case to Cost Governance — Roman Rabodzei</title>
+  <meta name="description" content="A practitioner's guide to making AI agent investments on Azure cost-efficient — from picking the right use cases to monitoring spend in production.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #f5f5f7;
+      --surface:     #ffffff;
+      --surface2:    #f5f5f7;
+      --border:      #d2d2d7;
+      --text:        #1d1d1f;
+      --muted:       #6e6e73;
+      --accent:      #0071e3;
+      --accent-dim:  rgba(0, 113, 227, 0.08);
+    }
+
+    [data-theme="dark"] {
+      --bg:          #000000;
+      --surface:     #1c1c1e;
+      --surface2:    #2c2c2e;
+      --border:      #38383a;
+      --text:        #f5f5f7;
+      --muted:       #98989d;
+      --accent:      #0a84ff;
+      --accent-dim:  rgba(10, 132, 255, 0.14);
+    }
+
+    html { scroll-behavior: smooth; background: var(--bg); overflow-x: hidden; }
+
+    body {
+      position: relative;
+      z-index: 0;
+      overflow-x: hidden;
+      max-width: 100vw;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      transition: background .2s, color .2s;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(0,113,227,0.16) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,190,255,0.12) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(0,113,227,0.10) 0%, transparent 45%);
+      filter: blur(90px);
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    [data-theme="dark"] body::before {
+      background:
+        radial-gradient(circle at 18% 22%, rgba(10,132,255,0.32) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,92,230,0.22) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(10,132,255,0.18) 0%, transparent 45%);
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity: .5;
+      -webkit-mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace; }
+    a { color: inherit; }
+
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: .7rem 1.5rem;
+      display: flex; align-items: center; justify-content: flex-end; gap: 1rem;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+
+    .back-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .82rem; color: var(--muted);
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    @media (hover: hover) { .back-link:hover { color: var(--accent); } }
+
+    .theme-toggle {
+      display: flex; align-items: center; justify-content: center;
+      width: 2rem; height: 2rem; flex-shrink: 0;
+      border-radius: 50%; border: 1px solid var(--border);
+      background: var(--surface); color: var(--muted);
+      cursor: pointer;
+      transition: border-color .15s, color .15s, background .15s;
+    }
+
+    @media (hover: hover) { .theme-toggle:hover { border-color: var(--accent); color: var(--accent); } }
+
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-sun  { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+    .theme-toggle .icon-copied { display: none; }
+    .theme-toggle.copied .icon-share  { display: none; }
+    .theme-toggle.copied .icon-copied { display: block; }
+
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+
+    .article-header {
+      padding: 3rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+
+    .article-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted); margin-bottom: .75rem;
+    }
+
+    .article-title {
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      font-weight: 700; line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .article-title .accent { color: var(--accent); }
+
+    .article-meta {
+      display: flex; flex-wrap: wrap; gap: .75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; color: var(--muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .article-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+    .article-tags span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem; padding: .15rem .5rem;
+      border-radius: 4px; border: 1px solid var(--border);
+      color: var(--muted); background: var(--surface);
+    }
+
+    .article-hero {
+      margin-bottom: 2.5rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .article-hero svg { display: block; width: 100%; height: auto; }
+
+    .article-content { padding-bottom: 4rem; }
+
+    .article-content p {
+      font-size: .975rem; line-height: 1.85;
+      color: var(--text); margin-bottom: 1.35rem;
+      text-align: justify;
+    }
+
+    .article-content h2 {
+      font-size: 1.2rem; font-weight: 600;
+      margin: 2.25rem 0 1rem;
+      padding-bottom: .5rem; border-bottom: 1px solid var(--border);
+    }
+
+    .article-content h3 {
+      font-size: 1rem; font-weight: 600;
+      margin: 1.75rem 0 .6rem; color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .article-content ul, .article-content ol {
+      margin: .75rem 0 1.35rem 1.5rem;
+      display: flex; flex-direction: column; gap: .45rem;
+    }
+
+    .article-content li { font-size: .975rem; line-height: 1.75; color: var(--text); }
+
+    .article-content strong { color: var(--text); }
+
+    .article-content a { color: var(--accent); text-decoration: none; }
+    .article-content a:hover { text-decoration: underline; }
+
+    .article-content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .85em; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 3px;
+      padding: .1em .35em; color: var(--accent);
+    }
+
+    .callout {
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px; padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+    }
+
+    .callout p { margin-bottom: 0; }
+
+    .ref-block {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1rem 1.25rem;
+      margin: 2.5rem 0 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted);
+    }
+
+    .ref-block a { color: var(--accent); }
+
+    footer {
+      position: relative; z-index: 1;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 1.5rem; text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-right">
+      <a class="back-link mono" href="../index.html#blog">← back to blog</a>
+      <button class="theme-toggle" id="shareBtn" title="Share this post" aria-label="Share this post">
+        <svg class="icon-share" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        <svg class="icon-copied" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </button>
+      <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="article-header">
+      <p class="article-label mono">&gt; blog.post()</p>
+      <h1 class="article-title">AI Agents on Azure Don't Have to Be Expensive: <span class="accent">From Use Case to Cost Governance</span></h1>
+      <div class="article-meta">
+        <span>Roman Rabodzei</span>
+        <span>·</span>
+        <span>Sep 2026</span>
+        <span>·</span>
+        <span>~10 min read</span>
+      </div>
+      <div class="article-tags">
+        <span>Azure AI</span>
+        <span>AI Agents</span>
+        <span>FinOps</span>
+        <span>Microsoft Foundry</span>
+        <span>Architecture</span>
+        <span>Cost Optimization</span>
+      </div>
+    </header>
+
+    <figure class="article-hero" aria-label="Illustration of an AI agent cost efficiency dashboard on Azure">
+      <svg viewBox="0 0 1200 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Abstract dashboard showing cost trend lines and agent nodes connected by orchestration paths">
+        <rect width="1200" height="500" fill="#06090f"></rect>
+
+        <!-- grid dots -->
+        <g fill="#dce8f4" opacity=".35">
+          <circle cx="60"  cy="60"  r="1.4"></circle>
+          <circle cx="200" cy="100" r="1.0"></circle>
+          <circle cx="1100" cy="80" r="1.4"></circle>
+          <circle cx="980" cy="160" r="1.0"></circle>
+          <circle cx="600" cy="35"  r="1.1"></circle>
+          <circle cx="50"  cy="440" r="1.1"></circle>
+          <circle cx="1150" cy="430" r="1.1"></circle>
+          <circle cx="400" cy="460" r="0.9"></circle>
+          <circle cx="800" cy="455" r="0.9"></circle>
+        </g>
+
+        <!-- cost trend line — downward, good direction -->
+        <polyline
+          points="120,360 240,310 360,290 480,240 600,210 720,185 840,165 960,148 1080,135"
+          fill="none" stroke="#4fc3f7" stroke-width="2.5" stroke-linejoin="round" opacity=".7">
+        </polyline>
+
+        <!-- area fill under trend -->
+        <polygon
+          points="120,360 240,310 360,290 480,240 600,210 720,185 840,165 960,148 1080,135 1080,400 120,400"
+          fill="url(#areaGrad)" opacity=".18">
+        </polygon>
+        <defs>
+          <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#4fc3f7"></stop>
+            <stop offset="100%" stop-color="#4fc3f7" stop-opacity="0"></stop>
+          </linearGradient>
+        </defs>
+
+        <!-- data point dots -->
+        <g fill="#4fc3f7">
+          <circle cx="120"  cy="360" r="4.5"></circle>
+          <circle cx="360"  cy="290" r="4.5"></circle>
+          <circle cx="600"  cy="210" r="4.5"></circle>
+          <circle cx="840"  cy="165" r="4.5"></circle>
+          <circle cx="1080" cy="135" r="4.5"></circle>
+        </g>
+
+        <!-- agent nodes -->
+        <g>
+          <!-- orchestrator -->
+          <circle cx="600" cy="120" r="38" fill="#101e30" stroke="#4fc3f7" stroke-width="2.5"></circle>
+          <text x="600" y="115" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600">orchestrator</text>
+          <text x="600" y="128" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="10">agent</text>
+
+          <!-- sub-agents -->
+          <circle cx="440" cy="195" r="26" fill="#101e30" stroke="#38546f" stroke-width="1.8"></circle>
+          <text x="440" y="199" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">search</text>
+
+          <circle cx="600" cy="205" r="26" fill="#101e30" stroke="#38546f" stroke-width="1.8"></circle>
+          <text x="600" y="209" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">code</text>
+
+          <circle cx="760" cy="195" r="26" fill="#101e30" stroke="#38546f" stroke-width="1.8"></circle>
+          <text x="760" y="199" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">data</text>
+
+          <!-- connectors -->
+          <line x1="569" y1="148" x2="458" y2="170" stroke="#38546f" stroke-width="1.5" stroke-dasharray="4 5"></line>
+          <line x1="600" y1="158" x2="600" y2="179" stroke="#38546f" stroke-width="1.5" stroke-dasharray="4 5"></line>
+          <line x1="631" y1="148" x2="742" y2="170" stroke="#38546f" stroke-width="1.5" stroke-dasharray="4 5"></line>
+        </g>
+
+        <!-- axis label -->
+        <text x="90" y="415" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="11">cost / month</text>
+        <text x="1070" y="415" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11">optimized ✓</text>
+      </svg>
+    </figure>
+
+    <article class="article-content">
+
+      <p>
+        AI agents are one of the most genuinely useful things to come out of the recent wave of generative AI — but
+        they can also become one of the more expensive line items on an Azure bill if you're not deliberate about
+        how you design, build, and run them. Having worked on agentic solutions in Microsoft Foundry alongside the
+        Azure back-end that supports them, I've found that cost efficiency isn't something you retrofit after launch.
+        It's built in from the first conversation about use cases all the way through to how you monitor spend in production.
+      </p>
+      <p>
+        This post walks through the full lifecycle — from picking the right use cases to ongoing cost governance —
+        drawing on my own experience and the frameworks covered in Microsoft's
+        <a href="https://learn.microsoft.com/en-us/training/paths/maximize-cost-efficiency-ai-agents/" target="_blank" rel="noopener">Maximize the Cost Efficiency of AI Agents on Azure</a>
+        learning path, which I'd recommend as structured further reading alongside this.
+      </p>
+
+      <h2>Start with use case selection, not technology</h2>
+
+      <p>
+        The most reliable way to waste money on AI agents is to start with the technology and then look
+        for something to do with it. The cost profile of an agent solution — model calls per interaction,
+        tool invocations, retrieval operations, storage, orchestration overhead — compounds quickly.
+        If the underlying use case doesn't deliver meaningful value, no amount of prompt engineering will fix the economics.
+      </p>
+      <p>
+        What works better is starting from actual business friction: processes with high manual overhead,
+        decisions that require synthesising information from multiple sources, tasks that are repetitive
+        enough to automate but complex enough that a simple rule-based system won't cut it.
+        The key evaluation criteria I use are: <strong>impact</strong> (does solving this actually move a metric someone cares about?),
+        <strong>feasibility</strong> (do we have the data quality and integration access the agent needs?),
+        and <strong>cost-to-automate versus cost-of-status-quo</strong> (is the agent cheaper than the current approach, fully loaded?).
+      </p>
+      <p>
+        Quick wins matter early. Deploying a prebuilt agent through Microsoft Foundry for a well-understood
+        use case — an internal knowledge assistant, a document extraction workflow — is orders of magnitude
+        cheaper than building a custom multi-agent system from scratch. It also gives you real usage data
+        faster, which informs whether the more complex investment is worth it.
+      </p>
+
+      <h2>Understand what you're actually paying for</h2>
+
+      <p>
+        Token consumption from the underlying LLM is the most visible cost, but it's rarely the only one
+        once a solution is running at scale. The full cost picture for a custom AI agent on Azure typically includes:
+      </p>
+      <ul>
+        <li><strong>Infrastructure:</strong> compute for the orchestration layer, vector database hosting (Azure AI Search, Cosmos DB with vector indexing), storage, networking, and any containerised services supporting the agent.</li>
+        <li><strong>Model inference:</strong> input and output tokens, which vary significantly depending on whether you're using a large frontier model for every call or routing simpler subtasks to a smaller, cheaper model.</li>
+        <li><strong>Tool and retrieval operations:</strong> every time an agent calls an external API, runs a search, or reads from a data store, there's a cost — often underestimated during design.</li>
+        <li><strong>Development and integration:</strong> the engineering time to build, test, and maintain the agent, connect it to internal systems, and keep it aligned with evolving requirements.</li>
+        <li><strong>Data preparation:</strong> cleaning, chunking, and indexing the knowledge base the agent draws on isn't a one-time cost — it requires ongoing maintenance as data changes.</li>
+      </ul>
+      <p>
+        Prebuilt Foundry agents with managed infrastructure shift most of the infrastructure and licensing
+        costs into a simpler consumption model. That's worth understanding before you default to building
+        something custom — for many use cases, it's genuinely the better economic choice.
+      </p>
+
+      <div class="callout">
+        <p><strong>A thing I've learned the hard way:</strong> verbose system prompts and over-engineered context injection are
+        often the silent drivers of high token costs. A 6,000-token system prompt that runs on every call is expensive at scale.
+        Trim and iterate on prompts the same way you'd optimise a database query — it compounds.</p>
+      </div>
+
+      <h2>Make the financial case properly</h2>
+
+      <p>
+        Stakeholders will ask about ROI, and "it's transformative" won't hold up when the first Azure bill arrives.
+        A credible business case for an AI agent investment needs to quantify both sides of the ledger.
+      </p>
+      <p>
+        On the benefit side: how many hours of manual work does the agent replace per week, and at what labour cost?
+        What's the error rate reduction, and what's the downstream cost of those errors today? Does faster
+        turnaround on a process unlock revenue that currently waits in a queue? On the cost side: total cost
+        of development, monthly infrastructure and inference spend at expected usage, and an ongoing maintenance
+        estimate — not just the MVP delivery cost.
+      </p>
+      <p>
+        Net present value (NPV) matters more than a simple payback period for multi-year investments, because
+        AI agent costs tend to decrease over time as you optimise (better prompts, cheaper models, refined scope)
+        while value tends to increase as adoption grows. Sensitivity analysis — what does the ROI look like if
+        usage is half what we projected? — is worth doing before a significant commitment, not after.
+      </p>
+
+      <h2>Prebuilt vs custom: choose deliberately</h2>
+
+      <p>
+        One of the most consequential decisions in an AI agent project is how much you build yourself.
+        It affects time-to-value, total cost, ongoing maintenance burden, and the depth of customisation available.
+      </p>
+      <p>
+        Microsoft Copilot-based agents (built in Copilot Studio, deployed through Microsoft 365 or Azure)
+        are production-ready quickly, have predictable pricing, and require no infrastructure management.
+        They're the right choice for many enterprise use cases — especially where the business logic is
+        relatively standard and the primary need is grounding the agent in internal data.
+      </p>
+      <p>
+        Pro-code agents built with the Azure AI Agent Service, Semantic Kernel, or AutoGen give you full
+        control over orchestration logic, tool definitions, memory management, and model routing. That control
+        has real value for complex multi-step workflows, domain-specific reasoning, or cases where tight
+        integration with existing systems is non-negotiable. But it also means you own the infrastructure,
+        the latency tuning, and every scaling decision — and those carry ongoing cost and engineering overhead.
+      </p>
+      <p>
+        The honest middle ground is often a hybrid: prebuilt agent for the parts of the workflow that don't
+        need custom logic, custom orchestration only where it genuinely adds value. Getting the boundary
+        right upfront saves significant rework later.
+      </p>
+
+      <h2>Model selection is a cost lever, not an afterthought</h2>
+
+      <p>
+        Not every task an agent performs needs a large frontier model. Routing a classification step, a
+        structured extraction, or a simple transformation to a smaller, faster, cheaper model — while
+        reserving the full-capability model for reasoning-heavy subtasks — can cut inference costs dramatically
+        without degrading the overall quality of the agent's output.
+      </p>
+      <p>
+        On Azure, the model catalogue in Microsoft Foundry makes this practical: you can mix models within
+        the same agent orchestration and compare cost-per-quality tradeoffs on real workloads. The pattern
+        I've found useful is to start everything on the best available model during development (to understand
+        what quality ceiling you're targeting), then systematically test whether smaller models can meet that
+        bar on each individual subtask before moving to production.
+      </p>
+
+      <h2>Architecture choices that affect the bill</h2>
+
+      <p>
+        How you architect an AI agent solution has a direct impact on what it costs to run. A few principles
+        that have shaped my thinking:
+      </p>
+      <h3>// right-size the orchestration layer</h3>
+      <p>
+        Multi-agent systems are powerful but add overhead — more model calls, more coordination, more
+        failure modes to handle. Single-agent solutions with well-defined tools are often faster, cheaper,
+        and easier to debug for use cases that don't genuinely require parallel specialised agents. Add agents
+        when the problem requires it, not because the architecture looks impressive on a whiteboard.
+      </p>
+      <h3>// design retrieval with cost in mind</h3>
+      <p>
+        Retrieval-augmented generation is almost always the right approach for grounding an agent in internal
+        knowledge — but the cost of search calls and the token cost of injecting retrieved context into every
+        prompt add up. Tuning chunk size, limiting retrieval to high-relevance results, and using semantic
+        caching for repeated queries are straightforward wins. Azure AI Search's hybrid search mode (keyword
+        plus vector) often gives better relevance at lower cost than pure vector search.
+      </p>
+      <h3>// plan scaling from the start</h3>
+      <p>
+        Azure Provisioned Throughput Units (PTUs) offer predictable costs at scale for predictable workloads;
+        pay-as-you-go consumption suits variable or experimental workloads. Making the wrong call at launch
+        and migrating later is expensive both in engineering time and potential downtime. Define your expected
+        concurrency and token throughput upfront, even if the estimates are rough — it forces the right conversation.
+      </p>
+
+      <h2>Governance frameworks that actually help</h2>
+
+      <p>
+        Three frameworks come up repeatedly in any serious conversation about running AI agents at enterprise scale,
+        and all three are relevant to cost specifically:
+      </p>
+      <p>
+        <strong>FinOps for AI</strong> extends the cloud FinOps discipline to cover the AI-specific cost drivers — token consumption,
+        model selection, retrieval costs. The core loop is the same: visibility into what's running and what
+        it costs, shared accountability between engineering and the business, and a continuous optimisation
+        cycle. Azure Cost Management with custom tags on AI resources, combined with Foundry's built-in
+        usage observability, gives you the visibility layer.
+      </p>
+      <p>
+        <strong>An AI Center of Excellence</strong> prevents every team from independently solving the same problems
+        (and making the same mistakes) with AI agents. Shared agent templates, vetted model configurations,
+        approved data connectors, and guardrail patterns reduce both the development cost and the operational
+        risk of new agent projects. If your organisation is deploying agents at scale, the overhead of
+        establishing this shared function pays back quickly.
+      </p>
+      <p>
+        <strong>The Azure Well-Architected Framework</strong> applied to AI workloads — specifically the cost optimisation pillar —
+        asks useful questions at each layer: Is this service correctly sized? Are we paying for redundancy
+        we don't need yet? Is there a managed service that does this job without us owning the infrastructure?
+        Running a Well-Architected review on an agent solution six months after launch consistently surfaces
+        meaningful cost and reliability improvements.
+      </p>
+
+      <h2>Monitoring is not optional in production</h2>
+
+      <p>
+        Cost surprises in AI workloads almost always come down to one of three things: unexpectedly high
+        usage, unbounded tool call loops in an agent, or a data ingestion pipeline that ran more than expected.
+        All three are preventable with proper observability.
+      </p>
+      <p>
+        Microsoft Foundry's built-in observability captures token consumption, agent traces, tool call counts,
+        and latency per interaction. This is the data you need to spot both anomalies (an agent stuck in a loop)
+        and optimisation opportunities (a subtask that consistently uses far more tokens than the others).
+        Combine Foundry telemetry with Azure Monitor alerts and cost budgets set at the resource group level,
+        and you have a monitoring setup that catches problems before they show up as a large invoice.
+      </p>
+      <p>
+        Useful metrics to track from day one: average token cost per agent session, tool invocation count per
+        session, P95 latency, error rate (particularly tool call failures that trigger retry loops), and
+        monthly spend trend against the projected baseline. If any of these drift significantly, investigate
+        before they compound.
+      </p>
+
+      <h2>What I'd do differently starting a new project today</h2>
+
+      <p>
+        If I was starting an AI agent project on Azure from scratch right now, the sequencing would look like this:
+      </p>
+      <ol>
+        <li>Define the use case precisely and size the financial benefit before choosing any technology.</li>
+        <li>Start with a Foundry prebuilt or Copilot Studio agent to validate the use case with real users before committing to custom development.</li>
+        <li>Set up cost monitoring and budget alerts on day one — not as a final step before go-live.</li>
+        <li>Profile token consumption at the subtask level during development, not just overall, and route cheaper models to simpler steps early.</li>
+        <li>Run a Well-Architected review at 90 days post-launch, specifically targeting the cost and operational excellence pillars.</li>
+      </ol>
+      <p>
+        The recurring theme is that cost efficiency is a design discipline, not a post-launch optimisation
+        project. The teams I've seen get it right do it by making cost a first-class concern from the first
+        architectural conversation — the same way they'd treat security or reliability.
+      </p>
+
+      <div class="ref-block">
+        <strong>Further reading:</strong><br><br>
+        Microsoft Learn learning path: <a href="https://learn.microsoft.com/en-us/training/paths/maximize-cost-efficiency-ai-agents/" target="_blank" rel="noopener">Maximize the Cost Efficiency of AI Agents on Azure</a> — 7 modules covering use case selection, cost drivers, ROI forecasting, best practice frameworks, development approach trade-offs, architecture patterns, and ongoing investment management.
+      </div>
+
+    </article>
+  </div>
+
+  <footer>
+    <span class="mono">&copy; <span id="year"></span> Roman Rabodzei &nbsp;·&nbsp; <a href="../index.html#blog" style="color: var(--accent);">← back to blog</a></span>
+  </footer>
+
+  <script>
+    const html = document.documentElement;
+
+    function applyTheme(t) {
+      html.setAttribute('data-theme', t);
+      localStorage.setItem('theme', t);
+    }
+
+    const saved = localStorage.getItem('theme') || 'dark';
+    applyTheme(saved);
+
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', async () => {
+      const shareData = { title: document.title, url: location.href };
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          shareBtn.classList.add('copied');
+          setTimeout(() => shareBtn.classList.remove('copied'), 1500);
+        } catch (e) {}
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(location.href);
+        shareBtn.classList.add('copied');
+        setTimeout(() => shareBtn.classList.remove('copied'), 1500);
+      } catch (e) {}
+    });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
