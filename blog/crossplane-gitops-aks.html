@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitOps for Azure Infrastructure with Crossplane on AKS: Providers, Compositions, and Drift Correction — Roman Rabodzei</title>
+  <meta name="description" content="Moving Azure infrastructure management from Terraform pipelines to Crossplane on AKS — using Kubernetes manifests, Flux, and composite resources to close the GitOps loop all the way to the cloud layer.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #f5f5f7;
+      --surface:     #ffffff;
+      --surface2:    #f5f5f7;
+      --border:      #d2d2d7;
+      --text:        #1d1d1f;
+      --muted:       #6e6e73;
+      --accent:      #0071e3;
+      --accent-dim:  rgba(0, 113, 227, 0.08);
+    }
+
+    [data-theme="dark"] {
+      --bg:          #000000;
+      --surface:     #1c1c1e;
+      --surface2:    #2c2c2e;
+      --border:      #38383a;
+      --text:        #f5f5f7;
+      --muted:       #98989d;
+      --accent:      #0a84ff;
+      --accent-dim:  rgba(10, 132, 255, 0.14);
+    }
+
+    html { scroll-behavior: smooth; background: var(--bg); overflow-x: hidden; }
+
+    body {
+      position: relative;
+      z-index: 0;
+      overflow-x: hidden;
+      max-width: 100vw;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      transition: background .2s, color .2s;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(0,113,227,0.16) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,190,255,0.12) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(0,113,227,0.10) 0%, transparent 45%);
+      filter: blur(90px);
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    [data-theme="dark"] body::before {
+      background:
+        radial-gradient(circle at 18% 22%, rgba(10,132,255,0.32) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,92,230,0.22) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(10,132,255,0.18) 0%, transparent 45%);
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity: .5;
+      -webkit-mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace; }
+    a { color: inherit; }
+
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: .7rem 1.5rem;
+      display: flex; align-items: center; justify-content: flex-end; gap: 1rem;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+
+    .back-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .82rem; color: var(--muted);
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    @media (hover: hover) { .back-link:hover { color: var(--accent); } }
+
+    .theme-toggle {
+      display: flex; align-items: center; justify-content: center;
+      width: 2rem; height: 2rem; flex-shrink: 0;
+      border-radius: 50%; border: 1px solid var(--border);
+      background: var(--surface); color: var(--muted);
+      cursor: pointer;
+      transition: border-color .15s, color .15s, background .15s;
+    }
+
+    @media (hover: hover) { .theme-toggle:hover { border-color: var(--accent); color: var(--accent); } }
+
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-sun  { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+    .theme-toggle .icon-copied { display: none; }
+    .theme-toggle.copied .icon-share  { display: none; }
+    .theme-toggle.copied .icon-copied { display: block; }
+
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+
+    .article-header {
+      padding: 3rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+
+    .article-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted); margin-bottom: .75rem;
+    }
+
+    .article-title {
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      font-weight: 700; line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .article-title .accent { color: var(--accent); }
+
+    .article-meta {
+      display: flex; flex-wrap: wrap; gap: .75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; color: var(--muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .article-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+    .article-tags span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem; padding: .15rem .5rem;
+      border-radius: 4px; border: 1px solid var(--border);
+      color: var(--muted); background: var(--surface);
+    }
+
+    .article-hero {
+      margin-bottom: 2.5rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .article-hero svg { display: block; width: 100%; height: auto; }
+
+    .article-content { padding-bottom: 4rem; }
+
+    .article-content p {
+      font-size: .975rem; line-height: 1.85;
+      color: var(--text); margin-bottom: 1.35rem;
+      text-align: justify;
+    }
+
+    .article-content h2 {
+      font-size: 1.2rem; font-weight: 600;
+      margin: 2.25rem 0 1rem;
+      padding-bottom: .5rem; border-bottom: 1px solid var(--border);
+    }
+
+    .article-content h3 {
+      font-size: 1rem; font-weight: 600;
+      margin: 1.75rem 0 .6rem; color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .article-content ul, .article-content ol {
+      margin: .75rem 0 1.35rem 1.5rem;
+      display: flex; flex-direction: column; gap: .45rem;
+    }
+
+    .article-content li { font-size: .975rem; line-height: 1.75; color: var(--text); }
+
+    .article-content strong { color: var(--text); }
+
+    .article-content a { color: var(--accent); text-decoration: none; }
+    .article-content a:hover { text-decoration: underline; }
+
+    .article-content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .85em; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 3px;
+      padding: .1em .35em; color: var(--accent);
+    }
+
+    .article-content pre {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1rem 1.15rem;
+      overflow-x: auto; margin: 1rem 0 1.5rem;
+      max-width: 100%; box-sizing: border-box;
+    }
+
+    .article-content pre code {
+      background: none; border: none; padding: 0;
+      color: var(--text); font-size: .82rem; line-height: 1.6;
+    }
+
+    .callout {
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px; padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+    }
+
+    .callout p { margin-bottom: 0; }
+
+    .ref-block {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1rem 1.25rem;
+      margin: 2.5rem 0 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted);
+    }
+
+    .ref-block a { color: var(--accent); }
+
+    footer {
+      position: relative; z-index: 1;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 1.5rem; text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-right">
+      <a class="back-link mono" href="../index.html#blog">← back to blog</a>
+      <button class="theme-toggle" id="shareBtn" title="Share this post" aria-label="Share this post">
+        <svg class="icon-share" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        <svg class="icon-copied" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </button>
+      <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="article-header">
+      <p class="article-label mono">&gt; blog.post()</p>
+      <h1 class="article-title">GitOps for Azure Infrastructure with Crossplane on AKS: <span class="accent">Providers, Compositions, and Drift Correction</span></h1>
+      <div class="article-meta">
+        <span>Roman Rabodzei</span>
+        <span>·</span>
+        <span>Sep 2026</span>
+        <span>·</span>
+        <span>~12 min read</span>
+      </div>
+      <div class="article-tags">
+        <span>Kubernetes</span>
+        <span>Azure</span>
+        <span>GitOps</span>
+        <span>Crossplane</span>
+        <span>Infrastructure as Code</span>
+        <span>AKS</span>
+        <span>Flux</span>
+      </div>
+    </header>
+
+    <figure class="article-hero" aria-label="Illustration of Crossplane reconciling Azure infrastructure from Kubernetes manifests stored in Git">
+      <svg viewBox="30 55 890 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three-layer diagram: Git repo with YAML manifests on the left, Kubernetes cluster with Crossplane in the centre, Azure cloud resources on the right">
+        <rect width="1200" height="500" fill="#06090f"></rect>
+
+        <!-- grid dots -->
+        <g fill="#dce8f4" opacity=".3">
+          <circle cx="60"  cy="60"  r="1.4"></circle>
+          <circle cx="1100" cy="80" r="1.4"></circle>
+          <circle cx="600" cy="35"  r="1.1"></circle>
+          <circle cx="50"  cy="440" r="1.1"></circle>
+          <circle cx="1150" cy="430" r="1.1"></circle>
+        </g>
+
+        <defs>
+          <marker id="arrowC" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#4fc3f7"></path>
+          </marker>
+          <marker id="arrowCG" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#30d158"></path>
+          </marker>
+          <marker id="arrowCR" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#0a84ff"></path>
+          </marker>
+        </defs>
+
+        <!-- LEFT: Git repo -->
+        <rect x="60" y="130" width="200" height="250" rx="10" fill="#101e30" stroke="#38546f" stroke-width="1.5"></rect>
+        <text x="160" y="158" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Git Repository</text>
+        <line x1="75" y1="168" x2="245" y2="168" stroke="#38546f" stroke-width="1"></line>
+        <text x="80" y="186" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="9">infra/</text>
+        <text x="92" y="201" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">storage.yaml</text>
+        <text x="92" y="215" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">servicebus.yaml</text>
+        <text x="92" y="229" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">postgresql.yaml</text>
+        <text x="80" y="248" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="9">compositions/</text>
+        <text x="92" y="263" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">x-dataplatform.yaml</text>
+        <text x="80" y="282" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="9">providers/</text>
+        <text x="92" y="297" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">provider-azure.yaml</text>
+        <text x="92" y="311" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">providerconfig.yaml</text>
+        <text x="160" y="360" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="9">desired state</text>
+
+        <!-- Flux sync arrow -->
+        <line x1="262" y1="250" x2="338" y2="250" stroke="#4fc3f7" stroke-width="1.5" marker-end="url(#arrowC)"></line>
+        <text x="300" y="242" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="8">Flux</text>
+        <text x="300" y="265" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="8">GitRepository</text>
+        <text x="300" y="277" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="8">+ Kustomization</text>
+
+        <!-- CENTER: Kubernetes / Crossplane -->
+        <rect x="340" y="100" width="240" height="320" rx="12" fill="#0a0f1a" stroke="#0a84ff" stroke-width="2"></rect>
+        <text x="460" y="128" text-anchor="middle" fill="#0a84ff" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Kubernetes (AKS)</text>
+        <line x1="355" y1="138" x2="565" y2="138" stroke="#1e3a5f" stroke-width="1"></line>
+
+        <!-- Crossplane box inside cluster -->
+        <rect x="360" y="148" width="200" height="90" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="1.5"></rect>
+        <text x="460" y="170" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600">Crossplane</text>
+        <text x="460" y="186" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">provider-azure-upbound</text>
+        <text x="460" y="199" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">ProviderConfig (OIDC)</text>
+        <text x="460" y="212" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">ManagedResources</text>
+        <text x="460" y="225" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="8">Compositions / XRDs</text>
+
+        <!-- Reconcile loop label -->
+        <text x="460" y="268" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="9">↻  reconcile loop</text>
+        <text x="460" y="284" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="8">observe → diff → act</text>
+
+        <!-- Drift detection -->
+        <rect x="360" y="300" width="200" height="40" rx="6" fill="#0d1f0d" stroke="#30d158" stroke-width="1.2"></rect>
+        <text x="460" y="316" text-anchor="middle" fill="#30d158" font-family="JetBrains Mono, monospace" font-size="9">drift detection ✓</text>
+        <text x="460" y="330" text-anchor="middle" fill="#30d158" font-family="JetBrains Mono, monospace" font-size="8">auto-remediation</text>
+
+        <text x="460" y="395" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="9">control plane</text>
+
+        <!-- RIGHT arrow: Crossplane → Azure -->
+        <line x1="582" y1="250" x2="658" y2="250" stroke="#0a84ff" stroke-width="1.5" marker-end="url(#arrowCR)"></line>
+        <text x="620" y="242" text-anchor="middle" fill="#0a84ff" font-family="JetBrains Mono, monospace" font-size="8">ARM API</text>
+        <text x="620" y="265" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="8">Workload</text>
+        <text x="620" y="277" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="8">Identity</text>
+
+        <!-- RIGHT: Azure resources -->
+        <rect x="660" y="130" width="200" height="240" rx="10" fill="#101e30" stroke="#0a84ff" stroke-width="1.5"></rect>
+        <text x="760" y="158" text-anchor="middle" fill="#0a84ff" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Azure</text>
+        <line x1="675" y1="168" x2="845" y2="168" stroke="#38546f" stroke-width="1"></line>
+
+        <rect x="680" y="178" width="160" height="32" rx="5" fill="#0a0f1a" stroke="#38546f" stroke-width="1"></rect>
+        <text x="760" y="199" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">Storage Account</text>
+
+        <rect x="680" y="220" width="160" height="32" rx="5" fill="#0a0f1a" stroke="#38546f" stroke-width="1"></rect>
+        <text x="760" y="241" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">Service Bus</text>
+
+        <rect x="680" y="262" width="160" height="32" rx="5" fill="#0a0f1a" stroke="#38546f" stroke-width="1"></rect>
+        <text x="760" y="283" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">PostgreSQL Flexible</text>
+
+        <rect x="680" y="304" width="160" height="32" rx="5" fill="#0a0f1a" stroke="#38546f" stroke-width="1"></rect>
+        <text x="760" y="325" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">Key Vault</text>
+
+        <text x="760" y="368" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="9">actual state</text>
+
+        <!-- feedback arrow: Azure → Crossplane -->
+        <path d="M660,320 C630,320 610,370 580,370 C550,370 530,320 500,320" fill="none" stroke="#30d158" stroke-width="1.2" stroke-dasharray="5 4" marker-end="url(#arrowCG)"></path>
+        <text x="580" y="388" text-anchor="middle" fill="#30d158" font-family="JetBrains Mono, monospace" font-size="8">status sync</text>
+      </svg>
+    </figure>
+
+    <article class="article-content">
+
+      <p>
+        There's a gap in most GitOps setups. Application workloads — Deployments, Services, ConfigMaps —
+        are reconciled continuously from Git via Flux or ArgoCD. But the Azure infrastructure those
+        workloads depend on — the storage accounts, message queues, databases, and Key Vaults — is
+        managed separately: Terraform state in a pipeline, Bicep deployed on merge to main, or worse,
+        click-ops that was never captured anywhere. The two halves of the system operate under
+        fundamentally different operational models, with different audit trails, different drift detection
+        postures, and different blast radius when something goes wrong.
+      </p>
+      <p>
+        Crossplane closes this gap. It's a CNCF graduated project that runs inside your Kubernetes cluster
+        and manages cloud infrastructure through the same Kubernetes control loop that manages your pods —
+        desired state declared in YAML, continuously reconciled, drift automatically corrected. If you
+        already have GitOps working for your workloads, Crossplane extends that same model all the way
+        down to the cloud layer.
+      </p>
+
+      <h2>How Crossplane works</h2>
+
+      <p>
+        Crossplane introduces a few abstractions worth understanding before looking at configuration:
+      </p>
+      <ul>
+        <li><strong>Providers:</strong> Crossplane plugins that know how to talk to a specific cloud API. <code>provider-azure-upbound</code> is the official Microsoft-maintained provider. Installing it installs hundreds of Azure-specific CRDs — one per Azure resource type — into your cluster.</li>
+        <li><strong>Managed Resources:</strong> individual CRD instances that represent a single Azure resource. A <code>storage.azure.upbound.io/v1beta1 Account</code> maps to an Azure Storage Account. Crossplane reconciles managed resources against Azure ARM continuously.</li>
+        <li><strong>Composite Resources (XRDs and Compositions):</strong> the abstraction layer that lets you define reusable infra patterns. An XRD (Composite Resource Definition) declares a new custom API surface — say, <code>XDataPlatform</code> — and a Composition maps that to the specific managed resources it comprises. Consumers reference the composite, not the individual resources.</li>
+        <li><strong>ProviderConfig:</strong> the authentication and scope configuration for the provider. On AKS, this should use Workload Identity — a managed identity with the right RBAC roles, bound to the Crossplane provider service account via federated credential.</li>
+      </ul>
+      <p>
+        The reconciliation model is identical to how Kubernetes manages pods. Crossplane reads the desired
+        state from your managed resource spec, calls Azure ARM to observe the actual state, diffs them,
+        and issues create/update/delete calls to converge. Drift — someone manually changed a setting in
+        the Azure portal, or a Terraform run partially failed — is detected on the next reconcile cycle
+        and corrected automatically unless you explicitly annotate the resource to suspend reconciliation.
+      </p>
+
+      <h2>Setting up the provider with Workload Identity</h2>
+
+      <p>
+        The first decision is authentication. The Azure provider needs permissions to create and manage
+        resources in your subscription. The right approach on AKS is Workload Identity — no client
+        secrets, no certificates to rotate, no credentials in Kubernetes secrets.
+      </p>
+      <p>
+        Create a managed identity, assign the roles it needs (at minimum <code>Contributor</code> on
+        the target resource group, <code>User Access Administrator</code> if Crossplane needs to assign
+        RBAC roles to managed resources), and add a federated credential that trusts the Crossplane
+        provider service account:
+      </p>
+
+      <pre><code># assign roles to the managed identity
+az role assignment create \
+  --assignee $CROSSPLANE_CLIENT_ID \
+  --role Contributor \
+  --scope /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP
+
+# federated credential: trust the provider service account
+az identity federated-credential create \
+  --name crossplane-provider-azure \
+  --identity-name crossplane-mi \
+  --resource-group $RESOURCE_GROUP \
+  --issuer $AKS_OIDC_ISSUER \
+  --subject "system:serviceaccount:crossplane-system:provider-azure-upbound" \
+  --audience api://AzureADTokenExchange</code></pre>
+
+      <p>
+        Then configure the provider to use it:
+      </p>
+
+      <pre><code>apiVersion: azure.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: default
+spec:
+  credentials:
+    source: OIDCTokenFile
+    oidcTokenFilePath: /var/run/secrets/azure/tokens/azure-identity-token
+  clientID: $(CROSSPLANE_CLIENT_ID)
+  subscriptionID: $(AZURE_SUBSCRIPTION_ID)
+  tenantID: $(AZURE_TENANT_ID)</code></pre>
+
+      <h2>Managed resources: declaring Azure infrastructure as YAML</h2>
+
+      <p>
+        With the provider configured, you can start declaring Azure resources as Kubernetes manifests.
+        Here's a Storage Account with hierarchical namespace enabled (Data Lake Gen2) and ZRS replication:
+      </p>
+
+      <pre><code>apiVersion: storage.azure.upbound.io/v1beta2
+kind: Account
+metadata:
+  name: datalake-prod
+  annotations:
+    crossplane.io/external-name: stproddatalake001  # actual Azure resource name
+spec:
+  forProvider:
+    resourceGroupName: rg-data-prod
+    location: eastus2
+    accountTier: Standard
+    accountReplicationType: ZRS
+    isHnsEnabled: true              # Data Lake Gen2
+    minTlsVersion: TLS1_2
+    allowBlobPublicAccess: false
+    tags:
+      environment: production
+      managed-by: crossplane
+  providerConfigRef:
+    name: default</code></pre>
+
+      <p>
+        Apply this manifest and Crossplane creates the storage account in Azure. Modify the manifest
+        (change replication type, update a tag) and commit it to Git — Flux syncs it to the cluster,
+        Crossplane reconciles the change to Azure. Delete the manifest and Crossplane deletes the
+        resource (unless you set a <code>deletionPolicy: Orphan</code> annotation to retain it on
+        manifest removal).
+      </p>
+
+      <div class="callout">
+        <p><strong>On deletion policy:</strong> the default is <code>Delete</code> — removing the
+        Kubernetes manifest deletes the Azure resource. For production stateful resources (databases,
+        storage with data), always set <code>crossplane.io/paused: "true"</code> or
+        <code>deletionPolicy: Orphan</code> on first creation, and remove it only after verifying
+        your team understands the deletion behaviour. A misconfigured GitOps automation deleting a
+        production database is an unpleasant experience.</p>
+      </div>
+
+      <h2>Composite Resources: reusable infra patterns</h2>
+
+      <p>
+        Managed resources are powerful but verbose. If every team that needs a "standard data platform
+        environment" has to declare individual Storage Accounts, Service Bus namespaces, and Key Vaults
+        from scratch, you get inconsistency and configuration drift across environments. Composite
+        Resources solve this with a platform engineering model: the platform team defines and owns the
+        composition; application teams consume a higher-level API.
+      </p>
+      <p>
+        An <code>XRD</code> defines the API surface:
+      </p>
+
+      <pre><code>apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xdataplatforms.infra.example.com
+spec:
+  group: infra.example.com
+  names:
+    kind: XDataPlatform
+    plural: xdataplatforms
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                environment:
+                  type: string
+                  enum: [dev, staging, production]
+                location:
+                  type: string</code></pre>
+
+      <p>
+        A <code>Composition</code> maps <code>XDataPlatform</code> to the actual managed resources —
+        a Storage Account, Service Bus namespace, and Key Vault wired together with consistent naming
+        conventions and tags derived from the composite's parameters. Application teams then only need to
+        declare:
+      </p>
+
+      <pre><code>apiVersion: infra.example.com/v1alpha1
+kind: XDataPlatform
+metadata:
+  name: team-alpha-data
+spec:
+  environment: production
+  location: eastus2</code></pre>
+
+      <p>
+        The composition handles the rest. Changes to the composition template propagate to all
+        composite instances on the next reconcile — the platform team can update a tagging standard or
+        add a new security control and have it applied consistently across every instance without
+        touching individual team manifests.
+      </p>
+
+      <h2>Flux integration: closing the GitOps loop</h2>
+
+      <p>
+        Crossplane manages the reconciliation between Kubernetes and Azure. Flux manages the
+        reconciliation between Git and Kubernetes. Together they form a complete GitOps loop: commit a
+        manifest to Git, Flux syncs it to the cluster, Crossplane reconciles the Azure resource.
+      </p>
+      <p>
+        The Flux configuration for Crossplane infrastructure is straightforward. A
+        <code>GitRepository</code> pointing at your infra repo, and a <code>Kustomization</code>
+        targeting the infrastructure manifests path, with dependencies declared explicitly:
+      </p>
+
+      <pre><code>apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: crossplane-infra
+  namespace: flux-system
+spec:
+  interval: 5m
+  sourceRef:
+    kind: GitRepository
+    name: infra-repo
+  path: ./infra/azure
+  prune: true         # deletions in Git propagate to cluster (and then to Azure)
+  dependsOn:
+    - name: crossplane-providers   # providers must be healthy before infra manifests</code></pre>
+
+      <p>
+        The <code>prune: true</code> setting means that deleting a manifest from Git will delete the
+        Kubernetes object, which will trigger Crossplane to delete the Azure resource (subject to
+        deletion policy). This is powerful — and requires the same care around branch protection and
+        PR review that you'd apply to any IaC change that can delete production resources.
+      </p>
+
+      <h2>State management and what happens when things drift</h2>
+
+      <p>
+        Crossplane doesn't use Terraform state files. The Kubernetes etcd store is the state database —
+        managed resource objects contain the last observed state from Azure in their <code>status</code>
+        field. This means there's no state lock contention, no remote state backends to manage, and no
+        state drift between a pipeline run and what's actually in Azure.
+      </p>
+      <p>
+        When Azure resource state drifts from the spec — an engineer manually changed a setting in the
+        portal, or an Azure policy assignment modified a property — Crossplane detects it on the next
+        observe cycle (default: 10 minutes, configurable) and issues an update to restore the declared
+        spec. The drift event is visible in <code>kubectl describe</code> on the managed resource object
+        and in Kubernetes events, and you can alert on it via Prometheus if you instrument the
+        Crossplane metrics endpoint.
+      </p>
+      <p>
+        To intentionally pause reconciliation on a resource (during a migration, or while investigating
+        an Azure-side change), annotate it with <code>crossplane.io/paused: "true"</code>. Crossplane
+        will stop reconciling that resource until you remove the annotation. This is the escape hatch
+        for operational situations where the GitOps loop needs to be temporarily overridden.
+      </p>
+
+      <h2>Crossplane vs Terraform: not a binary choice</h2>
+
+      <p>
+        The honest answer to "should I replace Terraform with Crossplane?" is: it depends on what you're
+        managing and who's operating it. Crossplane is the better fit when:
+      </p>
+      <ul>
+        <li>Your team already runs Kubernetes and wants a single control plane for both workloads and infrastructure.</li>
+        <li>Continuous drift correction is more important than explicit apply/plan cycles — you want Azure to always match Git, not just after a pipeline run.</li>
+        <li>You're building platform abstractions for multiple application teams and want a proper API surface with schema validation.</li>
+        <li>Your provisioning frequency is high enough that Terraform state lock contention is a real operational problem.</li>
+      </ul>
+      <p>
+        Terraform remains the better fit when infrastructure is large and complex (many interdependent
+        resources where graph planning matters), when you need plan review before changes are applied
+        (Crossplane acts immediately on spec changes), or when the team has deep existing Terraform
+        expertise and the operational overhead of a new control plane isn't justified.
+      </p>
+      <p>
+        In practice, most mature environments end up with a hybrid: Crossplane for the infrastructure
+        closely tied to application workloads (databases, queues, storage, Key Vaults), and Terraform or
+        Bicep for the platform layer (VNets, AKS clusters, hub-spoke networking) where changes are
+        infrequent, carefully reviewed, and benefit from explicit plan approval workflows.
+      </p>
+
+      <h2>What to think about before adopting Crossplane</h2>
+
+      <p>
+        A few things I'd want to have thought through before going to production:
+      </p>
+      <ul>
+        <li><strong>Provider API coverage:</strong> <code>provider-azure-upbound</code> has broad coverage but not every Azure resource type is fully supported. Check the provider changelog for your specific resources before committing — some newer Azure services lag by months.</li>
+        <li><strong>RBAC for the provider identity:</strong> the managed identity Crossplane uses is a very powerful principal. Scope its permissions to the minimum necessary resource groups, and audit what it can do. Contributor at subscription scope is too broad for most setups.</li>
+        <li><strong>Secret management:</strong> Crossplane can write connection details (connection strings, keys) into Kubernetes Secrets after provisioning a resource. Those secrets need to be handled with care — store them in Key Vault via External Secrets Operator rather than leaving them as plain Kubernetes Secrets.</li>
+        <li><strong>Cluster dependency:</strong> your Azure infrastructure lifecycle is now coupled to your AKS cluster's availability. If the cluster is down, Crossplane can't reconcile. For critical infrastructure, consider whether this coupling is acceptable and what your recovery procedure is.</li>
+      </ul>
+
+      <div class="ref-block">
+        <strong>Further reading:</strong><br><br>
+        <a href="https://docs.crossplane.io/" target="_blank" rel="noopener">Crossplane Documentation</a><br>
+        <a href="https://marketplace.upbound.io/providers/upbound/provider-azure-upbound" target="_blank" rel="noopener">provider-azure-upbound — Upbound Marketplace</a><br>
+        <a href="https://fluxcd.io/flux/guides/helmreleases/" target="_blank" rel="noopener">Flux Documentation — fluxcd.io</a><br>
+        <a href="https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview" target="_blank" rel="noopener">AKS Workload Identity — Microsoft Learn</a>
+      </div>
+
+    </article>
+  </div>
+
+  <footer>
+    <span class="mono">&copy; <span id="year"></span> Roman Rabodzei &nbsp;·&nbsp; <a href="../index.html#blog" style="color: var(--accent);">← back to blog</a></span>
+  </footer>
+
+  <script>
+    const html = document.documentElement;
+
+    function applyTheme(t) {
+      html.setAttribute('data-theme', t);
+      localStorage.setItem('theme', t);
+    }
+
+    const saved = localStorage.getItem('theme') || 'dark';
+    applyTheme(saved);
+
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', async () => {
+      const shareData = { title: document.title, url: location.href };
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          shareBtn.classList.add('copied');
+          setTimeout(() => shareBtn.classList.remove('copied'), 1500);
+        } catch (e) {}
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(location.href);
+        shareBtn.classList.add('copied');
+        setTimeout(() => shareBtn.classList.remove('copied'), 1500);
+      } catch (e) {}
+    });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
