@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SC-500: Microsoft Certified Cloud and AI Security Engineer Associate — Roman Rabodzei</title>
+  <meta name="description" content="Microsoft retired AZ-500 on August 31, 2026. SC-500 — Cloud and AI Security Engineer Associate — is its successor. What it actually covers, and what I found useful in practice.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #f5f5f7; --surface: #ffffff; --surface2: #f5f5f7; --border: #d2d2d7; --text: #1d1d1f; --muted: #6e6e73; --accent: #0071e3; --accent-dim: rgba(0,113,227,0.08); }
+    [data-theme="dark"] { --bg: #000000; --surface: #1c1c1e; --surface2: #2c2c2e; --border: #38383a; --text: #f5f5f7; --muted: #98989d; --accent: #0a84ff; --accent-dim: rgba(10,132,255,0.14); }
+    html { scroll-behavior: smooth; background: var(--bg); overflow-x: hidden; }
+    body { position: relative; z-index: 0; overflow-x: hidden; max-width: 100vw; font-family: ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; transition: background .2s,color .2s; }
+    body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(circle at 18% 22%,rgba(0,113,227,.16) 0%,transparent 42%),radial-gradient(circle at 80% 12%,rgba(94,190,255,.12) 0%,transparent 38%),radial-gradient(circle at 65% 85%,rgba(0,113,227,.10) 0%,transparent 45%); filter: blur(90px); z-index: -2; pointer-events: none; }
+    [data-theme="dark"] body::before { background: radial-gradient(circle at 18% 22%,rgba(10,132,255,.32) 0%,transparent 42%),radial-gradient(circle at 80% 12%,rgba(94,92,230,.22) 0%,transparent 38%),radial-gradient(circle at 65% 85%,rgba(10,132,255,.18) 0%,transparent 45%); }
+    body::after { content: ''; position: fixed; inset: 0; background-image: radial-gradient(var(--border) 1px,transparent 1px); background-size: 28px 28px; opacity: .5; -webkit-mask-image: radial-gradient(ellipse 70% 70% at 20% 35%,black 0%,transparent 72%); mask-image: radial-gradient(ellipse 70% 70% at 20% 35%,black 0%,transparent 72%); z-index: -1; pointer-events: none; }
+    .mono { font-family: 'JetBrains Mono','Fira Code',ui-monospace,monospace; }
+    a { color: inherit; }
+    nav { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border); padding: .7rem 1.5rem; display: flex; align-items: center; justify-content: flex-end; gap: 1rem; }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .back-link { font-family: 'JetBrains Mono',monospace; font-size: .82rem; color: var(--muted); text-decoration: none; transition: color .15s; }
+    @media (hover: hover) { .back-link:hover { color: var(--accent); } }
+    .theme-toggle { display: flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; flex-shrink: 0; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; transition: border-color .15s,color .15s,background .15s; }
+    @media (hover: hover) { .theme-toggle:hover { border-color: var(--accent); color: var(--accent); } }
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-sun { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+    .theme-toggle .icon-copied { display: none; }
+    .theme-toggle.copied .icon-share { display: none; }
+    .theme-toggle.copied .icon-copied { display: block; }
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .article-header { padding: 3rem 0 2.5rem; border-bottom: 1px solid var(--border); margin-bottom: 2.5rem; }
+    .article-label { font-family: 'JetBrains Mono',monospace; font-size: .78rem; color: var(--muted); margin-bottom: .75rem; }
+    .article-title { font-size: clamp(1.5rem,5vw,2.2rem); font-weight: 700; line-height: 1.2; margin-bottom: 1rem; }
+    .article-title .accent { color: var(--accent); }
+    .article-meta { display: flex; flex-wrap: wrap; gap: .75rem; font-family: 'JetBrains Mono',monospace; font-size: .75rem; color: var(--muted); margin-bottom: 1.25rem; }
+    .article-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .article-tags span { font-family: 'JetBrains Mono',monospace; font-size: .68rem; padding: .15rem .5rem; border-radius: 4px; border: 1px solid var(--border); color: var(--muted); background: var(--surface); }
+    .article-hero { margin-bottom: 2.5rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden; }
+    .article-hero svg { display: block; width: 100%; height: auto; }
+    .article-content { padding-bottom: 4rem; }
+    .article-content p { font-size: .975rem; line-height: 1.85; color: var(--text); margin-bottom: 1.35rem; text-align: justify; }
+    .article-content h2 { font-size: 1.2rem; font-weight: 600; margin: 2.25rem 0 1rem; padding-bottom: .5rem; border-bottom: 1px solid var(--border); }
+    .article-content h3 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .6rem; color: var(--accent); font-family: 'JetBrains Mono',monospace; }
+    .article-content ul, .article-content ol { margin: .75rem 0 1.35rem 1.5rem; display: flex; flex-direction: column; gap: .45rem; }
+    .article-content li { font-size: .975rem; line-height: 1.75; color: var(--text); }
+    .article-content strong { color: var(--text); }
+    .article-content a { color: var(--accent); text-decoration: none; }
+    .article-content a:hover { text-decoration: underline; }
+    .article-content code { font-family: 'JetBrains Mono',monospace; font-size: .85em; background: var(--surface2); border: 1px solid var(--border); border-radius: 3px; padding: .1em .35em; color: var(--accent); }
+    .callout { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; padding: 1rem 1.25rem; margin: 1.5rem 0; }
+    .callout p { margin-bottom: 0; }
+    .ref-block { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; margin: 2.5rem 0 1rem; font-family: 'JetBrains Mono',monospace; font-size: .78rem; color: var(--muted); }
+    .ref-block a { color: var(--accent); }
+    footer { position: relative; z-index: 1; background: var(--bg); border-top: 1px solid var(--border); padding: 1.5rem; text-align: center; font-family: 'JetBrains Mono',monospace; font-size: .78rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-right">
+      <a class="back-link mono" href="../index.html#blog">← back to blog</a>
+      <button class="theme-toggle" id="shareBtn" title="Share this post" aria-label="Share this post">
+        <svg class="icon-share" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        <svg class="icon-copied" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </button>
+      <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="article-header">
+      <p class="article-label mono">&gt; blog.post()</p>
+      <h1 class="article-title">SC-500: <span class="accent">Microsoft Certified Cloud and AI Security Engineer Associate</span></h1>
+      <div class="article-meta">
+        <span>Roman Rabodzei</span>
+        <span>·</span>
+        <span>Sep 2026</span>
+        <span>·</span>
+        <span>~8 min read</span>
+      </div>
+      <div class="article-tags">
+        <span>Certifications</span>
+        <span>SC-500</span>
+        <span>Azure Security</span>
+        <span>AI Security</span>
+        <span>Microsoft Learn</span>
+      </div>
+    </header>
+
+    <figure class="article-hero" aria-label="SC-500 certification badge illustration">
+      <svg viewBox="200 100 800 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hexagonal badge for SC-500 Cloud and AI Security Engineer Associate with shield and cloud motif">
+        <rect width="1200" height="500" fill="#06090f"></rect>
+        <g fill="#dce8f4" opacity=".35">
+          <circle cx="220" cy="120" r="1.4"></circle>
+          <circle cx="980" cy="130" r="1.4"></circle>
+          <circle cx="600" cy="110" r="1.1"></circle>
+          <circle cx="250" cy="400" r="1.1"></circle>
+          <circle cx="950" cy="390" r="1.1"></circle>
+        </g>
+
+        <!-- outer hex -->
+        <g transform="translate(600,265)">
+          <path d="M0,-130 L113,-65 L113,65 L0,130 L-113,65 L-113,-65 Z" fill="#101e30" stroke="#0a84ff" stroke-width="2"></path>
+          <!-- inner hex -->
+          <!-- <path d="M0,-95 L82,-47 L82,47 L0,95 L-82,47 L-82,-47 Z" fill="none" stroke="#4fc3f7" stroke-width="2"></path> -->
+          <!-- shield icon inside -->
+          <path d="M0,-52 L35,-35 L35,10 Q35,40 0,55 Q-35,40 -35,10 L-35,-35 Z" fill="#101e30" stroke="#4fc3f7" stroke-width="5"></path>
+          <!-- cert id -->
+          <text x="0" y="90" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="22" font-weight="600">SC-500</text>
+        </g>
+
+        <!-- connecting dots left -->
+        <line x1="487" y1="265" x2="400" y2="265" stroke="#38546f" stroke-width="1" stroke-dasharray="4 6"></line>
+        <rect x="300" y="235" width="100" height="60" rx="6" fill="#101e30" stroke="#38546f" stroke-width="1.2"></rect>
+        <text x="350" y="259" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">AI Threat</text>
+        <text x="350" y="273" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">Modeling</text>
+        <text x="350" y="287" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">+ Governance</text>
+
+        <!-- connecting dots right -->
+        <line x1="713" y1="265" x2="800" y2="265" stroke="#38546f" stroke-width="1" stroke-dasharray="4 6"></line>
+        <rect x="800" y="235" width="100" height="60" rx="6" fill="#101e30" stroke="#38546f" stroke-width="1.2"></rect>
+        <text x="850" y="259" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">Secure LLM</text>
+        <text x="850" y="273" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">Workloads +</text>
+        <text x="850" y="287" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">Data Privacy</text>
+
+        <!-- top label -->
+        <text x="600" y="120" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="11">Microsoft Certified — Cloud and AI Security Engineer Associate</text>
+
+        <!-- bottom label -->
+        <text x="600" y="415" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="10">the first Microsoft cert designed for the AI security surface</text>
+      </svg>
+    </figure>
+
+    <article class="article-content">
+
+      <p>
+        I passed SC-500 — Microsoft Certified: Cloud and AI Security Engineer Associate — this month.
+        It's a timely one to write about: Microsoft retired <strong>Azure Security Engineer Associate
+        (AZ-500)</strong> on August 31, 2026 — the certification, exam, and renewal assessments all
+        stopped being available on that date. SC-500 is its direct successor, and the shift in name
+        is the shift in scope: from securing Azure infrastructure to securing Azure, hybrid, <em>and</em>
+        AI-enabled environments. Here's what it actually covers and what I found useful in practice.
+      </p>
+
+      <h2>What SC-500 is and why it exists</h2>
+
+      <p>
+        Per Microsoft's own certification page, SC-500 validates your ability to
+        <strong>"design, implement, and manage end-to-end security controls across Azure, hybrid, and
+        AI-enabled environments to protect identities, data, applications, infrastructure, and maintain
+        regulatory compliance."</strong> That's a direct expansion of the AZ-500 scope — the same core
+        responsibilities (identity, network, compute, storage, posture management) plus an explicit,
+        recurring responsibility to <strong>secure AI solutions</strong> and ensure the platforms, data,
+        identities, and infrastructure used by AI workloads are securely implemented and monitored.
+      </p>
+      <p>
+        This isn't a bolted-on AI module. AI security shows up as a thread running through the existing
+        security domains rather than as its own separate domain — you're not tested on "AI security" in
+        isolation, you're tested on identity, network, compute, and posture management questions where
+        the workload in the scenario happens to be an AI service, an agent, or a model deployment.
+      </p>
+
+      <h2>What the exam actually covers</h2>
+
+      <p>
+        Microsoft publishes four assessed domains for SC-500. This is the real, current breakdown, not
+        a reinterpretation:
+      </p>
+
+      <h3>// Manage identity, access, and governance</h3>
+      <p>
+        Securing access with Microsoft Entra ID and Azure Key Vault, and enforcing security and
+        regulatory compliance. This is classic identity and governance territory, carried over almost
+        directly from AZ-500 — conditional access, privileged identity management, RBAC, policy, and
+        compliance controls. The AI angle here is about identity for AI workloads specifically: managed
+        identity for AI service authentication, least-privilege access to model deployments, and role
+        assignments for Microsoft Foundry.
+      </p>
+
+      <h3>// Secure storage, databases, and networking</h3>
+      <p>
+        Network isolation, private endpoints, storage and database security — again a direct extension
+        of AZ-500 content. Where AI enters: securing the data stores behind AI solutions (vector search
+        indexes, Cosmos DB with vector indexing, Azure AI Search), ensuring training and inference data
+        doesn't leak across tenant or network boundaries, and customer-managed keys for AI-related storage.
+      </p>
+
+      <h3>// Secure compute</h3>
+      <p>
+        Traditional compute security (VMs, containers, AKS) plus securing the compute layer that AI
+        workloads run on — Azure OpenAI and Foundry deployments, content filtering configuration (Azure
+        AI Content Safety), input/output filter policies, and hardening system prompts and RAG grounding
+        as a trust boundary against prompt injection.
+      </p>
+
+      <h3>// Manage and monitor security posture</h3>
+      <p>
+        Posture management with Microsoft Defender for Cloud and Microsoft Sentinel, extended to cover
+        AI-specific signals: Defender for Cloud's AI security posture management features, and
+        monitoring for anomalous prompt patterns, unusual token consumption, and content policy
+        violations as part of the broader security monitoring story.
+      </p>
+
+      <div class="callout">
+        <p><strong>What actually changed from AZ-500:</strong> the domain names and core skills
+        (identity, network/storage, compute, posture) are the same shape as AZ-500. What's new is that
+        every domain now explicitly includes securing the AI layer — AI service identity, AI data
+        stores, AI compute (Foundry, Azure OpenAI), and AI-aware posture monitoring — woven into the
+        existing structure rather than added as a fifth domain.</p>
+      </div>
+
+      <h2>Why I took it</h2>
+
+      <p>
+        After AI-103 and AI-200, I'd been building AI solutions from the developer's perspective —
+        agents, Foundry, orchestration, cost optimisation. SC-500 gave me the structured vocabulary
+        for the security conversations those projects require. When someone asks "how do we prevent
+        users from extracting sensitive data through the model?" or "what does our audit trail look
+        like for AI-generated content?", having passed SC-500 means I've thought through those
+        questions systematically, not just ad hoc.
+      </p>
+      <p>
+        It's also a certification that doesn't have a large community of write-ups yet — it's the
+        direct AZ-500 successor and only recently became the exam people are pointed to. Being early
+        to a certification with this much overlap in real project work means the content is fresher
+        and more directly useful than an older cert where the study material has been ground into
+        question banks.
+      </p>
+
+      <h2>How I prepped</h2>
+
+      <p>
+        The official study guide is the starting point — <code>aka.ms/SC500-StudyGuide</code>. Because
+        SC-500 carries over most of AZ-500's skill areas, existing AZ-500 study material (Defender for
+        Cloud, Sentinel, Entra ID, network security) is still directly useful — you're not starting
+        from zero even if you've never touched an AI service. The genuinely new ground is where each
+        domain extends into AI: Foundry, Azure OpenAI, and AI Content Safety configuration.
+      </p>
+      <ul>
+        <li>Read the four assessed domains on the <strong>official certification page</strong> closely — identity/access/governance, storage/database/networking, compute, and posture management — and map your existing Azure security knowledge onto each before touching AI-specific material.</li>
+        <li>Get hands-on with <strong>Azure AI Content Safety</strong> and <strong>Azure OpenAI network and identity configuration</strong>. The portal flows matter — the exam includes scenario-based questions where you need to know which blade, which setting.</li>
+        <li>Review <strong>Defender for Cloud's AI security posture management</strong> features — these are new enough that most AZ-500 prep material doesn't cover them, but they show up explicitly in the current study guide.</li>
+        <li>Work through the <strong>OWASP LLM Top 10</strong> as background reading for the prompt injection and content-safety questions, even though it isn't an official Microsoft resource — it maps well onto the compute-security domain's AI content.</li>
+        <li>The exam is <strong>120 minutes</strong>, proctored, with a mix of multiple choice and scenario-based questions. Budget time for the longer scenario sets.</li>
+      </ul>
+
+      <h2>Practical takeaways</h2>
+
+      <p>
+        If you hold AZ-500 already, it stays on your transcript, but it can no longer be renewed or
+        re-earned after August 31, 2026 — SC-500 is what a hiring manager or your own transcript will
+        expect to see going forward. If you're starting from scratch, SC-500 is now the correct entry
+        point rather than a certification to take after AZ-500.
+      </p>
+      <p>
+        The exam domains translate directly into questions any security-conscious team should already
+        be asking as AI workloads land in production: who has access to the model deployment, is the
+        data store behind the AI solution isolated correctly, is the compute layer running Content
+        Safety and input filtering, and does the security posture monitoring pick up anomalous AI
+        usage the same way it picks up anomalous infrastructure activity. SC-500 gives that a
+        structured, testable shape instead of leaving it to ad hoc review.
+      </p>
+      <p>
+        If you're working on AI solutions on Azure — building agents, deploying LLMs, integrating
+        Azure AI services — SC-500 provides the security framework that should be layered on top of
+        that work. It's not a compliance checkbox. It's a structured way to think through a genuinely
+        new attack surface that most cloud security practitioners haven't had to reason about before.
+      </p>
+
+      <div class="ref-block">
+        <strong>Further reading:</strong><br><br>
+        <a href="https://learn.microsoft.com/en-us/credentials/certifications/cloud-and-ai-security-engineer-associate/" target="_blank" rel="noopener">SC-500 Certification — Microsoft Learn</a><br>
+        <a href="https://learn.microsoft.com/en-us/credentials/certifications/azure-security-engineer/" target="_blank" rel="noopener">AZ-500 Retirement Notice — Microsoft Learn</a><br>
+        <a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/" target="_blank" rel="noopener">OWASP LLM Top 10 — owasp.org</a><br>
+        <a href="https://learn.microsoft.com/en-us/azure/ai-services/content-safety/overview" target="_blank" rel="noopener">Azure AI Content Safety — Microsoft Learn</a>
+      </div>
+
+    </article>
+  </div>
+
+  <footer>
+    <span class="mono">&copy; <span id="year"></span> Roman Rabodzei &nbsp;·&nbsp; <a href="../index.html#blog" style="color: var(--accent);">← back to blog</a></span>
+  </footer>
+
+  <script>
+    const html = document.documentElement;
+    function applyTheme(t) { html.setAttribute('data-theme', t); localStorage.setItem('theme', t); }
+    applyTheme(localStorage.getItem('theme') || 'dark');
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', async () => {
+      const shareData = { title: document.title, url: location.href };
+      if (navigator.share) { try { await navigator.share(shareData); shareBtn.classList.add('copied'); setTimeout(() => shareBtn.classList.remove('copied'), 1500); } catch (e) {} return; }
+      try { await navigator.clipboard.writeText(location.href); shareBtn.classList.add('copied'); setTimeout(() => shareBtn.classList.remove('copied'), 1500); } catch (e) {}
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
