@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kubernetes v1.37 on AKS: Pod Certificates, Cluster Trust Bundles, and Metrics API v1 — Roman Rabodzei</title>
+  <meta name="description" content="What Kubernetes v1.37 brings to production cluster operators: Pod Certificates, Cluster Trust Bundles, and the stable Metrics API, plus what AKS teams should verify before upgrading.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #f5f5f7; --surface: #ffffff; --surface2: #f5f5f7; --border: #d2d2d7; --text: #1d1d1f; --muted: #6e6e73; --accent: #0071e3; --accent-dim: rgba(0,113,227,0.08); }
+    [data-theme="dark"] { --bg: #000000; --surface: #1c1c1e; --surface2: #2c2c2e; --border: #38383a; --text: #f5f5f7; --muted: #98989d; --accent: #0a84ff; --accent-dim: rgba(10,132,255,0.14); }
+    html { scroll-behavior: smooth; background: var(--bg); overflow-x: hidden; }
+    body { position: relative; z-index: 0; overflow-x: hidden; max-width: 100vw; font-family: ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; transition: background .2s,color .2s; }
+    body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(circle at 18% 22%,rgba(0,113,227,.16) 0%,transparent 42%),radial-gradient(circle at 80% 12%,rgba(94,190,255,.12) 0%,transparent 38%),radial-gradient(circle at 65% 85%,rgba(0,113,227,.10) 0%,transparent 45%); filter: blur(90px); z-index: -2; pointer-events: none; }
+    [data-theme="dark"] body::before { background: radial-gradient(circle at 18% 22%,rgba(10,132,255,.32) 0%,transparent 42%),radial-gradient(circle at 80% 12%,rgba(94,92,230,.22) 0%,transparent 38%),radial-gradient(circle at 65% 85%,rgba(10,132,255,.18) 0%,transparent 45%); }
+    body::after { content: ''; position: fixed; inset: 0; background-image: radial-gradient(var(--border) 1px,transparent 1px); background-size: 28px 28px; opacity: .5; -webkit-mask-image: radial-gradient(ellipse 70% 70% at 20% 35%,black 0%,transparent 72%); mask-image: radial-gradient(ellipse 70% 70% at 20% 35%,black 0%,transparent 72%); z-index: -1; pointer-events: none; }
+    .mono { font-family: 'JetBrains Mono','Fira Code',ui-monospace,monospace; }
+    a { color: inherit; }
+    nav { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border); padding: .7rem 1.5rem; display: flex; align-items: center; justify-content: flex-end; gap: 1rem; }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .back-link { font-family: 'JetBrains Mono',monospace; font-size: .82rem; color: var(--muted); text-decoration: none; transition: color .15s; }
+    @media (hover: hover) { .back-link:hover { color: var(--accent); } }
+    .theme-toggle { display: flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; flex-shrink: 0; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; transition: border-color .15s,color .15s,background .15s; }
+    @media (hover: hover) { .theme-toggle:hover { border-color: var(--accent); color: var(--accent); } }
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-sun { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+    .theme-toggle .icon-copied { display: none; }
+    .theme-toggle.copied .icon-share { display: none; }
+    .theme-toggle.copied .icon-copied { display: block; }
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .article-header { padding: 3rem 0 2.5rem; border-bottom: 1px solid var(--border); margin-bottom: 2.5rem; }
+    .article-label { font-family: 'JetBrains Mono',monospace; font-size: .78rem; color: var(--muted); margin-bottom: .75rem; }
+    .article-title { font-size: clamp(1.5rem,5vw,2.2rem); font-weight: 700; line-height: 1.2; margin-bottom: 1rem; }
+    .article-title .accent { color: var(--accent); }
+    .article-meta { display: flex; flex-wrap: wrap; gap: .75rem; font-family: 'JetBrains Mono',monospace; font-size: .75rem; color: var(--muted); margin-bottom: 1.25rem; }
+    .article-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .article-tags span { font-family: 'JetBrains Mono',monospace; font-size: .68rem; padding: .15rem .5rem; border-radius: 4px; border: 1px solid var(--border); color: var(--muted); background: var(--surface); }
+    .article-hero { margin-bottom: 2.5rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden; }
+    .article-hero svg { display: block; width: 100%; height: auto; }
+    .article-content { padding-bottom: 4rem; }
+    .article-content p { font-size: .975rem; line-height: 1.85; color: var(--text); margin-bottom: 1.35rem; text-align: justify; }
+    .article-content h2 { font-size: 1.2rem; font-weight: 600; margin: 2.25rem 0 1rem; padding-bottom: .5rem; border-bottom: 1px solid var(--border); }
+    .article-content h3 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .6rem; color: var(--accent); font-family: 'JetBrains Mono',monospace; }
+    .article-content ul, .article-content ol { margin: .75rem 0 1.35rem 1.5rem; display: flex; flex-direction: column; gap: .45rem; }
+    .article-content li { font-size: .975rem; line-height: 1.75; color: var(--text); }
+    .article-content strong { color: var(--text); }
+    .article-content a { color: var(--accent); text-decoration: none; }
+    .article-content a:hover { text-decoration: underline; }
+    .article-content code { font-family: 'JetBrains Mono',monospace; font-size: .85em; background: var(--surface2); border: 1px solid var(--border); border-radius: 3px; padding: .1em .35em; color: var(--accent); }
+    .article-content pre { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.15rem; overflow-x: auto; margin: 1rem 0 1.5rem; max-width: 100%; box-sizing: border-box; }
+    .article-content pre code { background: none; border: none; padding: 0; color: var(--text); font-size: .82rem; line-height: 1.6; }
+    .callout { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; padding: 1rem 1.25rem; margin: 1.5rem 0; }
+    .callout p { margin-bottom: 0; }
+    .ref-block { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; margin: 2.5rem 0 1rem; font-family: 'JetBrains Mono',monospace; font-size: .78rem; color: var(--muted); }
+    .ref-block a { color: var(--accent); }
+    footer { position: relative; z-index: 1; background: var(--bg); border-top: 1px solid var(--border); padding: 1.5rem; text-align: center; font-family: 'JetBrains Mono',monospace; font-size: .78rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-right">
+      <a class="back-link mono" href="../index.html#blog">← back to blog</a>
+      <button class="theme-toggle" id="shareBtn" title="Share this post" aria-label="Share this post">
+        <svg class="icon-share" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        <svg class="icon-copied" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </button>
+      <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="article-header">
+      <p class="article-label mono">&gt; blog.post()</p>
+      <h1 class="article-title">Kubernetes v1.37 on AKS: <span class="accent">Pod Certificates, Cluster Trust Bundles, and Metrics API v1</span></h1>
+      <div class="article-meta">
+        <span>Roman Rabodzei</span>
+        <span>·</span>
+        <span>Sep 2026</span>
+        <span>·</span>
+        <span>~9 min read</span>
+      </div>
+      <div class="article-tags">
+        <span>AKS</span>
+        <span>Kubernetes</span>
+        <span>v1.37</span>
+        <span>Pod Certificates</span>
+        <span>Cluster Trust Bundles</span>
+        <span>Metrics API</span>
+        <span>AKS</span>
+      </div>
+    </header>
+
+    <figure class="article-hero" aria-label="Illustration of Kubernetes v1.37 security and observability features">
+      <svg viewBox="60 60 900 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Kubernetes v1.37 cluster diagram showing pod certificates, cluster trust bundles, and the stable metrics API">
+        <rect width="1200" height="500" fill="#06090f"></rect>
+        <g fill="#dce8f4" opacity=".3">
+          <circle cx="80" cy="80" r="1.3"></circle>
+          <circle cx="900" cy="90" r="1.3"></circle>
+          <circle cx="500" cy="70" r="1.0"></circle>
+        </g>
+        <defs>
+          <marker id="kArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#4fc3f7"></path>
+          </marker>
+          <marker id="kArrowG" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#30d158"></path>
+          </marker>
+        </defs>
+
+        <!-- cluster -->
+        <rect x="95" y="105" width="820" height="270" rx="14" fill="none" stroke="#1e3a5f" stroke-width="1.5" stroke-dasharray="6 4"></rect>
+        <text x="115" y="128" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="11">AKS cluster · Kubernetes v1.37</text>
+
+        <!-- pod -->
+        <rect x="130" y="185" width="150" height="86" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="1.8"></rect>
+        <text x="205" y="211" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Pod</text>
+        <text x="205" y="229" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">certificate request</text>
+        <text x="205" y="245" text-anchor="middle" fill="#30d158" font-family="JetBrains Mono, monospace" font-size="9">short-lived identity ✓</text>
+
+        <line x1="282" y1="228" x2="338" y2="228" stroke="#4fc3f7" stroke-width="1.5" marker-end="url(#kArrow)"></line>
+
+        <!-- trust bundle -->
+        <rect x="340" y="165" width="180" height="126" rx="8" fill="#101e30" stroke="#30d158" stroke-width="2"></rect>
+        <text x="430" y="192" text-anchor="middle" fill="#30d158" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600">ClusterTrustBundle</text>
+        <line x1="360" y1="203" x2="500" y2="203" stroke="#38546f" stroke-width="1"></line>
+        <text x="430" y="224" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">trusted roots</text>
+        <text x="430" y="240" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">projected into pods</text>
+        <text x="430" y="263" text-anchor="middle" fill="#30d158" font-family="JetBrains Mono, monospace" font-size="9">stable security API ✓</text>
+
+        <line x1="522" y1="228" x2="578" y2="228" stroke="#4fc3f7" stroke-width="1.5" marker-end="url(#kArrow)"></line>
+
+        <!-- API server -->
+        <rect x="580" y="165" width="150" height="126" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="1.8"></rect>
+        <text x="655" y="192" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600">API Server</text>
+        <line x1="600" y1="203" x2="710" y2="203" stroke="#38546f" stroke-width="1"></line>
+        <text x="655" y="224" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">Metrics API v1</text>
+        <text x="655" y="240" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">kubectl top</text>
+        <text x="655" y="263" text-anchor="middle" fill="#30d158" font-family="JetBrains Mono, monospace" font-size="9">stable /autoscaling ✓</text>
+
+        <line x1="732" y1="228" x2="788" y2="228" stroke="#30d158" stroke-width="1.5" marker-end="url(#kArrowG)"></line>
+
+        <!-- observability -->
+        <rect x="790" y="185" width="100" height="86" rx="8" fill="#101e30" stroke="#38546f" stroke-width="1.5"></rect>
+        <text x="840" y="211" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600">Metrics</text>
+        <text x="840" y="229" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">HPA / VPA</text>
+        <text x="840" y="245" text-anchor="middle" fill="#30d158" font-family="JetBrains Mono, monospace" font-size="9">stable ✓</text>
+
+        <!-- bottom label -->
+        <text x="505" y="415" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="10">security identity + trust distribution + standard observability</text>
+      </svg>
+    </figure>
+
+    <article class="article-content">
+
+      <p>
+        Kubernetes v1.37, released in late August 2026, is a security and operations release with
+        three changes worth watching: <strong>Pod Certificates</strong>, <strong>Cluster Trust Bundles</strong>,
+        and the <strong>Metrics API graduating to v1</strong>. The important qualification for AKS teams
+        is that upstream availability and managed-service availability are different things. A feature
+        can be stable in Kubernetes and still wait for an AKS version, preview, or add-on to expose it.
+        Treat this as an operator's guide to what v1.37 changes and what to verify before upgrading.
+      </p>
+
+      <h2>What actually changed in v1.37</h2>
+
+      <p>
+        Kubernetes follows a staged feature model. A feature can be alpha, beta, or stable, and a
+        stable API is not the same as a vendor-managed feature being immediately available in every
+        distribution. In v1.37, the headline changes are:
+      </p>
+      <ul>
+        <li><strong>Pod Certificates:</strong> workloads can request short-lived X.509 certificates through a Kubernetes-native API, reducing the need for custom certificate bootstrapping.</li>
+        <li><strong>Cluster Trust Bundles:</strong> cluster operators can publish trusted CA bundles for workloads to consume, making trust distribution more consistent than copying CA files into individual images.</li>
+        <li><strong>Metrics API v1:</strong> the resource metrics API behind <code>kubectl top</code> and resource-based autoscaling becomes stable, strengthening the contract for operators and autoscaling integrations.</li>
+      </ul>
+      <p>
+        The release is less about a flashy new controller and more about making identity, trust, and
+        resource measurement first-class platform primitives. That is exactly the sort of change that
+        tends to matter six months later, when a platform team is operating hundreds of workloads and
+        needs consistent defaults rather than another one-off sidecar.
+      </p>
+
+      <h2>Pod Certificates: workload identity without another sidecar</h2>
+
+      <p>
+        Pod Certificates provide a Kubernetes API for requesting and rotating short-lived certificates
+        for workloads. The kubelet can obtain certificates on behalf of a pod, while the workload reads
+        the resulting material from a projected volume. The exact issuer and signer configuration still
+        belong to the cluster operator, but the application no longer needs to own a long-lived private
+        key or implement its own renewal loop.
+      </p>
+      <p>
+        For AKS, this is potentially useful for internal mTLS, workload-to-workload authentication,
+        and systems that already understand SPIFFE-like short-lived identities. It is not a replacement
+        for every certificate service. Before adopting it, verify that the AKS version exposes the API,
+        that your chosen issuer is supported, and that the workload identity and rotation behaviour are
+        documented for your cluster configuration.
+      </p>
+
+      <div class="callout">
+        <p><strong>Do not confuse upstream stability with AKS support:</strong> check the current AKS
+        release notes and feature documentation before enabling Pod Certificates or Cluster Trust Bundles.
+        A stable Kubernetes API still depends on the managed control plane, node image, admission
+        configuration, and supporting add-ons being available in your target AKS version.</p>
+      </div>
+
+      <h2>Cluster Trust Bundles: making CA distribution explicit</h2>
+
+      <p>
+        Trust distribution is easy to get wrong. A team adds a CA certificate to an image, another
+        mounts it from a Secret, and a third downloads it during startup. Cluster Trust Bundles give
+        operators a standard object for publishing trusted roots and give workloads a consistent way
+        to consume them. The trust material can then be updated independently from application images.
+      </p>
+      <p>
+        This matters in environments with private endpoints, internal PKI, service meshes, or multiple
+        certificate authorities. It also gives security teams a cleaner ownership boundary: platform
+        operators publish approved roots, while application teams consume them without distributing
+        copies through every repository.
+      </p>
+
+      <pre><code>apiVersion: certificates.k8s.io/v1alpha1
+kind: ClusterTrustBundle
+metadata:
+  name: platform-root-ca
+spec:
+  trustBundle: |
+    -----BEGIN CERTIFICATE-----
+    ...approved root certificate...
+    -----END CERTIFICATE-----</code></pre>
+
+      <p>
+        The example shows the shape, not a complete production manifest. Trust bundle APIs and feature
+        gates should be validated against the exact v1.37 documentation and the AKS version you run.
+        Keep the source of truth in Git, review changes like code, and alert when a bundle is approaching
+        expiry or changes unexpectedly.
+      </p>
+
+      <h2>Metrics API v1: a stronger contract for autoscaling</h2>
+
+      <p>
+        The Metrics API provides CPU and memory usage for nodes and pods. It is the API behind
+        <code>kubectl top</code> and resource metrics used by horizontal and vertical autoscaling.
+        Moving to a stable v1 contract reduces the uncertainty for platform tooling that depends on
+        resource measurements, but it does not remove the need to operate the Metrics Server and verify
+        that metrics are fresh.
+      </p>
+      <ul>
+        <li>Check <code>kubectl top nodes</code> and <code>kubectl top pods -A</code> after the upgrade.</li>
+        <li>Confirm the Metrics API reports <code>Available</code> and that timestamps are recent.</li>
+        <li>Test an HPA in a non-production namespace before relying on the new API during a workload event.</li>
+        <li>Keep Prometheus or Azure Monitor for long-term history; the Metrics API is for current resource usage, not durable observability.</li>
+      </ul>
+
+      <h2>What this means for an AKS upgrade</h2>
+
+      <ul>
+        <li><strong>Check the AKS support matrix:</strong> confirm the target Kubernetes version is offered in your region and that the v1.37 features you need are enabled in that AKS release.</li>
+        <li><strong>Review feature gates:</strong> Pod Certificates and trust bundle behaviour may depend on feature gates, issuers, or add-ons. Do not copy an upstream manifest directly into a managed cluster.</li>
+        <li><strong>Validate add-ons:</strong> test Metrics Server, Azure Monitor, policy integrations, admission controllers, and workload identity after the control-plane and node-pool upgrade.</li>
+        <li><strong>Test certificate rotation:</strong> deploy a disposable workload, inspect the projected certificate, wait through a rotation cycle, and confirm the application reloads it correctly.</li>
+        <li><strong>Keep rollback realistic:</strong> Kubernetes upgrades are forward operations. Back up critical manifests and define how you will restore workloads if an add-on or admission policy behaves differently.</li>
+      </ul>
+
+      <h2>What I'd recommend for AKS teams</h2>
+
+      <p>
+        Do not upgrade a production AKS cluster solely because an upstream release has an attractive
+        feature. First confirm AKS support, then test the feature in a disposable cluster with the same
+        policies, add-ons, and workload identity configuration as production.
+      </p>
+      <p>
+        The most immediately useful v1.37 change is probably Metrics API v1 because it strengthens a
+        common operational dependency. Pod Certificates and Cluster Trust Bundles are more strategic:
+        they can simplify workload mTLS and trust distribution, but only after the issuer, RBAC, and
+        rotation story is fully understood.
+      </p>
+
+      <div class="ref-block">
+        <strong>Further reading:</strong><br><br>
+        <a href="https://kubernetes.io/blog/2026/08/26/kubernetes-v1-37-release/" target="_blank" rel="noopener">Kubernetes v1.37 Release — kubernetes.io</a><br>
+        <a href="https://kubernetes.io/blog/2026/08/28/kubernetes-v1-37-pod-certificates-and-cluster-trust-bundles/" target="_blank" rel="noopener">Pod Certificates and Cluster Trust Bundles — kubernetes.io</a><br>
+        <a href="https://kubernetes.io/blog/2026/08/27/kubernetes-v1-37-metrics-api-ga/" target="_blank" rel="noopener">Metrics API graduates to stable — kubernetes.io</a><br>
+        <a href="https://learn.microsoft.com/en-us/azure/aks/supported-kubernetes-versions" target="_blank" rel="noopener">Supported Kubernetes versions in AKS — Microsoft Learn</a>
+      </div>
+
+    </article>
+  </div>
+
+  <footer>
+    <span class="mono">&copy; <span id="year"></span> Roman Rabodzei &nbsp;·&nbsp; <a href="../index.html#blog" style="color: var(--accent);">← back to blog</a></span>
+  </footer>
+
+  <script>
+    const html = document.documentElement;
+    function applyTheme(t) { html.setAttribute('data-theme', t); localStorage.setItem('theme', t); }
+    applyTheme(localStorage.getItem('theme') || 'dark');
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', async () => {
+      const shareData = { title: document.title, url: location.href };
+      if (navigator.share) { try { await navigator.share(shareData); shareBtn.classList.add('copied'); setTimeout(() => shareBtn.classList.remove('copied'), 1500); } catch (e) {} return; }
+      try { await navigator.clipboard.writeText(location.href); shareBtn.classList.add('copied'); setTimeout(() => shareBtn.classList.remove('copied'), 1500); } catch (e) {}
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
