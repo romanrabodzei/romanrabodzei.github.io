@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The C.R.A.F.T. Framework: A Prompt Structure That Actually Holds Up — Roman Rabodzei</title>
+  <meta name="description" content="Most AI prompts fail because they're missing pieces, not because the model is bad. The C.R.A.F.T. framework — Context, Role, Action, Format, Tone — fixes that, one letter at a time.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f5f5f7; --surface: #ffffff; --surface2: #f5f5f7; --border: #d2d2d7;
+      --text: #1d1d1f; --muted: #6e6e73; --accent: #0071e3; --accent-dim: rgba(0, 113, 227, 0.08);
+    }
+    [data-theme="dark"] {
+      --bg: #000000; --surface: #1c1c1e; --surface2: #2c2c2e; --border: #38383a;
+      --text: #f5f5f7; --muted: #98989d; --accent: #0a84ff; --accent-dim: rgba(10, 132, 255, 0.14);
+    }
+    html { scroll-behavior: smooth; background: var(--bg); overflow-x: hidden; }
+    body {
+      position: relative; z-index: 0; overflow-x: hidden; max-width: 100vw;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; transition: background .2s, color .2s;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(0,113,227,0.16) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,190,255,0.12) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(0,113,227,0.10) 0%, transparent 45%);
+      filter: blur(90px); z-index: -2; pointer-events: none;
+    }
+    [data-theme="dark"] body::before {
+      background:
+        radial-gradient(circle at 18% 22%, rgba(10,132,255,0.32) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,92,230,0.22) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(10,132,255,0.18) 0%, transparent 45%);
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-size: 28px 28px; opacity: .5;
+      -webkit-mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      z-index: -1; pointer-events: none;
+    }
+    .mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace; }
+    a { color: inherit; }
+    nav {
+      position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: .7rem 1.5rem; display: flex; align-items: center; justify-content: flex-end; gap: 1rem;
+    }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .back-link { font-family: 'JetBrains Mono', monospace; font-size: .82rem; color: var(--muted); text-decoration: none; transition: color .15s; }
+    @media (hover: hover) { .back-link:hover { color: var(--accent); } }
+    .theme-toggle {
+      display: flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; flex-shrink: 0;
+      border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+      cursor: pointer; transition: border-color .15s, color .15s, background .15s;
+    }
+    @media (hover: hover) { .theme-toggle:hover { border-color: var(--accent); color: var(--accent); } }
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-sun  { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+    .theme-toggle .icon-copied { display: none; }
+    .theme-toggle.copied .icon-share  { display: none; }
+    .theme-toggle.copied .icon-copied { display: block; }
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .article-header { padding: 3rem 0 2.5rem; border-bottom: 1px solid var(--border); margin-bottom: 2.5rem; }
+    .article-label { font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted); margin-bottom: .75rem; }
+    .article-title { font-size: clamp(1.5rem, 5vw, 2.2rem); font-weight: 700; line-height: 1.2; margin-bottom: 1rem; }
+    .article-title .accent { color: var(--accent); }
+    .article-meta {
+      display: flex; flex-wrap: wrap; gap: .75rem; font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; color: var(--muted); margin-bottom: 1.25rem;
+    }
+    .article-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .article-tags span {
+      font-family: 'JetBrains Mono', monospace; font-size: .68rem; padding: .15rem .5rem;
+      border-radius: 4px; border: 1px solid var(--border); color: var(--muted); background: var(--surface);
+    }
+    .article-hero { margin-bottom: 2.5rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden; }
+    .article-hero svg { display: block; width: 100%; height: auto; }
+    .article-content { padding-bottom: 4rem; }
+    .article-content p { font-size: .975rem; line-height: 1.85; color: var(--text); margin-bottom: 1.35rem; text-align: justify; }
+    .article-content h2 { font-size: 1.2rem; font-weight: 600; margin: 2.25rem 0 1rem; padding-bottom: .5rem; border-bottom: 1px solid var(--border); }
+    .article-content h3 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .6rem; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+    .article-content ul, .article-content ol { margin: .75rem 0 1.35rem 1.5rem; display: flex; flex-direction: column; gap: .45rem; }
+    .article-content li { font-size: .975rem; line-height: 1.75; color: var(--text); }
+    .article-content strong { color: var(--text); }
+    .article-content a { color: var(--accent); text-decoration: none; }
+    .article-content a:hover { text-decoration: underline; }
+    .article-content code {
+      font-family: 'JetBrains Mono', monospace; font-size: .85em; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 3px; padding: .1em .35em; color: var(--accent);
+    }
+    .callout { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; padding: 1rem 1.25rem; margin: 1.5rem 0; }
+    .callout p { margin-bottom: 0; }
+    .ref-block {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem;
+      margin: 2.5rem 0 1rem; font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted);
+    }
+    .ref-block a { color: var(--accent); }
+    footer {
+      position: relative; z-index: 1; background: var(--bg); border-top: 1px solid var(--border);
+      padding: 1.5rem; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-right">
+      <a class="back-link mono" href="../index.html#blog">← back to blog</a>
+      <button class="theme-toggle" id="shareBtn" title="Share this post" aria-label="Share this post">
+        <svg class="icon-share" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        <svg class="icon-copied" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </button>
+      <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="article-header">
+      <p class="article-label mono">&gt; blog.post()</p>
+      <h1 class="article-title">The C.R.A.F.T. Framework: <span class="accent">A Prompt Structure That Actually Holds Up</span></h1>
+      <div class="article-meta">
+        <span>Roman Rabodzei</span>
+        <span>·</span>
+        <span>Oct 2026</span>
+        <span>·</span>
+        <span>~7 min read</span>
+      </div>
+      <div class="article-tags">
+        <span>Prompt Engineering</span>
+        <span>AI Productivity</span>
+        <span>GitHub Copilot</span>
+        <span>DevOps</span>
+        <span>LLMs</span>
+      </div>
+    </header>
+
+    <figure class="article-hero" aria-label="Illustration of the five pillars of the CRAFT prompting framework">
+      <svg viewBox="0 0 1200 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of five labelled pillars spelling C R A F T supporting a single well-formed prompt">
+        <rect width="1200" height="500" fill="#06090f"></rect>
+        <g fill="#dce8f4" opacity=".35">
+          <circle cx="70" cy="60" r="1.3"></circle>
+          <circle cx="1130" cy="70" r="1.1"></circle>
+          <circle cx="600" cy="40" r="1.0"></circle>
+        </g>
+
+        <rect x="120" y="260" width="960" height="26" rx="6" fill="#101e30" stroke="#4fc3f7" stroke-width="2"></rect>
+        <text x="600" y="278" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11">a prompt that produces the same good output every time</text>
+
+        <g font-family="JetBrains Mono, monospace" font-size="20" font-weight="700" fill="#4fc3f7">
+          <rect x="140" y="120" width="70" height="130" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="2"></rect>
+          <text x="175" y="195" text-anchor="middle">C</text>
+          <rect x="260" y="120" width="70" height="130" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="2"></rect>
+          <text x="295" y="195" text-anchor="middle">R</text>
+          <rect x="380" y="120" width="70" height="130" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="2"></rect>
+          <text x="415" y="195" text-anchor="middle">A</text>
+          <rect x="500" y="120" width="70" height="130" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="2"></rect>
+          <text x="535" y="195" text-anchor="middle">F</text>
+          <rect x="620" y="120" width="70" height="130" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="2"></rect>
+          <text x="655" y="195" text-anchor="middle">T</text>
+        </g>
+
+        <g fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">
+          <text x="175" y="222" text-anchor="middle">context</text>
+          <text x="295" y="222" text-anchor="middle">role</text>
+          <text x="415" y="222" text-anchor="middle">action</text>
+          <text x="535" y="222" text-anchor="middle">format</text>
+          <text x="655" y="222" text-anchor="middle">tone</text>
+        </g>
+
+        <rect x="800" y="120" width="260" height="130" rx="8" fill="#101e30" stroke="#38546f" stroke-width="1.8" stroke-dasharray="4 5"></rect>
+        <text x="930" y="155" text-anchor="middle" fill="#5c6773" font-family="JetBrains Mono, monospace" font-size="10">"write me a script"</text>
+        <text x="930" y="180" text-anchor="middle" fill="#5c6773" font-family="JetBrains Mono, monospace" font-size="10">no pillars</text>
+        <text x="930" y="205" text-anchor="middle" fill="#5c6773" font-family="JetBrains Mono, monospace" font-size="10">output: a coin flip</text>
+
+        <text x="600" y="420" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="11">remove one pillar and the whole thing leans on luck</text>
+      </svg>
+    </figure>
+
+    <article class="article-content">
+
+      <p>
+        I've watched a lot of smart engineers type a one-line request into Copilot or ChatGPT, get something
+        mediocre back, and conclude "the model isn't that good for this." Nine times out of ten the model was
+        fine. The prompt was missing most of the information a competent human would have needed to do the
+        task too. If you asked a contractor to "build me a deck" with no dimensions, no material preference,
+        and no budget, you wouldn't blame the contractor for guessing wrong.
+      </p>
+      <p>
+        The <strong>C.R.A.F.T. framework</strong> — Context, Role, Action, Format, Tone — is the simplest fix
+        I've found for this. It's not clever. That's the point. It's a checklist you can run through in ten
+        seconds before you hit enter, and it catches almost every prompt failure I see on a daily basis.
+      </p>
+
+      <h2>Why "just ask better" isn't advice</h2>
+
+      <p>
+        "Write better prompts" is not actionable — it's the same category of advice as "write better code."
+        What actually helps is a structure you can apply mechanically, every time, without having to be
+        inspired. C.R.A.F.T. gives you five slots to fill. If you can't fill one of them, that's useful
+        information too — it usually means you don't actually know what you want yet, and the model doesn't
+        stand a chance of guessing it for you.
+      </p>
+
+      <h2>The five letters</h2>
+
+      <h3>// Context</h3>
+      <p>
+        What does the model need to know that it can't infer? This is almost always the most skipped part. The
+        model doesn't know your stack, your constraints, your audience, or what "done" looks like for you
+        specifically. A request like "create a CI/CD pipeline" has no context — the model has to guess at the
+        language, the platform, the deployment target, and your team's conventions, and it will guess based on
+        the most common answer on the internet, which is very often not your answer.
+      </p>
+
+      <h3>// Role</h3>
+      <p>
+        Telling the model who it should act as narrows the space of plausible responses. "You are a senior SRE
+        who's been paged at 3 AM" produces a terser, more action-oriented answer than no role at all. The
+        useful roles are specific enough to imply constraints, not just vibes — "a security reviewer with a
+        checklist" beats "a security expert," because a checklist implies the model should stick to known
+        criteria instead of improvising.
+      </p>
+
+      <h3>// Action</h3>
+      <p>
+        This is the actual task, stated as one unambiguous instruction — not a vague direction. "Help me with
+        my deployment" is not an action. "Write a GitHub Actions workflow that builds a container image, scans
+        it for CVEs, and blocks the push on any critical finding" is an action. If you can't state the action
+        in one sentence without an "and also," you probably have two tasks, not one — split the prompt.
+      </p>
+
+      <h3>// Format</h3>
+      <p>
+        What shape does the output need to take, and what will you do with it immediately after? If you're
+        going to paste the output into a YAML file, ask for YAML and nothing else — not "here's your pipeline"
+        followed by a code block followed by three paragraphs of explanation you'll delete anyway. Be explicit:
+        "respond with only the YAML, no prose before or after it." Models default to being helpful with
+        commentary unless you tell them not to be.
+      </p>
+
+      <h3>// Tone</h3>
+      <p>
+        The one people skip because it feels like the least important letter — but tone shapes how much you'll
+        trust and actually use the output. A runbook written for a junior on-call engineer needs a different
+        tone than an architecture decision record for a staff engineering review. If you don't specify, you get
+        a generic, slightly over-explained middle-ground tone that satisfies nobody particularly well.
+      </p>
+
+      <div class="callout">
+        <p><strong>The fastest way to tell a prompt is missing a pillar:</strong> read it out loud and ask "would a smart
+        colleague with zero context about my project know exactly what to hand back to me?" If the honest
+        answer is no, find out which letter is missing and add it. It's almost always Context or Format.</p>
+      </div>
+
+      <h2>Before and after</h2>
+
+      <p><strong>Amateur:</strong></p>
+      <p><code>Create a CI/CD pipeline</code></p>
+
+      <p><strong>C.R.A.F.T.:</strong></p>
+      <ul>
+        <li><strong>Context:</strong> Node.js application, deployed to AWS ECS, using GitLab CI.</li>
+        <li><strong>Role:</strong> Act as a senior DevOps engineer who favours boring, reliable pipelines over clever ones.</li>
+        <li><strong>Action:</strong> Create a GitLab CI/CD pipeline that runs security scanning and automated tests, then performs a blue-green deployment to ECS.</li>
+        <li><strong>Format:</strong> A single <code>.gitlab-ci.yml</code> file, fully commented, no explanation before or after.</li>
+        <li><strong>Tone:</strong> Production-ready — include error handling and a rollback job, don't simplify for readability.</li>
+      </ul>
+      <p>
+        Same request, five extra sentences, and the difference in output quality isn't incremental — it's the
+        difference between something you can actually merge and something you have to rewrite from scratch.
+      </p>
+
+      <h2>Where C.R.A.F.T. and "proper" prompt engineering agree</h2>
+
+      <p>
+        If you've read more rigorous prompt engineering material, you'll recognise the overlap: Context and
+        Role map directly onto the same ideas, Action is just "task" by another name, and Format is the same
+        non-negotiable most production systems enforce with schema-constrained output rather than just asking
+        nicely. Tone is the one addition that's more about human-facing prompts than machine-to-machine ones —
+        when the output is JSON consumed by code, tone mostly doesn't matter; when a person is going to read
+        the result, it matters a lot.
+      </p>
+      <p>
+        The deeper lesson both approaches share: a prompt that works reliably is not a clever sentence, it's a
+        small, complete specification. Missing any one piece turns a specification into a guess, and guesses
+        are exactly as reliable as you'd expect.
+      </p>
+
+      <h2>A habit worth building</h2>
+
+      <p>
+        I keep a scratch note with the five letters next to my editor. Before sending any non-trivial prompt, I
+        run down the list: do I know the context, have I given it a role, is the action one unambiguous
+        sentence, have I said what shape I want back, and have I set the tone for who's going to read it? It
+        takes ten seconds and it's the single highest-leverage habit I've picked up for working with AI tools
+        day to day — far more useful than any individual "magic prompt" I've collected.
+      </p>
+
+      <div class="ref-block">
+        <strong>Related reading on this site:</strong><br><br>
+        See <a href="choosing-models-foundry-agents.html">Choosing Models for Production Agents</a> for how the same
+        structured-input discipline applies once you're routing prompts to multiple models in an agent pipeline.
+      </div>
+
+    </article>
+  </div>
+
+  <footer>
+    <span class="mono">&copy; <span id="year"></span> Roman Rabodzei &nbsp;·&nbsp; <a href="../index.html#blog" style="color: var(--accent);">← back to blog</a></span>
+  </footer>
+
+  <script>
+    const html = document.documentElement;
+    function applyTheme(t) { html.setAttribute('data-theme', t); localStorage.setItem('theme', t); }
+    const saved = localStorage.getItem('theme') || 'dark';
+    applyTheme(saved);
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', async () => {
+      const shareData = { title: document.title, url: location.href };
+      if (navigator.share) {
+        try { await navigator.share(shareData); shareBtn.classList.add('copied'); setTimeout(() => shareBtn.classList.remove('copied'), 1500); } catch (e) {}
+        return;
+      }
+      try { await navigator.clipboard.writeText(location.href); shareBtn.classList.add('copied'); setTimeout(() => shareBtn.classList.remove('copied'), 1500); } catch (e) {}
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
