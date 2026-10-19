@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Choosing Models for Production Agents: GPT-6, Claude Opus 5.5 and Beyond — Roman Rabodzei</title>
+  <meta name="description" content="A practical framework for choosing between GPT-6 Astra/Sol/Luna, Claude Opus 5.5, and other models now available in Microsoft Foundry for production agent workloads.">
+  <link rel="canonical" href="https://romanrabodzei.github.io/blog/choosing-models-foundry-agents.html">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://romanrabodzei.github.io/blog/choosing-models-foundry-agents.html">
+  <meta property="og:title" content="Choosing Models for Production Agents: GPT-6, Claude Opus 5.5 and Beyond">
+  <meta property="og:description" content="A practical framework for choosing between GPT-6 Astra/Sol/Luna, Claude Opus 5.5, and other models now available in Microsoft Foundry for production agent workloads.">
+  <meta property="og:image" content="https://romanrabodzei.github.io/images/choosing-models-foundry-agents.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Choosing Models for Production Agents: GPT-6, Claude Opus 5.5 and Beyond">
+  <meta name="twitter:description" content="A practical framework for choosing between GPT-6 Astra/Sol/Luna, Claude Opus 5.5, and other models now available in Microsoft Foundry for production agent workloads.">
+  <meta name="twitter:image" content="https://romanrabodzei.github.io/images/choosing-models-foundry-agents.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f5f5f7; --surface: #ffffff; --surface2: #f5f5f7; --border: #d2d2d7;
+      --text: #1d1d1f; --muted: #6e6e73; --accent: #0071e3; --accent-dim: rgba(0, 113, 227, 0.08);
+    }
+    [data-theme="dark"] {
+      --bg: #000000; --surface: #1c1c1e; --surface2: #2c2c2e; --border: #38383a;
+      --text: #f5f5f7; --muted: #98989d; --accent: #0a84ff; --accent-dim: rgba(10, 132, 255, 0.14);
+    }
+    html { scroll-behavior: smooth; background: var(--bg); overflow-x: hidden; }
+    body {
+      position: relative; z-index: 0; overflow-x: hidden; max-width: 100vw;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; transition: background .2s, color .2s;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(0,113,227,0.16) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,190,255,0.12) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(0,113,227,0.10) 0%, transparent 45%);
+      filter: blur(90px); z-index: -2; pointer-events: none;
+    }
+    [data-theme="dark"] body::before {
+      background:
+        radial-gradient(circle at 18% 22%, rgba(10,132,255,0.32) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,92,230,0.22) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(10,132,255,0.18) 0%, transparent 45%);
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-size: 28px 28px; opacity: .5;
+      -webkit-mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      z-index: -1; pointer-events: none;
+    }
+    .mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace; }
+    a { color: inherit; }
+    nav {
+      position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: .7rem 1.5rem; display: flex; align-items: center; justify-content: flex-end; gap: 1rem;
+    }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .back-link { font-family: 'JetBrains Mono', monospace; font-size: .82rem; color: var(--muted); text-decoration: none; transition: color .15s; }
+    @media (hover: hover) { .back-link:hover { color: var(--accent); } }
+    .theme-toggle {
+      display: flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; flex-shrink: 0;
+      border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+      cursor: pointer; transition: border-color .15s, color .15s, background .15s;
+    }
+    @media (hover: hover) { .theme-toggle:hover { border-color: var(--accent); color: var(--accent); } }
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-sun  { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+    .theme-toggle .icon-copied { display: none; }
+    .theme-toggle.copied .icon-share  { display: none; }
+    .theme-toggle.copied .icon-copied { display: block; }
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .article-header { padding: 3rem 0 2.5rem; border-bottom: 1px solid var(--border); margin-bottom: 2.5rem; }
+    .article-label { font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted); margin-bottom: .75rem; }
+    .article-title { font-size: clamp(1.5rem, 5vw, 2.2rem); font-weight: 700; line-height: 1.2; margin-bottom: 1rem; }
+    .article-title .accent { color: var(--accent); }
+    .article-meta {
+      display: flex; flex-wrap: wrap; gap: .75rem; font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; color: var(--muted); margin-bottom: 1.25rem;
+    }
+    .article-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .article-tags span {
+      font-family: 'JetBrains Mono', monospace; font-size: .68rem; padding: .15rem .5rem;
+      border-radius: 4px; border: 1px solid var(--border); color: var(--muted); background: var(--surface);
+    }
+    .article-hero { margin-bottom: 2.5rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden; }
+    .article-hero svg { display: block; width: 100%; height: auto; }
+    .article-content { padding-bottom: 4rem; }
+    .article-content p { font-size: .975rem; line-height: 1.85; color: var(--text); margin-bottom: 1.35rem; text-align: justify; }
+    .article-content h2 { font-size: 1.2rem; font-weight: 600; margin: 2.25rem 0 1rem; padding-bottom: .5rem; border-bottom: 1px solid var(--border); }
+    .article-content h3 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .6rem; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+    .article-content ul, .article-content ol { margin: .75rem 0 1.35rem 1.5rem; display: flex; flex-direction: column; gap: .45rem; }
+    .article-content li { font-size: .975rem; line-height: 1.75; color: var(--text); }
+    .article-content strong { color: var(--text); }
+    .article-content a { color: var(--accent); text-decoration: none; }
+    .article-content a:hover { text-decoration: underline; }
+    .article-content code {
+      font-family: 'JetBrains Mono', monospace; font-size: .85em; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 3px; padding: .1em .35em; color: var(--accent);
+    }
+    .callout { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; padding: 1rem 1.25rem; margin: 1.5rem 0; }
+    .callout p { margin-bottom: 0; }
+    .ref-block {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem;
+      margin: 2.5rem 0 1rem; font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted);
+    }
+    .ref-block a { color: var(--accent); }
+    footer {
+      position: relative; z-index: 1; background: var(--bg); border-top: 1px solid var(--border);
+      padding: 1.5rem; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-right">
+      <a class="back-link mono" href="../index.html#blog">← back to blog</a>
+      <button class="theme-toggle" id="shareBtn" title="Share this post" aria-label="Share this post">
+        <svg class="icon-share" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        <svg class="icon-copied" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </button>
+      <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="article-header">
+      <p class="article-label mono">&gt; blog.post()</p>
+      <h1 class="article-title">Choosing Models for Production Agents: <span class="accent">GPT-6, Claude Opus 5.5 and Beyond</span></h1>
+      <div class="article-meta">
+        <span>Roman Rabodzei</span>
+        <span>·</span>
+        <span>Oct 2026</span>
+        <span>·</span>
+        <span>~8 min read</span>
+      </div>
+      <div class="article-tags">
+        <span>Microsoft Foundry</span>
+        <span>AI Agents</span>
+        <span>Model Selection</span>
+        <span>FinOps</span>
+        <span>GPT-6</span>
+      </div>
+    </header>
+
+    <figure class="article-hero" aria-label="Illustration of a model routing layer choosing between multiple LLM backends">
+      <svg viewBox="0 0 1200 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of an agent orchestrator routing subtasks to different models based on cost and capability">
+        <rect width="1200" height="500" fill="#06090f"></rect>
+        <g fill="#dce8f4" opacity=".35">
+          <circle cx="70" cy="60" r="1.3"></circle>
+          <circle cx="1130" cy="70" r="1.1"></circle>
+        </g>
+
+        <circle cx="600" cy="100" r="34" fill="#101e30" stroke="#4fc3f7" stroke-width="2.5"></circle>
+        <text x="600" y="104" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="10">router</text>
+
+        <line x1="570" y1="128" x2="270" y2="220" stroke="#4fc3f7" stroke-width="1.5" stroke-dasharray="4 5"></line>
+        <line x1="600" y1="134" x2="600" y2="220" stroke="#38546f" stroke-width="1.5" stroke-dasharray="4 5"></line>
+        <line x1="630" y1="128" x2="930" y2="220" stroke="#38546f" stroke-width="1.5" stroke-dasharray="4 5"></line>
+
+        <rect x="140" y="225" width="260" height="130" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="1.8"></rect>
+        <text x="270" y="255" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">GPT-6 Astra</text>
+        <text x="270" y="280" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">frontier reasoning</text>
+        <text x="270" y="298" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">high-stakes subtasks</text>
+        <text x="270" y="335" text-anchor="middle" fill="#5c6773" font-family="JetBrains Mono, monospace" font-size="9">$$$</text>
+
+        <rect x="470" y="225" width="260" height="130" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="1.8"></rect>
+        <text x="600" y="255" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Claude Opus 5.5</text>
+        <text x="600" y="280" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">long-running coding</text>
+        <text x="600" y="298" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">knowledge work</text>
+        <text x="600" y="335" text-anchor="middle" fill="#5c6773" font-family="JetBrains Mono, monospace" font-size="9">$$</text>
+
+        <rect x="800" y="225" width="260" height="130" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="1.8"></rect>
+        <text x="930" y="255" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">GPT-6 Sol / Luna</text>
+        <text x="930" y="280" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">high-volume tasks</text>
+        <text x="930" y="298" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">simple subtasks</text>
+        <text x="930" y="335" text-anchor="middle" fill="#5c6773" font-family="JetBrains Mono, monospace" font-size="9">$</text>
+
+        <text x="600" y="410" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="11">route by subtask, not one model for the whole agent</text>
+      </svg>
+    </figure>
+
+    <article class="article-content">
+
+      <p>
+        September 2026 brought a wave of new model availability into Microsoft Foundry and GitHub Copilot at
+        once: <strong>GPT-6 Astra</strong>, <strong>GPT-6 Sol</strong>, and <strong>GPT-6 Luna</strong> for
+        production agents, <strong>Claude Opus 5.5</strong> for long-running coding and knowledge work, plus
+        Grok 4.7 and Gemini 3.8 Flash showing up in Copilot's model picker. Azure's own messaging has been
+        explicit about this: "the best model for your business will keep changing." That's true, and it means
+        model selection needs to be a repeatable process, not a one-time decision baked into your agent's code.
+      </p>
+
+      <h2>Stop thinking in terms of "the model" for an agent</h2>
+
+      <p>
+        The single biggest mistake I still see is treating model choice as one decision for the whole agent.
+        A well-designed agent has subtasks with very different requirements: classification, extraction,
+        summarisation, multi-step reasoning, and code generation don't need the same model, and routing all of
+        them through the most capable (and most expensive) option available is the most common source of
+        avoidable cost I've seen in agent deployments this year.
+      </p>
+
+      <h2>What the September lineup is actually good at</h2>
+
+      <h3>// GPT-6 Astra</h3>
+      <p>
+        Positioned as the frontier option — reserve it for the reasoning-heavy steps in an agent's workflow
+        where quality genuinely depends on the strongest available model: complex multi-step planning,
+        ambiguous instruction interpretation, and tasks where a wrong answer is expensive. It's the most costly
+        option in the lineup, so use it deliberately rather than as the default.
+      </p>
+      <h3>// Claude Opus 5.5</h3>
+      <p>
+        Explicitly positioned for long-running coding and knowledge work — a good fit for agents that need to
+        maintain context across an extended task (a multi-file refactor, an extended research synthesis) rather
+        than a single quick response. If your agent's workload looks like "sustained work over many steps," this
+        is worth benchmarking against Astra for your specific task before defaulting to the frontier model.
+      </p>
+      <h3>// GPT-6 Sol and GPT-6 Luna</h3>
+      <p>
+        Framed around scalable, high-volume tasks — the models to route simple, repeated subtasks to: structured
+        extraction, classification, straightforward transformations. These are the models that should be
+        handling the bulk of an agent's individual tool calls, with the expensive frontier model reserved for
+        the steps that actually need it.
+      </p>
+
+      <div class="callout">
+        <p><strong>Practical exercise worth doing this month:</strong> take your highest-traffic agent, log which model
+        handles each subtask type today, and calculate what percentage of your monthly token spend goes to
+        subtasks that don't actually need frontier-model quality. In every agent I've audited this way, it's
+        been higher than the team expected.</p>
+      </div>
+
+      <h2>A repeatable model selection process</h2>
+
+      <ol>
+        <li><strong>Baseline on the best model</strong> during development to establish the quality ceiling for each subtask type.</li>
+        <li><strong>Systematically test cheaper models</strong> against that baseline, subtask by subtask, using real production examples rather than synthetic test cases.</li>
+        <li><strong>Set a quality threshold, not a model preference</strong> — route to the cheapest model that clears the threshold for each subtask, and re-evaluate that routing whenever a new model becomes available.</li>
+        <li><strong>Re-run the evaluation on a schedule</strong>, not just when a new model launches — model provider pricing and capability both shift, and yesterday's optimal routing decision doesn't stay optimal indefinitely.</li>
+      </ol>
+
+      <h2>Why this needs to be infrastructure, not a one-off decision</h2>
+
+      <p>
+        The model catalogue in Microsoft Foundry, combined with token rate-limiting and semantic caching
+        (both covered in Azure's Economics of Agent Optimization series this year), makes model routing a
+        first-class platform capability rather than something each agent team reinvents. If you're running more
+        than a couple of agents in production, building a shared evaluation harness and routing configuration
+        once — rather than letting every team hardcode a model choice — pays for itself quickly as new models
+        continue to arrive at this pace.
+      </p>
+
+      <div class="ref-block">
+        <strong>Further reading:</strong><br><br>
+        <a href="https://azure.microsoft.com/en-us/blog/gpt-6-astra-sol-and-luna-for-production-agents-in-microsoft-foundry/" target="_blank" rel="noopener">GPT-6 Astra, Sol, and Luna: For production agents in Microsoft Foundry</a> ·
+        <a href="https://azure.microsoft.com/en-us/blog/ship-agents-faster-with-expanded-model-choice-voice-agents-and-continuous-optimization/" target="_blank" rel="noopener">Ship agents faster with expanded model choice, voice agents, and continuous optimization</a> ·
+        <a href="https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/claude-opus-5-5-comes-to-microsoft-foundry-for-long-running-coding-and-knowledge/4558051" target="_blank" rel="noopener">Claude Opus 5.5 comes to Microsoft Foundry</a>
+      </div>
+
+    </article>
+  </div>
+
+  <footer>
+    <span class="mono">&copy; <span id="year"></span> Roman Rabodzei &nbsp;·&nbsp; <a href="../index.html#blog" style="color: var(--accent);">← back to blog</a></span>
+  </footer>
+
+  <script>
+    const html = document.documentElement;
+    function applyTheme(t) { html.setAttribute('data-theme', t); localStorage.setItem('theme', t); }
+    const saved = localStorage.getItem('theme') || 'dark';
+    applyTheme(saved);
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', async () => {
+      const shareData = { title: document.title, url: location.href };
+      if (navigator.share) {
+        try { await navigator.share(shareData); shareBtn.classList.add('copied'); setTimeout(() => shareBtn.classList.remove('copied'), 1500); } catch (e) {}
+        return;
+      }
+      try { await navigator.clipboard.writeText(location.href); shareBtn.classList.add('copied'); setTimeout(() => shareBtn.classList.remove('copied'), 1500); } catch (e) {}
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
