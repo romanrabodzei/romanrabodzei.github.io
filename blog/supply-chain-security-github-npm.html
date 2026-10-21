@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modern Supply-Chain Security: Stage-Only Tokens, Trusted Publishing, and Secret-Blocking on GitHub — Roman Rabodzei</title>
+  <meta name="description" content="Stage-only npm tokens, trusted publishing, exposed-secret blocking, and CodeQL improvements — the September 2026 supply-chain security features worth adopting now.">
+  <link rel="canonical" href="https://romanrabodzei.github.io/blog/supply-chain-security-github-npm.html">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://romanrabodzei.github.io/blog/supply-chain-security-github-npm.html">
+  <meta property="og:title" content="Modern Supply-Chain Security: Stage-Only Tokens, Trusted Publishing, and Secret-Blocking on GitHub">
+  <meta property="og:description" content="Stage-only npm tokens, trusted publishing, exposed-secret blocking, and CodeQL improvements — the September 2026 supply-chain security features worth adopting now.">
+  <meta property="og:image" content="https://romanrabodzei.github.io/images/supply-chain-security-github-npm.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Modern Supply-Chain Security: Stage-Only Tokens, Trusted Publishing, and Secret-Blocking on GitHub">
+  <meta name="twitter:description" content="Stage-only npm tokens, trusted publishing, exposed-secret blocking, and CodeQL improvements — the September 2026 supply-chain security features worth adopting now.">
+  <meta name="twitter:image" content="https://romanrabodzei.github.io/images/supply-chain-security-github-npm.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f5f5f7; --surface: #ffffff; --surface2: #f5f5f7; --border: #d2d2d7;
+      --text: #1d1d1f; --muted: #6e6e73; --accent: #0071e3; --accent-dim: rgba(0, 113, 227, 0.08);
+    }
+    [data-theme="dark"] {
+      --bg: #000000; --surface: #1c1c1e; --surface2: #2c2c2e; --border: #38383a;
+      --text: #f5f5f7; --muted: #98989d; --accent: #0a84ff; --accent-dim: rgba(10, 132, 255, 0.14);
+    }
+    html { scroll-behavior: smooth; background: var(--bg); overflow-x: hidden; }
+    body {
+      position: relative; z-index: 0; overflow-x: hidden; max-width: 100vw;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; transition: background .2s, color .2s;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(0,113,227,0.16) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,190,255,0.12) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(0,113,227,0.10) 0%, transparent 45%);
+      filter: blur(90px); z-index: -2; pointer-events: none;
+    }
+    [data-theme="dark"] body::before {
+      background:
+        radial-gradient(circle at 18% 22%, rgba(10,132,255,0.32) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,92,230,0.22) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(10,132,255,0.18) 0%, transparent 45%);
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-size: 28px 28px; opacity: .5;
+      -webkit-mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      z-index: -1; pointer-events: none;
+    }
+    .mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace; }
+    a { color: inherit; }
+    nav {
+      position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: .7rem 1.5rem; display: flex; align-items: center; justify-content: flex-end; gap: 1rem;
+    }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .back-link { font-family: 'JetBrains Mono', monospace; font-size: .82rem; color: var(--muted); text-decoration: none; transition: color .15s; }
+    @media (hover: hover) { .back-link:hover { color: var(--accent); } }
+    .theme-toggle {
+      display: flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; flex-shrink: 0;
+      border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+      cursor: pointer; transition: border-color .15s, color .15s, background .15s;
+    }
+    @media (hover: hover) { .theme-toggle:hover { border-color: var(--accent); color: var(--accent); } }
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-sun  { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+    .theme-toggle .icon-copied { display: none; }
+    .theme-toggle.copied .icon-share  { display: none; }
+    .theme-toggle.copied .icon-copied { display: block; }
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .article-header { padding: 3rem 0 2.5rem; border-bottom: 1px solid var(--border); margin-bottom: 2.5rem; }
+    .article-label { font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted); margin-bottom: .75rem; }
+    .article-title { font-size: clamp(1.5rem, 5vw, 2.2rem); font-weight: 700; line-height: 1.2; margin-bottom: 1rem; }
+    .article-title .accent { color: var(--accent); }
+    .article-meta {
+      display: flex; flex-wrap: wrap; gap: .75rem; font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; color: var(--muted); margin-bottom: 1.25rem;
+    }
+    .article-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .article-tags span {
+      font-family: 'JetBrains Mono', monospace; font-size: .68rem; padding: .15rem .5rem;
+      border-radius: 4px; border: 1px solid var(--border); color: var(--muted); background: var(--surface);
+    }
+    .article-hero { margin-bottom: 2.5rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden; }
+    .article-hero svg { display: block; width: 100%; height: auto; }
+    .article-content { padding-bottom: 4rem; }
+    .article-content p { font-size: .975rem; line-height: 1.85; color: var(--text); margin-bottom: 1.35rem; text-align: justify; }
+    .article-content h2 { font-size: 1.2rem; font-weight: 600; margin: 2.25rem 0 1rem; padding-bottom: .5rem; border-bottom: 1px solid var(--border); }
+    .article-content h3 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .6rem; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+    .article-content ul, .article-content ol { margin: .75rem 0 1.35rem 1.5rem; display: flex; flex-direction: column; gap: .45rem; }
+    .article-content li { font-size: .975rem; line-height: 1.75; color: var(--text); }
+    .article-content strong { color: var(--text); }
+    .article-content a { color: var(--accent); text-decoration: none; }
+    .article-content a:hover { text-decoration: underline; }
+    .article-content code {
+      font-family: 'JetBrains Mono', monospace; font-size: .85em; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 3px; padding: .1em .35em; color: var(--accent);
+    }
+    .callout { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; padding: 1rem 1.25rem; margin: 1.5rem 0; }
+    .callout p { margin-bottom: 0; }
+    .ref-block {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem;
+      margin: 2.5rem 0 1rem; font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted);
+    }
+    .ref-block a { color: var(--accent); }
+    footer {
+      position: relative; z-index: 1; background: var(--bg); border-top: 1px solid var(--border);
+      padding: 1.5rem; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-right">
+      <a class="back-link mono" href="../index.html#blog">← back to blog</a>
+      <button class="theme-toggle" id="shareBtn" title="Share this post" aria-label="Share this post">
+        <svg class="icon-share" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        <svg class="icon-copied" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </button>
+      <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="article-header">
+      <p class="article-label mono">&gt; blog.post()</p>
+      <h1 class="article-title">Modern Supply-Chain Security: <span class="accent">Stage-Only Tokens, Trusted Publishing, and Secret-Blocking on GitHub</span></h1>
+      <div class="article-meta">
+        <span>Roman Rabodzei</span>
+        <span>·</span>
+        <span>Oct 2026</span>
+        <span>·</span>
+        <span>~8 min read</span>
+      </div>
+      <div class="article-tags">
+        <span>Supply Chain Security</span>
+        <span>GitHub Actions</span>
+        <span>npm</span>
+        <span>CodeQL</span>
+        <span>Application Security</span>
+      </div>
+    </header>
+
+    <figure class="article-hero" aria-label="Illustration of a hardened software supply chain pipeline">
+      <svg viewBox="0 0 1200 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of a publish pipeline with trusted publishing, stage-only tokens, secret scanning, and code scanning as checkpoints">
+        <rect width="1200" height="500" fill="#06090f"></rect>
+        <g fill="#dce8f4" opacity=".35">
+          <circle cx="70" cy="60" r="1.3"></circle>
+          <circle cx="1130" cy="70" r="1.1"></circle>
+        </g>
+
+        <line x1="120" y1="250" x2="1080" y2="250" stroke="#38546f" stroke-width="1.6"></line>
+
+        <circle cx="220" cy="250" r="10" fill="#4fc3f7"></circle>
+        <text x="220" y="220" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="10">source</text>
+
+        <circle cx="450" cy="250" r="10" fill="#4fc3f7"></circle>
+        <text x="450" y="220" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="10">secret scan</text>
+        <text x="450" y="290" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">blocks merge</text>
+
+        <circle cx="680" cy="250" r="10" fill="#4fc3f7"></circle>
+        <text x="680" y="220" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="10">CodeQL scan</text>
+        <text x="680" y="290" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">agentic autofix</text>
+
+        <circle cx="910" cy="250" r="10" fill="#4fc3f7"></circle>
+        <text x="910" y="264" text-anchor="start" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="10">trusted publish</text>
+        <text x="910" y="290" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">stage-only token</text>
+
+        <rect x="1000" y="220" width="80" height="60" rx="6" fill="#101e30" stroke="#4fc3f7" stroke-width="1.8"></rect>
+        <text x="1040" y="255" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="10">npm</text>
+
+        <text x="600" y="400" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="11">no long-lived publish tokens survive this pipeline</text>
+      </svg>
+    </figure>
+
+    <article class="article-content">
+
+      <p>
+        September 2026 was a dense month for supply-chain security features across GitHub and npm — multiple
+        trusted publishing configurations, stage-only tokens, automatic Dependabot registry access, secret-exposed
+        PR blocking, and CodeQL improvements all shipped within a few weeks of each other. Individually each is
+        a small change. Put together, they represent a genuine shift in how much of the software supply chain
+        can now run without a long-lived credential sitting in a secrets store waiting to be exfiltrated.
+      </p>
+
+      <h2>Stage-only npm tokens</h2>
+
+      <p>
+        Stage-only npm tokens let you scope a publish token to only work from a specific, pre-declared CI stage
+        or environment — meaning even if a token is somehow leaked, it's useless outside the exact automation
+        context it was issued for. This is a meaningful improvement over granular-but-still-portable tokens:
+        the token itself becomes non-transferable rather than just narrowly scoped by permission.
+      </p>
+
+      <h2>Multiple trusted publishing configurations for npm</h2>
+
+      <p>
+        Trusted publishing (OIDC-based, tokenless publishing from CI to a package registry) already existed for
+        npm, but was limited to a single publishing configuration per package. The September update allows
+        multiple trusted publishing configurations per package — supporting the very common real-world case of
+        publishing the same package from more than one workflow, repository, or environment (a release workflow
+        and a manual hotfix workflow, for example) without falling back to a shared long-lived token as the
+        lowest common denominator.
+      </p>
+      <p>
+        If your team still publishes npm packages using a classic automation token stored as a repository
+        secret, this removes the last common excuse for not migrating to trusted publishing — multi-workflow
+        publishing was the main scenario trusted publishing didn't cleanly support until now.
+      </p>
+
+      <h2>Blocking pull requests with exposed secrets from merging</h2>
+
+      <p>
+        Secret scanning has existed for a while, but blocking the merge itself — rather than just alerting after
+        the fact — closes the window between "a secret was committed" and "a secret is now in the default
+        branch, in the git history, potentially already scraped by an automated credential harvester." Merge
+        blocking on detected secrets is one of those controls that should have been the default years ago; worth
+        enabling as a required check across every repository that has secret scanning available.
+      </p>
+
+      <h2>Automatic Dependabot access to GitHub-hosted registries</h2>
+
+      <p>
+        A smaller but practically useful change: Dependabot now gets automatic access to GitHub-hosted package
+        registries without additional configuration, removing a class of "Dependabot silently failed to open a
+        PR because it couldn't reach an internal registry" issues that used to require manual credential setup.
+      </p>
+
+      <h2>CodeQL: broader language coverage, agentic autofix</h2>
+
+      <p>
+        CodeQL 2.26 and 2.27 added Linux ARM64 support, improved GitHub Actions-specific security detections, and
+        extended C/C++ and Kotlin query coverage. Combined with the newer "remediate Code Quality findings with
+        agentic autofix" capability, code scanning is moving from "flag the problem" toward "propose the fix as
+        a reviewable pull request" — worth piloting on a lower-risk repository first to calibrate how much you
+        trust the generated fixes before turning it on broadly.
+      </p>
+
+      <div class="callout">
+        <p><strong>Practical priority order if you're catching up on all of this at once:</strong> merge-blocking on exposed
+        secrets first (highest risk reduction, lowest effort to enable), trusted publishing migration second
+        (removes standing credentials), then CodeQL coverage expansion and agentic autofix piloting as ongoing
+        work rather than a one-time project.</p>
+      </div>
+
+      <h2>My take</h2>
+
+      <p>
+        None of these individually would justify a dedicated project, but reviewing them together is a good
+        prompt to audit your own pipelines: do you still have long-lived npm publish tokens sitting in repository
+        secrets? Is secret scanning configured to block merges, or just to alert? Those two questions alone are
+        worth an afternoon this month, regardless of what else is on the roadmap.
+      </p>
+
+      <div class="ref-block">
+        <strong>Further reading:</strong><br><br>
+        <a href="https://github.blog/changelog/2026-09-18-stage-only-npm-tokens-for-safer-automation" target="_blank" rel="noopener">Stage-only npm tokens for safer automation</a> ·
+        <a href="https://github.blog/changelog/2026-09-03-multiple-trusted-publishing-configurations-for-npm" target="_blank" rel="noopener">Multiple trusted publishing configurations for npm</a> ·
+        <a href="https://github.blog/changelog/2026-09-09-block-pull-requests-with-exposed-secrets-from-merging" target="_blank" rel="noopener">Block pull requests with exposed secrets from merging</a> ·
+        <a href="https://github.blog/changelog/2026-09-09-remediate-code-quality-findings-with-agentic-autofix" target="_blank" rel="noopener">Remediate Code Quality findings with agentic autofix</a>
+      </div>
+
+    </article>
+  </div>
+
+  <footer>
+    <span class="mono">&copy; <span id="year"></span> Roman Rabodzei &nbsp;·&nbsp; <a href="../index.html#blog" style="color: var(--accent);">← back to blog</a></span>
+  </footer>
+
+  <script>
+    const html = document.documentElement;
+    function applyTheme(t) { html.setAttribute('data-theme', t); localStorage.setItem('theme', t); }
+    const saved = localStorage.getItem('theme') || 'dark';
+    applyTheme(saved);
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', async () => {
+      const shareData = { title: document.title, url: location.href };
+      if (navigator.share) {
+        try { await navigator.share(shareData); shareBtn.classList.add('copied'); setTimeout(() => shareBtn.classList.remove('copied'), 1500); } catch (e) {}
+        return;
+      }
+      try { await navigator.clipboard.writeText(location.href); shareBtn.classList.add('copied'); setTimeout(() => shareBtn.classList.remove('copied'), 1500); } catch (e) {}
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>

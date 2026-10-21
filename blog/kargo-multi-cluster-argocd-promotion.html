@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kargo for Multi-Cluster GitOps: Promoting Across Argo CD Instances with Entra ID SSO — Roman Rabodzei</title>
+  <meta name="description" content="Running Kargo as a management-cluster control plane that drives a remote Argo CD via a mounted kubeconfig, with Entra ID OIDC SSO, Application Gateway ingress, and per-image SemVer promotion warehouses.">
+  <link rel="canonical" href="https://romanrabodzei.github.io/blog/kargo-multi-cluster-argocd-promotion.html">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://romanrabodzei.github.io/blog/kargo-multi-cluster-argocd-promotion.html">
+  <meta property="og:title" content="Kargo for Multi-Cluster GitOps: Promoting Across Argo CD Instances with Entra ID SSO">
+  <meta property="og:description" content="Running Kargo as a management-cluster control plane that drives a remote Argo CD via a mounted kubeconfig, with Entra ID OIDC SSO, Application Gateway ingress, and per-image SemVer promotion warehouses.">
+  <meta property="og:image" content="https://romanrabodzei.github.io/images/kargo-multi-cluster-argocd-promotion.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Kargo for Multi-Cluster GitOps: Promoting Across Argo CD Instances with Entra ID SSO">
+  <meta name="twitter:description" content="Running Kargo as a management-cluster control plane that drives a remote Argo CD via a mounted kubeconfig, with Entra ID OIDC SSO, Application Gateway ingress, and per-image SemVer promotion warehouses.">
+  <meta name="twitter:image" content="https://romanrabodzei.github.io/images/kargo-multi-cluster-argocd-promotion.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f5f5f7; --surface: #ffffff; --surface2: #f5f5f7; --border: #d2d2d7;
+      --text: #1d1d1f; --muted: #6e6e73; --accent: #0071e3; --accent-dim: rgba(0, 113, 227, 0.08);
+    }
+    [data-theme="dark"] {
+      --bg: #000000; --surface: #1c1c1e; --surface2: #2c2c2e; --border: #38383a;
+      --text: #f5f5f7; --muted: #98989d; --accent: #0a84ff; --accent-dim: rgba(10, 132, 255, 0.14);
+    }
+    html { scroll-behavior: smooth; background: var(--bg); overflow-x: hidden; }
+    body {
+      position: relative; z-index: 0; overflow-x: hidden; max-width: 100vw;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; transition: background .2s, color .2s;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(0,113,227,0.16) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,190,255,0.12) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(0,113,227,0.10) 0%, transparent 45%);
+      filter: blur(90px); z-index: -2; pointer-events: none;
+    }
+    [data-theme="dark"] body::before {
+      background:
+        radial-gradient(circle at 18% 22%, rgba(10,132,255,0.32) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,92,230,0.22) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(10,132,255,0.18) 0%, transparent 45%);
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-size: 28px 28px; opacity: .5;
+      -webkit-mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      z-index: -1; pointer-events: none;
+    }
+    .mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace; }
+    a { color: inherit; }
+    nav {
+      position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: .7rem 1.5rem; display: flex; align-items: center; justify-content: flex-end; gap: 1rem;
+    }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .back-link { font-family: 'JetBrains Mono', monospace; font-size: .82rem; color: var(--muted); text-decoration: none; transition: color .15s; }
+    @media (hover: hover) { .back-link:hover { color: var(--accent); } }
+    .theme-toggle {
+      display: flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; flex-shrink: 0;
+      border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+      cursor: pointer; transition: border-color .15s, color .15s, background .15s;
+    }
+    @media (hover: hover) { .theme-toggle:hover { border-color: var(--accent); color: var(--accent); } }
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-sun  { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+    .theme-toggle .icon-copied { display: none; }
+    .theme-toggle.copied .icon-share  { display: none; }
+    .theme-toggle.copied .icon-copied { display: block; }
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .article-header { padding: 3rem 0 2.5rem; border-bottom: 1px solid var(--border); margin-bottom: 2.5rem; }
+    .article-label { font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted); margin-bottom: .75rem; }
+    .article-title { font-size: clamp(1.5rem, 5vw, 2.2rem); font-weight: 700; line-height: 1.2; margin-bottom: 1rem; }
+    .article-title .accent { color: var(--accent); }
+    .article-meta {
+      display: flex; flex-wrap: wrap; gap: .75rem; font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; color: var(--muted); margin-bottom: 1.25rem;
+    }
+    .article-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .article-tags span {
+      font-family: 'JetBrains Mono', monospace; font-size: .68rem; padding: .15rem .5rem;
+      border-radius: 4px; border: 1px solid var(--border); color: var(--muted); background: var(--surface);
+    }
+    .article-hero { margin-bottom: 2.5rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden; }
+    .article-hero svg { display: block; width: 100%; height: auto; }
+    .article-content { padding-bottom: 4rem; }
+    .article-content p { font-size: .975rem; line-height: 1.85; color: var(--text); margin-bottom: 1.35rem; text-align: justify; }
+    .article-content h2 { font-size: 1.2rem; font-weight: 600; margin: 2.25rem 0 1rem; padding-bottom: .5rem; border-bottom: 1px solid var(--border); }
+    .article-content h3 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .6rem; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+    .article-content ul, .article-content ol { margin: .75rem 0 1.35rem 1.5rem; display: flex; flex-direction: column; gap: .45rem; }
+    .article-content li { font-size: .975rem; line-height: 1.75; color: var(--text); }
+    .article-content strong { color: var(--text); }
+    .article-content a { color: var(--accent); text-decoration: none; }
+    .article-content a:hover { text-decoration: underline; }
+    .article-content code {
+      font-family: 'JetBrains Mono', monospace; font-size: .85em; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 3px; padding: .1em .35em; color: var(--accent);
+    }
+    .callout { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; padding: 1rem 1.25rem; margin: 1.5rem 0; }
+    .callout p { margin-bottom: 0; }
+    .ref-block {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem;
+      margin: 2.5rem 0 1rem; font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted);
+    }
+    .ref-block a { color: var(--accent); }
+    footer {
+      position: relative; z-index: 1; background: var(--bg); border-top: 1px solid var(--border);
+      padding: 1.5rem; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-right">
+      <a class="back-link mono" href="../index.html#blog">← back to blog</a>
+      <button class="theme-toggle" id="shareBtn" title="Share this post" aria-label="Share this post">
+        <svg class="icon-share" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        <svg class="icon-copied" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </button>
+      <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="article-header">
+      <p class="article-label mono">&gt; blog.post()</p>
+      <h1 class="article-title">Kargo for Multi-Cluster GitOps: <span class="accent">Promoting Across Argo CD Instances with Entra ID SSO</span></h1>
+      <div class="article-meta">
+        <span>Roman Rabodzei</span>
+        <span>·</span>
+        <span>Oct 2026</span>
+        <span>·</span>
+        <span>~8 min read</span>
+      </div>
+      <div class="article-tags">
+        <span>Kargo</span>
+        <span>Argo CD</span>
+        <span>GitOps</span>
+        <span>AKS</span>
+        <span>Entra ID</span>
+        <span>Platform Engineering</span>
+      </div>
+    </header>
+
+    <figure class="article-hero" aria-label="Illustration of a management cluster running Kargo and Entra ID SSO, driving promotions on a remote cluster's Argo CD">
+      <svg viewBox="0 0 1200 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of Entra ID issuing OIDC tokens into Kargo on a management cluster, which promotes Freight through a warehouse and updates Applications on a remote cluster's Argo CD">
+        <rect width="1200" height="500" fill="#06090f"></rect>
+        <g fill="#dce8f4" opacity=".35">
+          <circle cx="70" cy="60" r="1.3"></circle>
+          <circle cx="1130" cy="70" r="1.1"></circle>
+          <circle cx="600" cy="40" r="1.0"></circle>
+        </g>
+
+        <!-- Entra ID -->
+        <rect x="470" y="60" width="260" height="70" rx="8" fill="#101e30" stroke="#38546f" stroke-width="1.6"></rect>
+        <text x="600" y="90" text-anchor="middle" fill="#dce8f4" font-family="JetBrains Mono, monospace" font-size="13" font-weight="600">Entra ID</text>
+        <text x="600" y="110" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="10">OIDC · PKCE · groups claim</text>
+
+        <line x1="600" y1="130" x2="600" y2="168" stroke="#4fc3f7" stroke-width="1.6" stroke-dasharray="4 5"></line>
+
+        <!-- Kargo management cluster -->
+        <rect x="420" y="170" width="360" height="130" rx="10" fill="#101e30" stroke="#4fc3f7" stroke-width="2"></rect>
+        <text x="600" y="203" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="13" font-weight="600">Kargo</text>
+        <text x="600" y="222" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="10">management cluster</text>
+        <text x="600" y="240" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="10">Warehouse · Stages · Promotions</text>
+        <text x="600" y="262" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">external Postgres · AGIC ingress</text>
+        <text x="600" y="280" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">no local Argo CD</text>
+
+        <!-- Container registry -->
+        <rect x="100" y="190" width="240" height="90" rx="8" fill="#101e30" stroke="#38546f" stroke-width="1.6"></rect>
+        <text x="220" y="220" text-anchor="middle" fill="#dce8f4" font-family="JetBrains Mono, monospace" font-size="12" font-weight="600">container registry</text>
+        <text x="220" y="240" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">per-image SemVer tags</text>
+        <text x="220" y="256" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">9 independent job images</text>
+
+        <line x1="340" y1="235" x2="418" y2="235" stroke="#4fc3f7" stroke-width="1.6" stroke-dasharray="4 5"></line>
+        <text x="378" y="222" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="8">1h discovery</text>
+
+        <!-- remote kubeconfig -->
+        <line x1="780" y1="235" x2="858" y2="235" stroke="#4fc3f7" stroke-width="1.6" stroke-dasharray="4 5"></line>
+        <text x="818" y="222" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="8">remote kubeconfig</text>
+
+        <!-- remote cluster -->
+        <rect x="860" y="170" width="240" height="130" rx="10" fill="#101e30" stroke="#38546f" stroke-width="1.8"></rect>
+        <text x="980" y="203" text-anchor="middle" fill="#dce8f4" font-family="JetBrains Mono, monospace" font-size="13" font-weight="600">Argo CD</text>
+        <text x="980" y="222" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="10">remote workload cluster</text>
+        <text x="980" y="242" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">namespaced Role, not Cluster-</text>
+        <text x="980" y="256" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">Role — watch one namespace</text>
+        <text x="980" y="278" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">Applications → data-platform</text>
+
+        <line x1="600" y1="300" x2="600" y2="340" stroke="#38546f" stroke-width="1.4" stroke-dasharray="3 5"></line>
+        <text x="600" y="358" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="10">dev → test → acceptance → production, one Warehouse per image</text>
+      </svg>
+    </figure>
+
+    <article class="article-content">
+
+      <p>
+        We run several AKS clusters for a data platform, each hosting its own Argo CD instance. That worked
+        fine until we needed a consistent, auditable way to promote the same set of container images — nine
+        independently versioned batch-processing jobs — through dev, test, acceptance, and production without
+        hand-editing Application manifests or building another bespoke pipeline stage per environment. We
+        settled on <a href="https://kargo.io/" target="_blank" rel="noopener">Kargo</a>, and getting Entra ID
+        SSO, a remote Argo CD target, and Application Gateway ingress to all cooperate turned into one of the
+        more genuinely enjoyable setup exercises I've had this year.
+      </p>
+
+      <h2>Why a management cluster, not a sidecar install</h2>
+
+      <p>
+        Kargo's default story assumes it sits next to the Argo CD instance it promotes into. We didn't want
+        that: the cluster running our Argo CD was already tight on system-pool capacity, and installing Kargo's
+        six components there meant competing with AGIC, cert-manager, and kube-system for a single small node.
+        Instead, Kargo runs on a separate management cluster with its own user node pool, and its controller
+        talks to the remote cluster's Argo CD entirely through
+        <code>controller.kubeconfigSecrets.argocd</code> — a mounted kubeconfig built from a
+        ServiceAccount token on the remote side, stored in Key Vault, and turned into a Kubernetes Secret at
+        deploy time.
+      </p>
+      <p>
+        The remote-side RBAC is a namespaced Role, not a ClusterRole, scoped to
+        <code>argoproj.io/applications</code> read access in the Argo CD namespace. That means
+        <code>controller.argocd.watchArgocdNamespaceOnly</code> has to be set to match — leave it at the chart
+        default and Kargo's controller tries to watch Applications cluster-wide, which fails with a blunt
+        "forbidden at the cluster scope" the moment it starts. The chart's own local Argo CD RBAC
+        (<code>argocd.dataPlane.install</code> and <code>argocd.dataPlane.kargoController.install</code>) is
+        meaningless in this topology and should be disabled — it grants access to an Argo CD on the management
+        cluster that doesn't exist.
+      </p>
+
+      <h2>Entra ID SSO: the app registration type actually matters</h2>
+
+      <p>
+        Kargo's OIDC config is standard — issuer URL, client ID, a CLI client ID for <code>kargo login --sso</code>
+        — but two Entra-specific details aren't obvious until you hit them:
+      </p>
+      <ul>
+        <li>
+          <strong>The UI app registration has to be a Single-Page Application, not Web.</strong> Entra requires
+          a client secret for a Web app registration, which conflicts with Kargo's secretless PKCE authorization
+          code flow. Register it as "Web" and the redirect silently fails to exchange the code.
+        </li>
+        <li>
+          <strong>Entra doesn't expose group membership as a requestable OAuth scope.</strong> Kargo's chart
+          default for <code>oidc.additionalScopes</code> is <code>[groups]</code> — meant for IdPs like Okta or
+          Auth0 that have a literal <code>groups</code> scope. Request it against Entra and you get a blunt
+          <code>AADSTS650053: application asked for scope 'groups' that doesn't exist on the resource
+          (Microsoft Graph)</code>. Group membership comes through the ID token's <code>groups</code>
+          <em>claim</em> instead — configured once under the app registration's Token configuration — so
+          <code>additionalScopes</code> should be empty and <code>usernameClaim</code> set to whichever claim
+          your tenant actually populates (we use <code>email</code>).
+        </li>
+      </ul>
+      <p>
+        Until a dedicated security group exists for platform access, admin binding can fall back to an explicit
+        list of email claims rather than a groups claim — just be aware that claim matching is exact-string and
+        case-sensitive, and Entra's actual casing in the token won't necessarily match how a UPN is written
+        anywhere else (the Portal, an onboarding doc, your own config history). The admin account with a
+        password hash stays enabled as a break-glass fallback, injected from Key Vault at install time rather
+        than committed anywhere.
+      </p>
+
+      <div class="callout">
+        <p><strong>Debugging tip:</strong> when a claim-based binding doesn't behave as expected, Kargo's API logs the
+        actor identity on every request (e.g. an <code>"actor": "email:..."</code> field) — that's the fastest way
+        to confirm the exact string and casing Entra is actually sending, rather than guessing from the token
+        configuration pane.</p>
+      </div>
+
+      <h2>TLS, SSE, and Application Gateway</h2>
+
+      <p>
+        Ingress is managed by AGIC (Azure Application Gateway Ingress Controller), terminating TLS at the
+        gateway rather than in-cluster — so Kargo's API runs with <code>api.tls.enabled: false</code> and
+        <code>terminatedUpstream: true</code>, which forces the UI's generated URLs and OIDC redirects to still
+        resolve as https even though the pod itself only serves plain HTTP. The one setting worth calling out
+        is connection draining: Kargo's UI uses gRPC-Web and long-lived server-sent-event streams for live
+        promotion status, and the default AGIC timeouts cut those streams mid-flight. Bumping
+        <code>appgw.ingress.kubernetes.io/connection-draining</code> and its timeout, plus the general
+        request-timeout annotation, fixed intermittent "stuck" promotion views in the UI without touching
+        anything upstream.
+      </p>
+
+      <h2>Warehouses, per-image SemVer, and a Freight pile-up</h2>
+
+      <p>
+        Each of the nine batch-job images is independently tagged and released from its own CI pipeline, so the
+        Warehouse subscribes to each image repository separately with a SemVer image selection strategy and a
+        one-hour discovery interval, rather than one subscription watching a single umbrella tag. That
+        independence is also what caused our one real operational surprise: Kargo's garbage collector default
+        for <code>minFreightDeletionAge</code> is 336 hours (two weeks) — reasonable if Freight is created in
+        lockstep across a small number of images, but with nine images versioning independently, far more
+        Freight was being created than was ever promoted, and it piled up unpruned in the UI well before the
+        two-week mark. Shortening that to 168 hours (one week) matched our actual promotion cadence and kept the
+        Freight list usable.
+      </p>
+      <p>
+        Project-level access — who can view, promote into, or administer a specific Kargo Project — is a
+        separate, finer-grained mechanism from the cluster-wide admin claims above, applied per-project with
+        <code>kargo grant --project=&lt;project&gt; --role=&lt;role&gt; --claim=...</code> rather than baked
+        into the Helm values.
+      </p>
+
+      <h2>What I'd tell a team setting this up fresh</h2>
+
+      <ol>
+        <li>Decide early whether Kargo lives next to an Argo CD it drives, or on its own management cluster
+        reaching a remote one — the RBAC shape (ClusterRole vs. namespaced Role) and
+        <code>watchArgocdNamespaceOnly</code> follow directly from that choice.</li>
+        <li>Register the Entra app as a Single-Page Application, leave <code>additionalScopes</code> empty, and
+        configure the groups claim under Token configuration rather than requesting it as a scope.</li>
+        <li>If you're behind AGIC, tune connection draining before you assume the UI's live updates are broken —
+        it's very often just the default timeout cutting the SSE stream.</li>
+        <li>Size <code>minFreightDeletionAge</code> to how many independently-versioned image subscriptions your
+        Warehouse actually has, not the chart default.</li>
+      </ol>
+
+      <div class="ref-block">
+        <strong>Further reading:</strong><br><br>
+        <a href="https://kargo.io/docs/" target="_blank" rel="noopener">Kargo documentation</a> ·
+        <a href="https://kargo.io/docs/references/helm-charts/kargo/" target="_blank" rel="noopener">Kargo Helm chart reference</a> ·
+        <a href="https://learn.microsoft.com/en-us/azure/application-gateway/ingress-controller-overview" target="_blank" rel="noopener">Azure Application Gateway Ingress Controller (AGIC) overview</a>
+      </div>
+
+    </article>
+  </div>
+
+  <footer>
+    <span class="mono">&copy; <span id="year"></span> Roman Rabodzei &nbsp;·&nbsp; <a href="../index.html#blog" style="color: var(--accent);">← back to blog</a></span>
+  </footer>
+
+  <script>
+    const html = document.documentElement;
+    function applyTheme(t) { html.setAttribute('data-theme', t); localStorage.setItem('theme', t); }
+    const saved = localStorage.getItem('theme') || 'dark';
+    applyTheme(saved);
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', async () => {
+      const shareData = { title: document.title, url: location.href };
+      if (navigator.share) {
+        try { await navigator.share(shareData); shareBtn.classList.add('copied'); setTimeout(() => shareBtn.classList.remove('copied'), 1500); } catch (e) {}
+        return;
+      }
+      try { await navigator.clipboard.writeText(location.href); shareBtn.classList.add('copied'); setTimeout(() => shareBtn.classList.remove('copied'), 1500); } catch (e) {}
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>

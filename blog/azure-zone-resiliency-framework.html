@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Architecture Diagram Is Not Your Resilience: A Zone-Resiliency Framework for Azure — Roman Rabodzei</title>
+  <meta name="description" content="Two zones or three? A practical framework for zone-resilient Azure workloads, and why the diagram rarely matches what actually survives a failure.">
+  <link rel="canonical" href="https://romanrabodzei.github.io/blog/azure-zone-resiliency-framework.html">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://romanrabodzei.github.io/blog/azure-zone-resiliency-framework.html">
+  <meta property="og:title" content="Your Architecture Diagram Is Not Your Resilience: A Zone-Resiliency Framework for Azure">
+  <meta property="og:description" content="Two zones or three? A practical framework for zone-resilient Azure workloads, and why the diagram rarely matches what actually survives a failure.">
+  <meta property="og:image" content="https://romanrabodzei.github.io/images/azure-zone-resiliency-framework.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Your Architecture Diagram Is Not Your Resilience: A Zone-Resiliency Framework for Azure">
+  <meta name="twitter:description" content="Two zones or three? A practical framework for zone-resilient Azure workloads, and why the diagram rarely matches what actually survives a failure.">
+  <meta name="twitter:image" content="https://romanrabodzei.github.io/images/azure-zone-resiliency-framework.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f5f5f7; --surface: #ffffff; --surface2: #f5f5f7; --border: #d2d2d7;
+      --text: #1d1d1f; --muted: #6e6e73; --accent: #0071e3; --accent-dim: rgba(0, 113, 227, 0.08);
+    }
+    [data-theme="dark"] {
+      --bg: #000000; --surface: #1c1c1e; --surface2: #2c2c2e; --border: #38383a;
+      --text: #f5f5f7; --muted: #98989d; --accent: #0a84ff; --accent-dim: rgba(10, 132, 255, 0.14);
+    }
+    html { scroll-behavior: smooth; background: var(--bg); overflow-x: hidden; }
+    body {
+      position: relative; z-index: 0; overflow-x: hidden; max-width: 100vw;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; transition: background .2s, color .2s;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(0,113,227,0.16) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,190,255,0.12) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(0,113,227,0.10) 0%, transparent 45%);
+      filter: blur(90px); z-index: -2; pointer-events: none;
+    }
+    [data-theme="dark"] body::before {
+      background:
+        radial-gradient(circle at 18% 22%, rgba(10,132,255,0.32) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,92,230,0.22) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(10,132,255,0.18) 0%, transparent 45%);
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-size: 28px 28px; opacity: .5;
+      -webkit-mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      z-index: -1; pointer-events: none;
+    }
+    .mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace; }
+    a { color: inherit; }
+    nav {
+      position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: .7rem 1.5rem; display: flex; align-items: center; justify-content: flex-end; gap: 1rem;
+    }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .back-link { font-family: 'JetBrains Mono', monospace; font-size: .82rem; color: var(--muted); text-decoration: none; transition: color .15s; }
+    @media (hover: hover) { .back-link:hover { color: var(--accent); } }
+    .theme-toggle {
+      display: flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; flex-shrink: 0;
+      border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+      cursor: pointer; transition: border-color .15s, color .15s, background .15s;
+    }
+    @media (hover: hover) { .theme-toggle:hover { border-color: var(--accent); color: var(--accent); } }
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-sun  { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+    .theme-toggle .icon-copied { display: none; }
+    .theme-toggle.copied .icon-share  { display: none; }
+    .theme-toggle.copied .icon-copied { display: block; }
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .article-header { padding: 3rem 0 2.5rem; border-bottom: 1px solid var(--border); margin-bottom: 2.5rem; }
+    .article-label { font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted); margin-bottom: .75rem; }
+    .article-title { font-size: clamp(1.5rem, 5vw, 2.2rem); font-weight: 700; line-height: 1.2; margin-bottom: 1rem; }
+    .article-title .accent { color: var(--accent); }
+    .article-meta {
+      display: flex; flex-wrap: wrap; gap: .75rem; font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; color: var(--muted); margin-bottom: 1.25rem;
+    }
+    .article-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .article-tags span {
+      font-family: 'JetBrains Mono', monospace; font-size: .68rem; padding: .15rem .5rem;
+      border-radius: 4px; border: 1px solid var(--border); color: var(--muted); background: var(--surface);
+    }
+    .article-hero { margin-bottom: 2.5rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden; }
+    .article-hero svg { display: block; width: 100%; height: auto; }
+    .article-content { padding-bottom: 4rem; }
+    .article-content p { font-size: .975rem; line-height: 1.85; color: var(--text); margin-bottom: 1.35rem; text-align: justify; }
+    .article-content h2 { font-size: 1.2rem; font-weight: 600; margin: 2.25rem 0 1rem; padding-bottom: .5rem; border-bottom: 1px solid var(--border); }
+    .article-content h3 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .6rem; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+    .article-content ul, .article-content ol { margin: .75rem 0 1.35rem 1.5rem; display: flex; flex-direction: column; gap: .45rem; }
+    .article-content li { font-size: .975rem; line-height: 1.75; color: var(--text); }
+    .article-content strong { color: var(--text); }
+    .article-content a { color: var(--accent); text-decoration: none; }
+    .article-content a:hover { text-decoration: underline; }
+    .article-content code {
+      font-family: 'JetBrains Mono', monospace; font-size: .85em; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 3px; padding: .1em .35em; color: var(--accent);
+    }
+    .callout { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; padding: 1rem 1.25rem; margin: 1.5rem 0; }
+    .callout p { margin-bottom: 0; }
+    .ref-block {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem;
+      margin: 2.5rem 0 1rem; font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted);
+    }
+    .ref-block a { color: var(--accent); }
+    footer {
+      position: relative; z-index: 1; background: var(--bg); border-top: 1px solid var(--border);
+      padding: 1.5rem; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-right">
+      <a class="back-link mono" href="../index.html#blog">← back to blog</a>
+      <button class="theme-toggle" id="shareBtn" title="Share this post" aria-label="Share this post">
+        <svg class="icon-share" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        <svg class="icon-copied" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </button>
+      <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="article-header">
+      <p class="article-label mono">&gt; blog.post()</p>
+      <h1 class="article-title">Your Architecture Diagram Is Not Your Resilience: <span class="accent">A Zone-Resiliency Framework for Azure</span></h1>
+      <div class="article-meta">
+        <span>Roman Rabodzei</span>
+        <span>·</span>
+        <span>Oct 2026</span>
+        <span>·</span>
+        <span>~8 min read</span>
+      </div>
+      <div class="article-tags">
+        <span>Azure Architecture</span>
+        <span>Resiliency</span>
+        <span>Availability Zones</span>
+        <span>Disaster Recovery</span>
+        <span>Well-Architected</span>
+      </div>
+    </header>
+
+    <figure class="article-hero" aria-label="Illustration of a resilient architecture spanning three availability zones">
+      <svg viewBox="0 0 1200 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of a workload distributed across three availability zones with one zone shown failing while the workload keeps serving traffic">
+        <rect width="1200" height="500" fill="#06090f"></rect>
+        <g fill="#dce8f4" opacity=".35">
+          <circle cx="70" cy="60" r="1.3"></circle>
+          <circle cx="1130" cy="70" r="1.1"></circle>
+        </g>
+
+        <rect x="140" y="180" width="280" height="180" rx="10" fill="#101e30" stroke="#4fc3f7" stroke-width="2"></rect>
+        <text x="280" y="215" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="12" font-weight="600">Zone 1</text>
+        <circle cx="280" cy="270" r="18" fill="#1c3049" stroke="#4fc3f7" stroke-width="1.6"></circle>
+        <text x="280" y="330" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">healthy</text>
+
+        <rect x="460" y="180" width="280" height="180" rx="10" fill="#101e30" stroke="#38546f" stroke-width="2"></rect>
+        <text x="600" y="215" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="12" font-weight="600">Zone 2</text>
+        <circle cx="600" cy="270" r="18" fill="#1c3049" stroke="#38546f" stroke-width="1.6" stroke-dasharray="3 4"></circle>
+        <text x="600" y="330" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="9">down</text>
+
+        <rect x="780" y="180" width="280" height="180" rx="10" fill="#101e30" stroke="#4fc3f7" stroke-width="2"></rect>
+        <text x="920" y="215" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="12" font-weight="600">Zone 3</text>
+        <circle cx="920" cy="270" r="18" fill="#1c3049" stroke="#4fc3f7" stroke-width="1.6"></circle>
+        <text x="920" y="330" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">healthy</text>
+
+        <text x="600" y="420" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="11">traffic still served — the diagram doesn't tell you this survives without testing it</text>
+      </svg>
+    </figure>
+
+    <article class="article-content">
+
+      <p>
+        Azure published two related pieces in September 2026 — "Two zones or three? A design framework for
+        zone-resilient Azure workloads" and "Your architecture diagram is not your resilience" — that name a
+        problem I run into constantly during Well-Architected reviews: teams draw a resilient-looking diagram,
+        deploy it, and never actually verify it does what the diagram implies. The diagram shows redundancy.
+        Whether the workload actually survives a zone failure is a separate, unverified claim.
+      </p>
+
+      <h2>Two zones or three — it's not a rounding decision</h2>
+
+      <p>
+        Azure regions with availability zones typically offer three zones, and the design framework's honest
+        answer to "two or three?" is: it depends what you're protecting against and what quorum-based systems
+        you're running. Two-zone deployments are cheaper and cover the most common failure mode (losing exactly
+        one zone), but anything relying on quorum — a database cluster, a distributed consensus system — needs
+        three zones to maintain quorum when one zone is lost, because two zones can't out-vote a failed one
+        without an external tiebreaker.
+      </p>
+      <p>
+        The decision isn't really "two vs three" in the abstract — it's "does any component in this architecture
+        need quorum to make progress?" If yes, three zones aren't a nicety, they're the minimum for the system
+        to keep functioning at all during a zone failure rather than just staying "technically deployed" while
+        actually unavailable.
+      </p>
+
+      <h2>Where the diagram lies by omission</h2>
+
+      <p>
+        A diagram showing "App Service, zone redundant" or "AKS cluster, spread across 3 zones" tells you the
+        infrastructure primitive supports zone redundancy — it says nothing about whether your specific
+        configuration actually uses it correctly. The gaps I see most often in review:
+      </p>
+      <ul>
+        <li><strong>Zone-redundant services configured, but dependencies aren't.</strong> A zone-redundant App Service backed by a single-zone database is exactly as resilient as the database.</li>
+        <li><strong>Health probes that don't actually detect zone-level failure modes.</strong> A probe checking "is the process running" won't catch "this zone lost network connectivity to a dependency," which looks identical to the app but fails identically to a full outage from the user's perspective.</li>
+        <li><strong>Autoscaling rules that assume all zones are available.</strong> If your scale-out logic doesn't account for losing a third of your capacity instantly, the remaining zones can get overwhelmed by redistributed traffic before they finish scaling up.</li>
+        <li><strong>DNS and traffic manager configuration that isn't actually tested for zone failover</strong> — the difference between "configured to failover" and "verified to failover within an acceptable time" is usually a chaos engineering exercise nobody has run yet.</li>
+      </ul>
+
+      <div class="callout">
+        <p><strong>The test that actually matters:</strong> can you name the last time you deliberately failed a zone (or
+        simulated it) in a non-production environment and measured what happened, end to end, including
+        dependent services? If the honest answer is "never," the diagram is a design intent, not a verified
+        property of the system.</p>
+      </div>
+
+      <h2>A practical zone-resiliency framework</h2>
+
+      <ol>
+        <li><strong>Map every component's dependency chain</strong>, not just the top-level service — zone redundancy is only as strong as the least-redundant dependency in the chain.</li>
+        <li><strong>Identify quorum-based components explicitly</strong> and confirm they're deployed across three zones, not two, if the region supports it.</li>
+        <li><strong>Define health checks that reflect real failure modes</strong> — dependency reachability, not just process liveness.</li>
+        <li><strong>Load-test the reduced-capacity scenario</strong> — what happens when your autoscaler has to absorb a third of your traffic redistribution instantly, not gradually.</li>
+        <li><strong>Actually run a zone failure simulation</strong> in a non-production environment on a schedule, and track the metrics that matter: time to detect, time to failover, error rate during the transition.</li>
+      </ol>
+
+      <h2>My take</h2>
+
+      <p>
+        Resilience reviews that stop at "is this marked zone-redundant in the portal" are checking a
+        configuration flag, not a property of the system under failure. The distinction Azure is drawing this
+        quarter — diagram versus verified resilience — matches exactly what I see going wrong in practice: the
+        infrastructure is capable of surviving a zone failure, and nobody has actually confirmed the application
+        and its dependencies are configured to take advantage of that capability end to end.
+      </p>
+
+      <div class="ref-block">
+        <strong>Further reading:</strong><br><br>
+        <a href="https://azure.microsoft.com/en-us/blog/two-zones-or-three-a-design-framework-for-zone-resilient-azure-workloads/" target="_blank" rel="noopener">Two zones or three? A design framework for zone-resilient Azure workloads</a> ·
+        <a href="https://azure.microsoft.com/en-us/blog/your-architecture-diagram-is-not-your-resilience/" target="_blank" rel="noopener">Your architecture diagram is not your resilience</a>
+      </div>
+
+    </article>
+  </div>
+
+  <footer>
+    <span class="mono">&copy; <span id="year"></span> Roman Rabodzei &nbsp;·&nbsp; <a href="../index.html#blog" style="color: var(--accent);">← back to blog</a></span>
+  </footer>
+
+  <script>
+    const html = document.documentElement;
+    function applyTheme(t) { html.setAttribute('data-theme', t); localStorage.setItem('theme', t); }
+    const saved = localStorage.getItem('theme') || 'dark';
+    applyTheme(saved);
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', async () => {
+      const shareData = { title: document.title, url: location.href };
+      if (navigator.share) {
+        try { await navigator.share(shareData); shareBtn.classList.add('copied'); setTimeout(() => shareBtn.classList.remove('copied'), 1500); } catch (e) {}
+        return;
+      }
+      try { await navigator.clipboard.writeText(location.href); shareBtn.classList.add('copied'); setTimeout(() => shareBtn.classList.remove('copied'), 1500); } catch (e) {}
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
