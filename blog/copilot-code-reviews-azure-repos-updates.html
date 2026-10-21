@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Copilot Code Reviews for Azure Repos: Effort Levels, Faster Resolves, and Audit Logging — Roman Rabodzei</title>
+  <meta name="description" content="What's new since the public preview of Copilot Code Review for Azure Repos — configurable effort levels, resolve-on-commit, and new Azure DevOps audit log events for governance.">
+  <link rel="canonical" href="https://romanrabodzei.github.io/blog/copilot-code-reviews-azure-repos-updates.html">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://romanrabodzei.github.io/blog/copilot-code-reviews-azure-repos-updates.html">
+  <meta property="og:title" content="Copilot Code Reviews for Azure Repos: Effort Levels, Faster Resolves, and Audit Logging">
+  <meta property="og:description" content="What's new since the public preview of Copilot Code Review for Azure Repos — configurable effort levels, resolve-on-commit, and new Azure DevOps audit log events for governance.">
+  <meta property="og:image" content="https://romanrabodzei.github.io/images/copilot-code-reviews-azure-repos-updates.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Copilot Code Reviews for Azure Repos: Effort Levels, Faster Resolves, and Audit Logging">
+  <meta name="twitter:description" content="What's new since the public preview of Copilot Code Review for Azure Repos — configurable effort levels, resolve-on-commit, and new Azure DevOps audit log events for governance.">
+  <meta name="twitter:image" content="https://romanrabodzei.github.io/images/copilot-code-reviews-azure-repos-updates.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f5f5f7; --surface: #ffffff; --surface2: #f5f5f7; --border: #d2d2d7;
+      --text: #1d1d1f; --muted: #6e6e73; --accent: #0071e3; --accent-dim: rgba(0, 113, 227, 0.08);
+    }
+    [data-theme="dark"] {
+      --bg: #000000; --surface: #1c1c1e; --surface2: #2c2c2e; --border: #38383a;
+      --text: #f5f5f7; --muted: #98989d; --accent: #0a84ff; --accent-dim: rgba(10, 132, 255, 0.14);
+    }
+    html { scroll-behavior: smooth; background: var(--bg); overflow-x: hidden; }
+    body {
+      position: relative; z-index: 0; overflow-x: hidden; max-width: 100vw;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; transition: background .2s, color .2s;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(0,113,227,0.16) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,190,255,0.12) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(0,113,227,0.10) 0%, transparent 45%);
+      filter: blur(90px); z-index: -2; pointer-events: none;
+    }
+    [data-theme="dark"] body::before {
+      background:
+        radial-gradient(circle at 18% 22%, rgba(10,132,255,0.32) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,92,230,0.22) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(10,132,255,0.18) 0%, transparent 45%);
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-size: 28px 28px; opacity: .5;
+      -webkit-mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      z-index: -1; pointer-events: none;
+    }
+    .mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace; }
+    a { color: inherit; }
+    nav {
+      position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: .7rem 1.5rem; display: flex; align-items: center; justify-content: flex-end; gap: 1rem;
+    }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .back-link { font-family: 'JetBrains Mono', monospace; font-size: .82rem; color: var(--muted); text-decoration: none; transition: color .15s; }
+    @media (hover: hover) { .back-link:hover { color: var(--accent); } }
+    .theme-toggle {
+      display: flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; flex-shrink: 0;
+      border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+      cursor: pointer; transition: border-color .15s, color .15s, background .15s;
+    }
+    @media (hover: hover) { .theme-toggle:hover { border-color: var(--accent); color: var(--accent); } }
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-sun  { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+    .theme-toggle .icon-copied { display: none; }
+    .theme-toggle.copied .icon-share  { display: none; }
+    .theme-toggle.copied .icon-copied { display: block; }
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .article-header { padding: 3rem 0 2.5rem; border-bottom: 1px solid var(--border); margin-bottom: 2.5rem; }
+    .article-label { font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted); margin-bottom: .75rem; }
+    .article-title { font-size: clamp(1.5rem, 5vw, 2.2rem); font-weight: 700; line-height: 1.2; margin-bottom: 1rem; }
+    .article-title .accent { color: var(--accent); }
+    .article-meta {
+      display: flex; flex-wrap: wrap; gap: .75rem; font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; color: var(--muted); margin-bottom: 1.25rem;
+    }
+    .article-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .article-tags span {
+      font-family: 'JetBrains Mono', monospace; font-size: .68rem; padding: .15rem .5rem;
+      border-radius: 4px; border: 1px solid var(--border); color: var(--muted); background: var(--surface);
+    }
+    .article-hero { margin-bottom: 2.5rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden; }
+    .article-hero svg { display: block; width: 100%; height: auto; }
+    .article-content { padding-bottom: 4rem; }
+    .article-content p { font-size: .975rem; line-height: 1.85; color: var(--text); margin-bottom: 1.35rem; text-align: justify; }
+    .article-content h2 { font-size: 1.2rem; font-weight: 600; margin: 2.25rem 0 1rem; padding-bottom: .5rem; border-bottom: 1px solid var(--border); }
+    .article-content h3 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .6rem; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+    .article-content ul, .article-content ol { margin: .75rem 0 1.35rem 1.5rem; display: flex; flex-direction: column; gap: .45rem; }
+    .article-content li { font-size: .975rem; line-height: 1.75; color: var(--text); }
+    .article-content strong { color: var(--text); }
+    .article-content a { color: var(--accent); text-decoration: none; }
+    .article-content a:hover { text-decoration: underline; }
+    .article-content code {
+      font-family: 'JetBrains Mono', monospace; font-size: .85em; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 3px; padding: .1em .35em; color: var(--accent);
+    }
+    .callout { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; padding: 1rem 1.25rem; margin: 1.5rem 0; }
+    .callout p { margin-bottom: 0; }
+    .ref-block {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem;
+      margin: 2.5rem 0 1rem; font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted);
+    }
+    .ref-block a { color: var(--accent); }
+    footer {
+      position: relative; z-index: 1; background: var(--bg); border-top: 1px solid var(--border);
+      padding: 1.5rem; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-right">
+      <a class="back-link mono" href="../index.html#blog">← back to blog</a>
+      <button class="theme-toggle" id="shareBtn" title="Share this post" aria-label="Share this post">
+        <svg class="icon-share" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        <svg class="icon-copied" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </button>
+      <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="article-header">
+      <p class="article-label mono">&gt; blog.post()</p>
+      <h1 class="article-title">Copilot Code Reviews for Azure Repos: <span class="accent">Effort Levels, Faster Resolves, and Audit Logging</span></h1>
+      <div class="article-meta">
+        <span>Roman Rabodzei</span>
+        <span>·</span>
+        <span>Oct 2026</span>
+        <span>·</span>
+        <span>~4 min read</span>
+      </div>
+      <div class="article-tags">
+        <span>Azure DevOps</span>
+        <span>GitHub Copilot</span>
+        <span>Code Review</span>
+        <span>DevOps</span>
+        <span>Governance</span>
+      </div>
+    </header>
+
+    <figure class="article-hero" aria-label="Illustration of three Copilot Code Review features surrounding a central pull request review node">
+      <svg viewBox="0 0 1200 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of effort level, resolve on commit, and audit log events surrounding a Copilot code review hub">
+        <rect width="1200" height="500" fill="#06090f"></rect>
+        <g fill="#dce8f4" opacity=".35">
+          <circle cx="70" cy="60" r="1.3"></circle>
+          <circle cx="1130" cy="70" r="1.1"></circle>
+        </g>
+
+        <circle cx="600" cy="250" r="60" fill="#101e30" stroke="#4fc3f7" stroke-width="2.5"></circle>
+        <text x="600" y="244" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Copilot</text>
+        <text x="600" y="260" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Code Review</text>
+
+        <line x1="555" y1="210" x2="330" y2="140" stroke="#38546f" stroke-width="1.5" stroke-dasharray="4 5"></line>
+        <rect x="140" y="95" width="260" height="90" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="1.8"></rect>
+        <text x="270" y="128" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">effort level</text>
+        <text x="270" y="148" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">Lite / Balanced</text>
+        <text x="270" y="164" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">project or repo default</text>
+
+        <line x1="645" y1="210" x2="870" y2="140" stroke="#38546f" stroke-width="1.5" stroke-dasharray="4 5"></line>
+        <rect x="800" y="95" width="260" height="90" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="1.8"></rect>
+        <text x="930" y="128" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">resolve on commit</text>
+        <text x="930" y="148" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">apply + commit suggestions</text>
+        <text x="930" y="164" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">comments close together</text>
+
+        <line x1="600" y1="310" x2="600" y2="358" stroke="#38546f" stroke-width="1.5" stroke-dasharray="4 5"></line>
+        <rect x="470" y="360" width="260" height="90" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="1.8"></rect>
+        <text x="600" y="393" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">audit log events</text>
+        <text x="600" y="413" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">enable/disable, pool, instructions</text>
+        <text x="600" y="429" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">org · project · repo level</text>
+
+        <text x="600" y="60" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="11">rolling out since the late-August public preview</text>
+      </svg>
+    </figure>
+
+    <article class="article-content">
+
+      <p>
+        Copilot Code Review for Azure Repos went to public preview in late August 2026, and since then Microsoft
+        has shipped a steady stream of refinements rather than a single big follow-up release. Three of them are
+        worth a closer look because they change how a team actually operates the feature day to day, rather than
+        just what the review comments themselves look like.
+      </p>
+
+      <h2>Effort levels: controlling depth and cost</h2>
+
+      <p>
+        Every pull request review now has a configurable effort level — <strong>Lite</strong> or
+        <strong>Balanced</strong> — that controls how much time Copilot spends on the review. This is a genuinely
+        useful cost and noise control: a small, low-risk change doesn't need the same depth of review as a
+        large or security-sensitive one, and running the deeper review on every PR regardless of size is pure
+        waste. The default can be set at both the project level (project admins set a default for every
+        repository underneath) and overridden per repository, which is the right granularity — a shared default
+        with an escape hatch for the one repo that genuinely needs deeper review every time.
+      </p>
+
+      <h2>Resolving comments without a second pass</h2>
+
+      <p>
+        The before-state here was more annoying than it sounds: apply a suggested change, commit it, then go
+        back through the PR and manually resolve each related comment one at a time. Now, applying and
+        committing a suggested change from a Copilot review resolves the related comments in the same action.
+        It's a small UX fix, but it removes a whole extra pass through the PR that existed for no reason other
+        than the tool not connecting "I committed this suggestion" to "this comment is now resolved."
+      </p>
+
+      <h2>Audit log events: visibility for governance, not just usage</h2>
+
+      <p>
+        Copilot Code Review usage is billed per review to the subscription, which makes "where is this actually
+        enabled, and who changed it" a real governance question once more than a couple of teams are using it.
+        Azure DevOps audit logs now capture:
+      </p>
+      <ul>
+        <li>Enable/disable of Copilot Code Review at the organization, project, or repository level</li>
+        <li>Changes to the configured agent pool</li>
+        <li>Changes to custom instructions at the organization or project level</li>
+        <li>Changes to the default effort level at the project or repository level</li>
+        <li>Branch policies added for automatic code reviews at the project or repository level</li>
+      </ul>
+      <p>
+        That's enough to answer "who turned this on for this repo" and "who changed our custom instructions"
+        after the fact, from the standard Auditing page, without needing a separate tracking mechanism bolted on
+        by the platform team.
+      </p>
+
+      <div class="callout">
+        <p><strong>Practical note:</strong> if you're rolling Copilot Code Review out past a pilot team, set the
+        effort-level default at the project level first, then only override per-repository where a team has
+        an actual case for it — that keeps the audit trail meaningful instead of every repo drifting to its own
+        setting by accident.</p>
+      </div>
+
+      <h2>What's still missing</h2>
+
+      <p>
+        One open gap, raised directly in the post's comments: there's currently no plan to let Copilot propose a
+        pull request directly from a tagged work item in Azure Boards, the way GitHub's coding agent can from a
+        GitHub issue. Microsoft's answer is that this experience exists today only if you move your repositories
+        to GitHub — worth knowing if that workflow is a deciding factor for your team, since it's not on the
+        Azure Repos roadmap as a near-term fix.
+      </p>
+
+      <div class="ref-block">
+        <strong>Further reading:</strong><br><br>
+        <a href="https://devblogs.microsoft.com/devops/updates-to-copilot-code-reviews-for-azure-repos/" target="_blank" rel="noopener">Updates to Copilot Code Reviews for Azure Repos — Azure DevOps Blog</a> ·
+        <a href="https://learn.microsoft.com/en-us/azure/devops/repos/git/copilot-code-reviews" target="_blank" rel="noopener">Copilot Code Reviews documentation</a>
+      </div>
+
+    </article>
+  </div>
+
+  <footer>
+    <span class="mono">&copy; <span id="year"></span> Roman Rabodzei &nbsp;·&nbsp; <a href="../index.html#blog" style="color: var(--accent);">← back to blog</a></span>
+  </footer>
+
+  <script>
+    const html = document.documentElement;
+    function applyTheme(t) { html.setAttribute('data-theme', t); localStorage.setItem('theme', t); }
+    const saved = localStorage.getItem('theme') || 'dark';
+    applyTheme(saved);
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', async () => {
+      const shareData = { title: document.title, url: location.href };
+      if (navigator.share) {
+        try { await navigator.share(shareData); shareBtn.classList.add('copied'); setTimeout(() => shareBtn.classList.remove('copied'), 1500); } catch (e) {}
+        return;
+      }
+      try { await navigator.clipboard.writeText(location.href); shareBtn.classList.add('copied'); setTimeout(() => shareBtn.classList.remove('copied'), 1500); } catch (e) {}
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
