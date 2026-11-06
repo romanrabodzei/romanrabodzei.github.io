@@ -21,11 +21,13 @@ A client-side routed single-page site (`.page` sections toggled by a tiny JS rou
 - **Projects** — open-source project cards with grid/list view toggle
 - **Blog** — full chronological list of all posts, linking into `blog/`
 
-Supports light/dark theme (persisted in `localStorage`) and has no external JS dependencies beyond Google Fonts.
+Supports light/dark theme (persisted in `localStorage`) and has no external JS dependencies beyond Google Fonts. The active navigation underline slides between links unless reduced motion is requested.
 
 ### `blog/`
 
 Each post is a fully self-contained HTML file (own `<style>`/`<script>`, dark-themed by default, custom inline SVG hero illustration, share button, back-to-blog link). Posts are English-only and follow a consistent title convention (`Some Topic: Specific Subtitle`). Current coverage spans Azure platform engineering, AKS/Kubernetes internals, AI agents & Microsoft Foundry, GitHub/DevOps security, and certification write-ups.
+
+Posts use the same staggered entrance and hover lift as the main site. These effects, smooth scrolling, and interface transitions are disabled when reduced motion is requested; keep these media queries in new posts.
 
 New posts are added in two places in `index.html`: the full list under the **Blog** page, and the top-5 "Latest Posts" card on **Home** (oldest entry commented out, not deleted, to keep history easy to restore).
 

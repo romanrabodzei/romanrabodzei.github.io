@@ -9,6 +9,11 @@
     content="Roman Rabodzei — Principal Azure Cloud, DevOps &amp; AI Engineer with a security-minded focus. 18+ years managing on-premise and cloud infrastructure, Kubernetes, IaC, and AI-powered cloud operations.">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#000000">
+  <script>
+    // Apply the saved theme before first paint to avoid a light flash on load.
+    try { document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark'); }
+    catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+  </script>
   <link rel="canonical" href="https://romanrabodzei.github.io/">
 
   <meta property="og:type" content="website">
@@ -150,6 +155,16 @@
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
+      view-transition-name: site-nav;
+    }
+
+    ::view-transition-group(site-nav),
+    ::view-transition-new(site-nav) {
+      animation: none;
+    }
+
+    ::view-transition-old(site-nav) {
+      display: none;
     }
 
     .nav-logo {
@@ -161,6 +176,7 @@
     }
 
     .nav-links {
+      position: relative;
       display: flex;
       list-style: none;
       gap: .15rem;
@@ -186,7 +202,7 @@
       color: var(--accent);
     }
 
-    .nav-links a.active::after {
+    .nav-links:not(.underline-ready) a.active::after {
       content: '';
       position: absolute;
       bottom: -1px;
@@ -195,6 +211,25 @@
       height: 2px;
       border-radius: 1px;
       background: var(--accent);
+    }
+
+    .nav-links.underline-ready::after {
+      content: '';
+      position: absolute;
+      top: var(--underline-top);
+      left: 0;
+      width: var(--underline-width);
+      height: 2px;
+      border-radius: 1px;
+      background: var(--accent);
+      transform: translateX(var(--underline-left));
+      pointer-events: none;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .nav-links.underline-ready::after {
+        transition: transform .3s cubic-bezier(.2, .65, .3, 1), width .3s ease;
+      }
     }
 
     /* Theme toggle */
@@ -243,6 +278,28 @@
     .page.active {
       display: block;
       flex: 1 0 auto;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .page.active {
+        animation: page-transition-fallback .35s ease-out;
+      }
+
+      .has-view-transitions .page.active {
+        animation: none;
+      }
+
+      @keyframes page-transition-fallback {
+        from {
+          opacity: .65;
+        }
+      }
+
+      ::view-transition-old(root),
+      ::view-transition-new(root) {
+        animation-duration: .35s;
+        animation-timing-function: ease-in-out;
+      }
     }
 
     /* ─── HERO ──────────────────────────────────── */
@@ -327,6 +384,182 @@
       display: flex;
       flex-wrap: wrap;
       gap: .75rem;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+
+      .hero-prompt,
+      .hero h1,
+      .hero .tagline,
+      .hero .tagline-sub,
+      .hero-actions,
+      .cards-section .section-label,
+      .cards-section .card,
+      #page-about .page-header>*,
+      #page-about .about-bio p,
+      #page-about .section-heading,
+      #page-about .cert-group-wrap,
+      #page-about .cert-badge,
+      #page-about .support-links,
+      #page-projects .page-header .pg-prompt,
+      #page-projects .page-header h1,
+      #page-projects .page-header>div>p:not(.pg-prompt),
+      #page-projects .view-toggle,
+      #page-projects .project-group-wrap,
+      #page-projects .project-card,
+      #page-blog .page-header>*,
+      #page-blog .blog-item,
+      #page-blog .blog-pagination,
+      #page-blog .blog-placeholder {
+        animation: hero-entrance .6s cubic-bezier(.2, .65, .3, 1) backwards;
+      }
+
+      .hero h1 {
+        animation-delay: .1s;
+      }
+
+      .hero .tagline {
+        animation-delay: .2s;
+      }
+
+      .hero .tagline-sub {
+        animation-delay: .3s;
+      }
+
+      .hero-actions {
+        animation-delay: .4s;
+      }
+
+      .cards-section .section-label {
+        animation-delay: .45s;
+      }
+
+      .cards-section .card:nth-child(1) {
+        animation-delay: .5s;
+      }
+
+      .cards-section .card:nth-child(2) {
+        animation-delay: .58s;
+      }
+
+      .cards-section .card:nth-child(3) {
+        animation-delay: .66s;
+      }
+
+      .cards-section .card:nth-child(4) {
+        animation-delay: .74s;
+      }
+
+      .cards-section .card:nth-child(5) {
+        animation-delay: .82s;
+      }
+
+      .cards-section .card:nth-child(6) {
+        animation-delay: .9s;
+      }
+
+      #page-about .page-header> :nth-child(2),
+      #page-projects .page-header h1,
+      #page-blog .page-header> :nth-child(2) {
+        animation-delay: .1s;
+      }
+
+      #page-about .page-header> :nth-child(3),
+      #page-projects .page-header>div>p,
+      #page-blog .page-header> :nth-child(3) {
+        animation-delay: .2s;
+      }
+
+      #page-about .about-bio p:nth-child(1) {
+        animation-delay: .3s;
+      }
+
+      #page-about .about-bio p:nth-child(2) {
+        animation-delay: .38s;
+      }
+
+      #page-about .about-bio p:nth-child(3) {
+        animation-delay: .46s;
+      }
+
+      #page-about .about-bio p:nth-child(4) {
+        animation-delay: .54s;
+      }
+
+      #page-about .section-heading {
+        animation-delay: .62s;
+      }
+
+      #page-about .cert-group-wrap {
+        animation-delay: .7s;
+      }
+
+      #page-about .cert-badge {
+        animation-delay: .78s;
+      }
+
+      #page-about .support-links {
+        animation-delay: .86s;
+      }
+
+      #page-projects .view-toggle {
+        animation-delay: .25s;
+      }
+
+      #page-projects .project-group-wrap:nth-of-type(2) {
+        animation-delay: .35s;
+      }
+
+      #page-projects .project-group-wrap:nth-of-type(3) {
+        animation-delay: .45s;
+      }
+
+      #page-projects .project-card:nth-child(1) {
+        animation-delay: .5s;
+      }
+
+      #page-projects .project-card:nth-child(2) {
+        animation-delay: .58s;
+      }
+
+      #page-blog .blog-item {
+        animation-delay: .4s;
+      }
+
+      #page-blog .blog-item:nth-child(2) {
+        animation-delay: .46s;
+      }
+
+      #page-blog .blog-item:nth-child(3) {
+        animation-delay: .52s;
+      }
+
+      #page-blog .blog-item:nth-child(4) {
+        animation-delay: .58s;
+      }
+
+      #page-blog .blog-item:nth-child(5) {
+        animation-delay: .64s;
+      }
+
+      #page-blog .blog-item:nth-child(n+6) {
+        animation-delay: .7s;
+      }
+
+      #page-blog .blog-pagination {
+        animation-delay: .78s;
+      }
+
+      #page-blog .blog-placeholder {
+        animation-delay: .86s;
+      }
+
+      @keyframes hero-entrance {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+        }
+      }
     }
 
     /* ─── BUTTONS ───────────────────────────────── */
@@ -984,6 +1217,25 @@
       border-color: var(--accent-glow);
     }
 
+    @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+
+      .card,
+      .project-card,
+      .blog-item {
+        transition: border-color .2s, background .15s, transform .2s ease, box-shadow .2s ease;
+      }
+
+      .card:hover,
+      .card:focus-within,
+      .project-card:hover,
+      .project-card:focus-within,
+      .blog-item:hover,
+      .blog-item:focus-visible {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px rgba(0, 113, 227, .12);
+      }
+    }
+
     .blog-item-title {
       font-size: .96rem;
       font-weight: 500;
@@ -1197,15 +1449,16 @@
           <h3>📝 Latest Posts</h3>
           <p>Notes on Azure, Kubernetes, and DevOps in practice.</p>
           <ul class="latest-posts-list mono">
-            <li><a href="blog/anthropic-scion-git-replacement.html"><span class="accent">&gt;</span> Anthropic's Scion: Why Claude's Code Volume Broke Git</a></li>
+            <li><a href="blog/ai-300-machine-learning-operations-engineer-associate.html"><span class="accent">&gt;</span> AI-300: Microsoft Certified Machine Learning Operations Engineer Associate</a></li>
+            <li><a href="blog/anthropic-scion-git-replacement.html"><span class="accent">&gt;</span> Anthropic's Scion:
+                Why Claude's Code Volume Broke Git</a></li>
             <li><a href="blog/kargo-multi-cluster-argocd-promotion.html"><span class="accent">&gt;</span> Kargo for
                 Multi-Cluster GitOps: Promoting Across Argo CD Instances with Entra ID SSO</a></li>
             <li><a href="blog/copilot-code-reviews-azure-repos-updates.html"><span class="accent">&gt;</span> Copilot
                 Code Reviews for Azure Repos: Effort Levels, Faster Resolves, and Audit Logging</a></li>
             <li><a href="blog/governance-ai-coding-agents-github.html"><span class="accent">&gt;</span> Enterprise
                 Governance for AI Coding Agents: Permissions, Sandboxing, and Proof of Presence</a></li>
-            <li><a href="blog/azure-zone-resiliency-framework.html"><span class="accent">&gt;</span> Your Architecture
-                Diagram Is Not Your Resilience: A Zone-Resiliency Framework for Azure</a></li>
+            <!-- <li><a href="blog/azure-zone-resiliency-framework.html"><span class="accent">&gt;</span> Your Architecture Diagram Is Not Your Resilience: A Zone-Resiliency Framework for Azure</a></li> -->
             <!-- <li><a href="blog/supply-chain-security-azure-pipelines.html"><span class="accent">&gt;</span> Supply Chain Security in Azure Pipelines: SBOM, Cosign, and Ratify on AKS</a></li> -->
             <!-- <li><a href="blog/kubernetes-v137-storage-hardening-aks.html"><span class="accent">&gt;</span> Kubernetes v1.37 Storage Hardening on AKS: Best Practices and Security Considerations</a></li> -->
             <!-- <li><a href="blog/choosing-models-foundry-agents.html"><span class="accent">&gt;</span> Choosing Models for Production Agents: GPT-6, Claude Opus 5.5 and Beyond</a></li> -->
@@ -1235,12 +1488,14 @@
           <h3>🕒 Timeline</h3>
           <p>Career &amp; certification milestones.</p>
           <ul class="timeline-list">
+            <li><span class="yr">2026 Nov</span> MSFT Certified: Machine Learning Operations Engineer Associate</li>
             <li><span class="yr">2026 Sep</span> MSFT Certified: Cloud and AI Security Engineer Associate</li>
             <li><span class="yr">2026 Aug</span> MSFT Certified: Azure AI Cloud Developer Associate</li>
-            <li><span class="yr">2026 Jul</span> MSFT Certified: Azure AI Apps and Agents Developer Associate</li>
-            <li><span class="yr">2026 Feb</span> HashiCorp Certified: Terraform Associate</li>
-            <li><span class="yr">2026 Jan</span> GitHub Copilot Certification</li>
-            <li><span class="yr">2025 Dec</span> CKS, KCSA &amp; KCNA Certifications</li>
+            <li class="timeline-gap"><span class="dots">...</span></li>
+            <!-- <li><span class="yr">2026 Jul</span> MSFT Certified: Azure AI Apps and Agents Developer Associate</li> -->
+            <!-- <li><span class="yr">2026 Feb</span> HashiCorp Certified: Terraform Associate</li> -->
+            <!-- <li><span class="yr">2026 Jan</span> GitHub Copilot Certification</li> -->
+            <!-- <li><span class="yr">2025 Dec</span> CKS, KCSA &amp; KCNA Certifications</li> -->
             <li><span class="yr">2021 Aug</span> Joined rinf.tech as Azure DevOps Engineer</li>
             <li class="timeline-gap"><span class="dots">...</span></li>
             <li><span class="yr">2007 Aug</span> Started IT career as Windows System Engineer</li>
@@ -1284,7 +1539,8 @@
       </div>
 
       <div class="about-bio">
-        <p>Hey there 👋 Let me introduce myself. I'm a cloud and platform engineer with 18+ years of experience
+        <p>Hey there 👋 </p>
+        <p> Let me introduce myself. I'm a cloud and platform engineer with 18+ years of experience
           building, operating, and improving infrastructure — from traditional on-premises environments to modern Azure
           and Kubernetes platforms.</p>
         <p>My work spans cloud architecture, DevOps, Kubernetes, Infrastructure as Code, security, and platform
@@ -1326,7 +1582,7 @@
         </div>
       </div>
 
-      <!-- Associate -->
+      <!-- Associate · Cloud -->
       <div class="cert-group-wrap">
         <p class="cert-section-label mono">Associate</p>
         <div class="cert-group">
@@ -1347,25 +1603,6 @@
             target="_blank" rel="noopener">
             <img src="certificates/azure-data-engineer-associate.png" alt="Azure Data Engineer Associate">
             <span>Data Engineer Associate</span>
-          </a>
-          <a class="cert-badge"
-            href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/C1E9CFDD8F78D793?sharingId=B3C1155BC65B52A1"
-            target="_blank" rel="noopener">
-            <img src="certificates/azure-ai-engineer-associate.png" alt="Azure AI Engineer Associate">
-            <span>AI Engineer Associate</span>
-          </a>
-          <a class="cert-badge"
-            href="https://learn.microsoft.com/api/credentials/share/en-ca/RomanRabodzei/36406E1AA9B5A843?sharingId=B3C1155BC65B52A1"
-            target="_blank" rel="noopener">
-            <img src="certificates/azure-ai-apps-and-agents-developer-associate.png"
-              alt="Azure AI Apps and Agents Developer Associate">
-            <span>AI Apps &amp; Agents Developer Associate</span>
-          </a>
-          <a class="cert-badge"
-            href="https://learn.microsoft.com/api/credentials/share/en-gb/RomanRabodzei/D1C06C2969A63F99?sharingId=B3C1155BC65B52A1"
-            target="_blank" rel="noopener">
-            <img src="certificates/azure-ai-cloud-developer-associate.png" alt="Azure AI Cloud Developer Associate">
-            <span>AI Cloud Developer Associate</span>
           </a>
           <a class="cert-badge"
             href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/F7D70FE59B762680?sharingId=B3C1155BC65B52A1"
@@ -1392,6 +1629,31 @@
             <img src="certificates/azure-cloud-and-ai-security-engineer-associate.png"
               alt="Cloud and AI Security Engineer Associate">
             <span>Cloud and AI Security Engineer Associate</span>
+          </a>
+          <a class="cert-badge"
+            href="https://learn.microsoft.com/api/credentials/share/en-us/RomanRabodzei/C1E9CFDD8F78D793?sharingId=B3C1155BC65B52A1"
+            target="_blank" rel="noopener">
+            <img src="certificates/azure-ai-engineer-associate.png" alt="Azure AI Engineer Associate">
+            <span>AI Engineer Associate</span>
+          </a>
+          <a class="cert-badge"
+            href="https://learn.microsoft.com/api/credentials/share/en-ca/RomanRabodzei/36406E1AA9B5A843?sharingId=B3C1155BC65B52A1"
+            target="_blank" rel="noopener">
+            <img src="certificates/azure-ai-apps-and-agents-developer-associate.png"
+              alt="Azure AI Apps and Agents Developer Associate">
+            <span>AI Apps &amp; Agents Developer Associate</span>
+          </a>
+          <a class="cert-badge"
+            href="https://learn.microsoft.com/api/credentials/share/en-gb/RomanRabodzei/D1C06C2969A63F99?sharingId=B3C1155BC65B52A1"
+            target="_blank" rel="noopener">
+            <img src="certificates/azure-ai-cloud-developer-associate.png" alt="Azure AI Cloud Developer Associate">
+            <span>AI Cloud Developer Associate</span>
+          </a>
+          <a class="cert-badge"
+            href="https://learn.microsoft.com/credentials/certifications/operationalizing-machine-learning-and-generative-ai-solutions/"
+            target="_blank" rel="noopener">
+            <img src="certificates/azure-machine-learning-operations-engineer-associate.png" alt="Machine Learning Operations Engineer Associate">
+            <span>Machine Learning Operations Engineer Associate</span>
           </a>
         </div>
       </div>
@@ -1626,10 +1888,19 @@
         <p>Thoughts on Azure, Kubernetes, DevOps patterns, cloud security, and AI.</p>
       </div>
       <div class="blog-list">
+        <a class="blog-item" href="blog/ai-300-machine-learning-operations-engineer-associate.html">
+          <div>
+            <div class="blog-item-title">AI-300: Microsoft Certified Machine Learning Operations Engineer Associate</div>
+            <div class="blog-item-desc">What the AI-300 exam actually covers — MLOps and GenAIOps infrastructure on Azure Machine Learning and Microsoft Foundry — and what I found useful preparing for it.</div>
+          </div>
+          <div class="blog-item-date">Nov 2026</div>
+        </a>
         <a class="blog-item" href="blog/anthropic-scion-git-replacement.html">
           <div>
             <div class="blog-item-title">Anthropic's Scion: Why Claude's Code Volume Broke Git</div>
-            <div class="blog-item-desc">Anthropic replaced Git internally with a custom version control system called Scion, built to handle over 30,000 daily commits from AI-generated code. What that says about where version control is heading.</div>
+            <div class="blog-item-desc">Anthropic replaced Git internally with a custom version control system called
+              Scion, built to handle over 30,000 daily commits from AI-generated code. What that says about where
+              version control is heading.</div>
           </div>
           <div class="blog-item-date">Nov 2026</div>
         </a>
@@ -1941,6 +2212,25 @@
     })();
 
     // ─── Navigation ───────────────────────────────────────────
+    const navLinks = document.querySelector('.nav-links');
+
+    function updateNavUnderline() {
+      const activeLink = navLinks.querySelector('a.active');
+      if (!activeLink) {
+        navLinks.classList.remove('underline-ready');
+        return;
+      }
+      const navRect = navLinks.getBoundingClientRect();
+      const linkRect = activeLink.getBoundingClientRect();
+      const style = getComputedStyle(activeLink);
+      const paddingLeft = parseFloat(style.paddingLeft);
+      const paddingRight = parseFloat(style.paddingRight);
+      navLinks.style.setProperty('--underline-left', `${linkRect.left - navRect.left + paddingLeft}px`);
+      navLinks.style.setProperty('--underline-width', `${linkRect.width - paddingLeft - paddingRight}px`);
+      navLinks.style.setProperty('--underline-top', `${linkRect.bottom - navRect.top - 1}px`);
+      navLinks.classList.add('underline-ready');
+    }
+
     function navigate(page) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
@@ -1948,18 +2238,33 @@
       if (el) { el.classList.add('active'); window.scrollTo(0, 0); }
       const link = document.querySelector(`.nav-links a[data-page="${page}"]`);
       if (link) link.classList.add('active');
+      updateNavUnderline();
       history.replaceState(null, '', '#' + page);
     }
 
+    const hasViewTransitions = typeof document.startViewTransition === 'function';
+    if (hasViewTransitions) document.documentElement.classList.add('has-view-transitions');
+
+    function navigateWithTransition(page) {
+      if (hasViewTransitions && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.startViewTransition(() => navigate(page));
+      } else {
+        navigate(page);
+      }
+    }
+
     document.querySelectorAll('[data-page]').forEach(el => {
-      el.addEventListener('click', e => { e.preventDefault(); navigate(el.dataset.page); });
+      el.addEventListener('click', e => { e.preventDefault(); navigateWithTransition(el.dataset.page); });
     });
 
     document.querySelectorAll('[data-goto]').forEach(el => {
-      el.addEventListener('click', e => { e.preventDefault(); navigate(el.dataset.goto); });
+      el.addEventListener('click', e => { e.preventDefault(); navigateWithTransition(el.dataset.goto); });
     });
 
     navigate(window.location.hash.slice(1) || 'home');
+    window.addEventListener('resize', updateNavUnderline);
+    if (typeof ResizeObserver === 'function') new ResizeObserver(updateNavUnderline).observe(navLinks);
+    if (document.fonts) document.fonts.ready.then(updateNavUnderline);
 
     // ─── Theme ────────────────────────────────────────────────
     const html = document.documentElement;
