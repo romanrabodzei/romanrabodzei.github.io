@@ -15,6 +15,7 @@
     catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
   </script>
   <link rel="canonical" href="https://romanrabodzei.github.io/">
+  <link rel="alternate" type="application/rss+xml" title="Roman Rabodzei — Blog" href="https://romanrabodzei.github.io/rss.xml">
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://romanrabodzei.github.io/">
@@ -1453,11 +1454,12 @@
           <h3>📝 Latest Posts</h3>
           <p>Notes on Azure, Kubernetes, and DevOps in practice.</p>
           <ul class="latest-posts-list mono">
+            <li><a href="blog/kubernetes-cgroup-v2-shift.html"><span class="accent">&gt;</span> The Shift to cgroup v2 in Kubernetes: What You Need to Know</a></li>
             <li><a href="blog/microsoft-copilot-harness-foundry-agent-service.html"><span class="accent">&gt;</span> Microsoft Copilot Harness in Foundry Agent Service: One Runtime Across the Stack</a></li>
             <li><a href="blog/kubernetes-node-swap-agentic-workloads.html"><span class="accent">&gt;</span> Scaling Kubernetes Workloads with Node Swap: Memory Headroom for Agentic AI</a></li>
             <li><a href="blog/ai-300-machine-learning-operations-engineer-associate.html"><span class="accent">&gt;</span> AI-300: Microsoft Certified Machine Learning Operations Engineer Associate</a></li>
             <li><a href="blog/anthropic-scion-git-replacement.html"><span class="accent">&gt;</span> Anthropic's Scion: Why Claude's Code Volume Broke Git</a></li>
-            <li><a href="blog/kargo-multi-cluster-argocd-promotion.html"><span class="accent">&gt;</span> Kargo for Multi-Cluster GitOps: Promoting Across Argo CD Instances with Entra ID SSO</a></li>
+            <!-- <li><a href="blog/kargo-multi-cluster-argocd-promotion.html"><span class="accent">&gt;</span> Kargo for Multi-Cluster GitOps: Promoting Across Argo CD Instances with Entra ID SSO</a></li> -->
             <!-- <li><a href="blog/copilot-code-reviews-azure-repos-updates.html"><span class="accent">&gt;</span> Copilot Code Reviews for Azure Repos: Effort Levels, Faster Resolves, and Audit Logging</a></li> -->
             <!-- <li><a href="blog/governance-ai-coding-agents-github.html"><span class="accent">&gt;</span> Enterprise Governance for AI Coding Agents: Permissions, Sandboxing, and Proof of Presence</a></li> -->
             <!-- <li><a href="blog/azure-zone-resiliency-framework.html"><span class="accent">&gt;</span> Your Architecture Diagram Is Not Your Resilience: A Zone-Resiliency Framework for Azure</a></li> -->
@@ -1891,6 +1893,13 @@
         <p>Thoughts on Azure, Kubernetes, DevOps patterns, cloud security, and AI.</p>
       </div>
       <div class="blog-list">
+        <a class="blog-item" href="blog/kubernetes-cgroup-v2-shift.html">
+          <div>
+            <div class="blog-item-title">The Shift to cgroup v2 in Kubernetes: What You Need to Know</div>
+            <div class="blog-item-desc">cgroup v1 is on its way out across the Kubernetes ecosystem. What actually changes for resource isolation, memory accounting, and node configuration when you move to cgroup v2.</div>
+          </div>
+          <div class="blog-item-date">Nov 2026</div>
+        </a>
         <a class="blog-item" href="blog/microsoft-copilot-harness-foundry-agent-service.html">
           <div>
             <div class="blog-item-title">Microsoft Copilot Harness in Foundry Agent Service: One Runtime Across the Stack</div>

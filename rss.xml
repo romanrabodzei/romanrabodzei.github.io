@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Roman Rabodzei — Blog</title>
+    <link>https://romanrabodzei.github.io/</link>
+    <atom:link href="https://romanrabodzei.github.io/rss.xml" rel="self" type="application/rss+xml"/>
+    <description>Notes on Azure, Kubernetes, DevOps, and AI in practice.</description>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 16 Nov 2026 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>The Shift to cgroup v2 in Kubernetes: What You Need to Know</title>
+      <link>https://romanrabodzei.github.io/blog/kubernetes-cgroup-v2-shift.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/kubernetes-cgroup-v2-shift.html</guid>
+      <description>cgroup v1 is on its way out across the Kubernetes ecosystem. What actually changes for resource isolation, memory accounting, and node configuration when you move to cgroup v2.</description>
+      <pubDate>Thu, 05 Nov 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Microsoft Copilot Harness in Foundry Agent Service: One Runtime Across the Stack</title>
+      <link>https://romanrabodzei.github.io/blog/microsoft-copilot-harness-foundry-agent-service.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/microsoft-copilot-harness-foundry-agent-service.html</guid>
+      <description>Exploring how Microsoft Copilot is integrated into the Foundry Agent Service, providing a unified runtime across the stack.</description>
+      <pubDate>Wed, 04 Nov 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Scaling Kubernetes Workloads with Node Swap: Memory Headroom for Agentic AI</title>
+      <link>https://romanrabodzei.github.io/blog/kubernetes-node-swap-agentic-workloads.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/kubernetes-node-swap-agentic-workloads.html</guid>
+      <description>Using node swap to provide additional memory headroom for agentic AI workloads in Kubernetes clusters, ensuring stability and performance under high memory pressure.</description>
+      <pubDate>Tue, 03 Nov 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>AI-300: Microsoft Certified Machine Learning Operations Engineer Associate</title>
+      <link>https://romanrabodzei.github.io/blog/ai-300-machine-learning-operations-engineer-associate.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/ai-300-machine-learning-operations-engineer-associate.html</guid>
+      <description>What the AI-300 exam actually covers — MLOps and GenAIOps infrastructure on Azure Machine Learning and Microsoft Foundry — and what I found useful preparing for it.</description>
+      <pubDate>Mon, 02 Nov 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Anthropic&#x27;s Scion: Why Claude&#x27;s Code Volume Broke Git</title>
+      <link>https://romanrabodzei.github.io/blog/anthropic-scion-git-replacement.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/anthropic-scion-git-replacement.html</guid>
+      <description>Anthropic replaced Git internally with a custom version control system called Scion, built to handle over 30,000 daily commits from AI-generated code. What that says about where version control is heading.</description>
+      <pubDate>Sun, 01 Nov 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Kargo for Multi-Cluster GitOps: Promoting Across Argo CD Instances with Entra ID SSO</title>
+      <link>https://romanrabodzei.github.io/blog/kargo-multi-cluster-argocd-promotion.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/kargo-multi-cluster-argocd-promotion.html</guid>
+      <description>Running Kargo as a management-cluster control plane that drives a remote Argo CD via a mounted kubeconfig, with Entra ID OIDC SSO, Application Gateway ingress, and per-image SemVer promotion warehouses.</description>
+      <pubDate>Tue, 13 Oct 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Copilot Code Reviews for Azure Repos: Effort Levels, Faster Resolves, and Audit Logging</title>
+      <link>https://romanrabodzei.github.io/blog/copilot-code-reviews-azure-repos-updates.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/copilot-code-reviews-azure-repos-updates.html</guid>
+      <description>What&#x27;s new since the public preview of Copilot Code Review for Azure Repos — configurable effort levels, resolve-on-commit, and new Azure DevOps audit log events for governance.</description>
+      <pubDate>Mon, 12 Oct 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Enterprise Governance for AI Coding Agents: Permissions, Sandboxing, and Proof of Presence</title>
+      <link>https://romanrabodzei.github.io/blog/governance-ai-coding-agents-github.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/governance-ai-coding-agents-github.html</guid>
+      <description>Sandboxing, enterprise-managed permissions, proof-of-presence, and usage metrics for AI coding agents — building a governance model that doesn&#x27;t slow developers down.</description>
+      <pubDate>Sun, 11 Oct 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Your Architecture Diagram Is Not Your Resilience: A Zone-Resiliency Framework for Azure</title>
+      <link>https://romanrabodzei.github.io/blog/azure-zone-resiliency-framework.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/azure-zone-resiliency-framework.html</guid>
+      <description>Two zones or three? A practical framework for zone-resilient Azure workloads, and why the diagram rarely matches what actually survives a failure.</description>
+      <pubDate>Sat, 10 Oct 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Modern Supply-Chain Security: Stage-Only Tokens, Trusted Publishing, and Secret-Blocking on GitHub</title>
+      <link>https://romanrabodzei.github.io/blog/supply-chain-security-github-npm.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/supply-chain-security-github-npm.html</guid>
+      <description>Stage-only npm tokens, trusted publishing, exposed-secret blocking, and CodeQL improvements — the September 2026 supply-chain security features worth adopting now.</description>
+      <pubDate>Fri, 09 Oct 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Kubernetes v1.37 Storage Hardening: EmptyDir Permissions &amp; Bind Mounts</title>
+      <link>https://romanrabodzei.github.io/blog/kubernetes-v137-storage-hardening-aks.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/kubernetes-v137-storage-hardening-aks.html</guid>
+      <description>Kubernetes v1.37 adds emptyDir permission modes and bind mount options for CSI volumes. How to turn these into concrete AKS pod security policies.</description>
+      <pubDate>Thu, 08 Oct 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Choosing Models for Production Agents: GPT-6, Claude Opus 5.5 and Beyond</title>
+      <link>https://romanrabodzei.github.io/blog/choosing-models-foundry-agents.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/choosing-models-foundry-agents.html</guid>
+      <description>A practical framework for choosing between GPT-6 Astra/Sol/Luna, Claude Opus 5.5, and other models now available in Microsoft Foundry for production agent workloads.</description>
+      <pubDate>Wed, 07 Oct 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>AKS Flex Nodes: A New Model for Cost-Efficient Kubernetes</title>
+      <link>https://romanrabodzei.github.io/blog/aks-flex-nodes-cost-efficiency.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/aks-flex-nodes-cost-efficiency.html</guid>
+      <description>Azure&#x27;s September 2026 preview of Flex Nodes for AKS — what they change about node provisioning, bin-packing, and cost, and how they compare to Karpenter-style NAP.</description>
+      <pubDate>Tue, 06 Oct 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>GitHub Actions After Node 20: Migration &amp; Security Checklist</title>
+      <link>https://romanrabodzei.github.io/blog/github-actions-node20-migration.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/github-actions-node20-migration.html</guid>
+      <description>Node 20 is no longer available in GitHub Actions as of September 2026. A practical migration and audit checklist for workflows, custom actions, and runners.</description>
+      <pubDate>Mon, 05 Oct 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Kubernetes v1.37 Workload-Aware Scheduling: Pod Resources, Resize Preemption, and Node Lifecycle</title>
+      <link>https://romanrabodzei.github.io/blog/kubernetes-v137-workload-aware-scheduling-aks.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/kubernetes-v137-workload-aware-scheduling-aks.html</guid>
+      <description>Pod-Level Resource Managers, Scheduler Preemption for In-Place Pod Resize, and Node Lifecycle Conditions — what changes for AI/ML and batch scheduling on AKS.</description>
+      <pubDate>Sun, 04 Oct 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Designing Secure Agent-First Platforms on Azure: Five Layers Before You Trust an Agent</title>
+      <link>https://romanrabodzei.github.io/blog/secure-agent-first-platforms-azure.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/secure-agent-first-platforms-azure.html</guid>
+      <description>Network egress controls, Agent 365 governance, Foundry Routines, and isolated execution — a layered security model for AI agent platforms built on what&#x27;s actually shipped on Azure.</description>
+      <pubDate>Sat, 03 Oct 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>The C.R.A.F.T. Framework: A Prompt Structure That Actually Holds Up</title>
+      <link>https://romanrabodzei.github.io/blog/craft-framework-ai-prompts.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/craft-framework-ai-prompts.html</guid>
+      <description>Context, Role, Action, Format, Tone — the five-part checklist that fixes most AI prompting failures, and why it matters even more once you&#x27;re working with agents and MCP tools.</description>
+      <pubDate>Fri, 02 Oct 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Azure Container Apps Express &amp; Sandboxes: Is AKS Still Necessary?</title>
+      <link>https://romanrabodzei.github.io/blog/aca-express-sandboxes-vs-aks.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/aca-express-sandboxes-vs-aks.html</guid>
+      <description>Container Apps Express and Sandboxes reached GA in September 2026. A practitioner&#x27;s decision framework for when they replace AKS, and when Kubernetes still earns its complexity.</description>
+      <pubDate>Thu, 01 Oct 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>MCP Servers for DevOps: Giving AI Agents Real Access to Your Azure and Kubernetes Tooling</title>
+      <link>https://romanrabodzei.github.io/blog/mcp-servers-devops.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/mcp-servers-devops.html</guid>
+      <description>Exploring how MCP servers can empower DevOps teams by providing AI agents with real access to Azure and Kubernetes tooling, enhancing automation and operational efficiency.</description>
+      <pubDate>Fri, 04 Sep 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Kubernetes v1.37 on AKS: Pod Certificates, Cluster Trust Bundles, and Metrics API v1</title>
+      <link>https://romanrabodzei.github.io/blog/kubernetes-v137-aks.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/kubernetes-v137-aks.html</guid>
+      <description>What Kubernetes v1.37 brings to cluster operators — Pod Certificates, Cluster Trust Bundles, the stable Metrics API, and what AKS teams should verify before upgrading.</description>
+      <pubDate>Thu, 03 Sep 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>SC-500: Microsoft Certified Cloud and AI Security Engineer Associate</title>
+      <link>https://romanrabodzei.github.io/blog/sc-500-cloud-ai-security-engineer.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/sc-500-cloud-ai-security-engineer.html</guid>
+      <description>Microsoft retired AZ-500 on August 31, 2026. What SC-500 — its direct successor — actually covers across identity, storage/networking, compute, and security posture, and what I found useful in practice.</description>
+      <pubDate>Wed, 02 Sep 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>GitOps for Azure Infrastructure with Crossplane on AKS: Providers, Compositions, and Drift Correction</title>
+      <link>https://romanrabodzei.github.io/blog/crossplane-gitops-aks.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/crossplane-gitops-aks.html</guid>
+      <description>Moving Azure infrastructure management from Terraform pipelines to Crossplane on AKS — managed resources, composite resource definitions, Flux integration, and continuous drift correction.</description>
+      <pubDate>Tue, 01 Sep 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>AI Agents on Azure Don&#x27;t Have to Be Expensive: From Use Case to Cost Governance</title>
+      <link>https://romanrabodzei.github.io/blog/ai-agent-cost-efficiency-azure.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/ai-agent-cost-efficiency-azure.html</guid>
+      <description>A practitioner&#x27;s guide to cost-efficient AI agent design — from picking the right use cases and understanding cost drivers to ROI forecasting, architecture trade-offs, and ongoing spend governance.</description>
+      <pubDate>Wed, 05 Aug 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Supply Chain Security in Azure Pipelines: SBOM, Cosign, and Ratify on AKS</title>
+      <link>https://romanrabodzei.github.io/blog/supply-chain-security-azure-pipelines.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/supply-chain-security-azure-pipelines.html</guid>
+      <description>Best practices for securing your CI/CD supply chain in Azure Pipelines — from dependency management and artifact signing to pipeline policies and runtime security.</description>
+      <pubDate>Tue, 04 Aug 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Karpenter on AKS in Production: NodePools, Spot Fallback, and Scale-to-Zero</title>
+      <link>https://romanrabodzei.github.io/blog/karpenter-aks-production.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/karpenter-aks-production.html</guid>
+      <description>A practitioner&#x27;s guide to Node Auto Provisioning on AKS — NodePools, AKSNodeClass, spot fallback, scale-to-zero, ephemeral OS disks, and GitOps deployment patterns with ArgoCD.</description>
+      <pubDate>Mon, 03 Aug 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Two New Azure AI Certifications, One Blog Post: AI Apps &amp; Agents and AI Cloud Developer</title>
+      <link>https://romanrabodzei.github.io/blog/azure-ai-certifications-ai103-ai200.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/azure-ai-certifications-ai103-ai200.html</guid>
+      <description>What the AI-103 and AI-200 exams actually cover, why I took both back to back, and how I prepped for each in under two weeks.</description>
+      <pubDate>Sun, 02 Aug 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Stop Asking Me &quot;What&#x27;s Deployed Where&quot;: Building an Azure Deployment Registry</title>
+      <link>https://romanrabodzei.github.io/blog/azure-deployment-registry.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/azure-deployment-registry.html</guid>
+      <description>A deployment registry and App Registration secret-expiry tracker on Azure — FastAPI, Cosmos DB Serverless, Key Vault-backed JWT auth, and a login rate limiter that actually holds up.</description>
+      <pubDate>Sat, 01 Aug 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Cloning SonarQube Five Times Without Losing My Mind: A GitOps Story on AKS</title>
+      <link>https://romanrabodzei.github.io/blog/multi-tenant-sonarqube-aks.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/multi-tenant-sonarqube-aks.html</guid>
+      <description>How I run multiple SonarQube instances on one AKS cluster with ArgoCD&#x27;s app-of-apps pattern, Key Vault-backed secrets, and Cilium default-deny.</description>
+      <pubDate>Wed, 01 Jul 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Becoming a CNCF Kubestronaut: Passing All 5 Kubernetes Certifications</title>
+      <link>https://romanrabodzei.github.io/blog/becoming-kubestronaut.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/becoming-kubestronaut.html</guid>
+      <description>My journey through KCNA, KCSA, CKA, CKAD, and CKS — what I studied, what tripped me up, and what I actually learned.</description>
+      <pubDate>Fri, 01 May 2026 12:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>
