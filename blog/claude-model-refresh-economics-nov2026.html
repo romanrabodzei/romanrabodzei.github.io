@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude's November Model Lineup: Opus 5.5, Haiku 5.5, and the Economics of "Good Enough" — Roman Rabodzei</title>
+  <meta name="description" content="Opus 5.5, Sonnet 5.5, and Haiku 5.5 all shipped within weeks of each other, each cheaper and faster than its predecessor. An updated framework for routing agent subtasks now that the cost floor has moved again.">
+  <link rel="canonical" href="https://romanrabodzei.github.io/blog/claude-model-refresh-economics-nov2026.html">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://romanrabodzei.github.io/blog/claude-model-refresh-economics-nov2026.html">
+  <meta property="og:title" content="Claude's November Model Lineup: Opus 5.5, Haiku 5.5, and the Economics of &quot;Good Enough&quot;">
+  <meta property="og:description" content="Opus 5.5, Sonnet 5.5, and Haiku 5.5 all shipped within weeks of each other, each cheaper and faster than its predecessor. An updated framework for routing agent subtasks now that the cost floor has moved again.">
+  <meta property="og:image" content="https://romanrabodzei.github.io/images/claude-model-refresh-economics-nov2026.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Claude's November Model Lineup: Opus 5.5, Haiku 5.5, and the Economics of &quot;Good Enough&quot;">
+  <meta name="twitter:description" content="Opus 5.5, Sonnet 5.5, and Haiku 5.5 all shipped within weeks of each other, each cheaper and faster than its predecessor. An updated framework for routing agent subtasks now that the cost floor has moved again.">
+  <meta name="twitter:image" content="https://romanrabodzei.github.io/images/claude-model-refresh-economics-nov2026.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f5f5f7; --surface: #ffffff; --surface2: #f5f5f7; --border: #d2d2d7;
+      --text: #1d1d1f; --muted: #6e6e73; --accent: #0071e3; --accent-dim: rgba(0, 113, 227, 0.08);
+    }
+    [data-theme="dark"] {
+      --bg: #000000; --surface: #1c1c1e; --surface2: #2c2c2e; --border: #38383a;
+      --text: #f5f5f7; --muted: #98989d; --accent: #0a84ff; --accent-dim: rgba(10, 132, 255, 0.14);
+    }
+    html { scroll-behavior: smooth; background: var(--bg); overflow-x: hidden; }
+    body {
+      position: relative; z-index: 0; overflow-x: hidden; max-width: 100vw;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; transition: background .2s, color .2s;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(0,113,227,0.16) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,190,255,0.12) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(0,113,227,0.10) 0%, transparent 45%);
+      filter: blur(90px); z-index: -2; pointer-events: none;
+    }
+    [data-theme="dark"] body::before {
+      background:
+        radial-gradient(circle at 18% 22%, rgba(10,132,255,0.32) 0%, transparent 42%),
+        radial-gradient(circle at 80% 12%, rgba(94,92,230,0.22) 0%, transparent 38%),
+        radial-gradient(circle at 65% 85%, rgba(10,132,255,0.18) 0%, transparent 45%);
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image: radial-gradient(var(--border) 1px, transparent 1px);
+      background-size: 28px 28px; opacity: .5;
+      -webkit-mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      mask-image: radial-gradient(ellipse 70% 70% at 20% 35%, black 0%, transparent 72%);
+      z-index: -1; pointer-events: none;
+    }
+    .mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace; }
+    a { color: inherit; }
+    nav {
+      position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: .7rem 1.5rem; display: flex; align-items: center; justify-content: flex-end; gap: 1rem;
+    }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .back-link { font-family: 'JetBrains Mono', monospace; font-size: .82rem; color: var(--muted); text-decoration: none; transition: color .15s; }
+    @media (hover: hover) { .back-link:hover { color: var(--accent); } }
+    .theme-toggle {
+      display: flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; flex-shrink: 0;
+      border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+      cursor: pointer; transition: border-color .15s, color .15s, background .15s;
+    }
+    @media (hover: hover) { .theme-toggle:hover { border-color: var(--accent); color: var(--accent); } }
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-sun  { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+    .theme-toggle .icon-copied { display: none; }
+    .theme-toggle.copied .icon-share  { display: none; }
+    .theme-toggle.copied .icon-copied { display: block; }
+    .container { max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .article-header { padding: 3rem 0 2.5rem; border-bottom: 1px solid var(--border); margin-bottom: 2.5rem; }
+    .article-label { font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted); margin-bottom: .75rem; }
+    .article-title { font-size: clamp(1.5rem, 5vw, 2.2rem); font-weight: 700; line-height: 1.2; margin-bottom: 1rem; }
+    .article-title .accent { color: var(--accent); }
+    .article-meta {
+      display: flex; flex-wrap: wrap; gap: .75rem; font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem; color: var(--muted); margin-bottom: 1.25rem;
+    }
+    .article-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .article-tags span {
+      font-family: 'JetBrains Mono', monospace; font-size: .68rem; padding: .15rem .5rem;
+      border-radius: 4px; border: 1px solid var(--border); color: var(--muted); background: var(--surface);
+    }
+    .article-hero { margin-bottom: 2.5rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden; }
+    .article-hero svg { display: block; width: 100%; height: auto; }
+    .article-content { padding-bottom: 4rem; }
+    .article-content p { font-size: .975rem; line-height: 1.85; color: var(--text); margin-bottom: 1.35rem; text-align: justify; }
+    .article-content h2 { font-size: 1.2rem; font-weight: 600; margin: 2.25rem 0 1rem; padding-bottom: .5rem; border-bottom: 1px solid var(--border); }
+    .article-content h3 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .6rem; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+    .article-content ul, .article-content ol { margin: .75rem 0 1.35rem 1.5rem; display: flex; flex-direction: column; gap: .45rem; }
+    .article-content li { font-size: .975rem; line-height: 1.75; color: var(--text); }
+    .article-content strong { color: var(--text); }
+    .article-content a { color: var(--accent); text-decoration: none; }
+    .article-content a:hover { text-decoration: underline; }
+    .article-content code {
+      font-family: 'JetBrains Mono', monospace; font-size: .85em; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 3px; padding: .1em .35em; color: var(--accent);
+    }
+    .callout { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; padding: 1rem 1.25rem; margin: 1.5rem 0; }
+    .callout p { margin-bottom: 0; }
+    .ref-block {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem;
+      margin: 2.5rem 0 1rem; font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted);
+    }
+    .ref-block a { color: var(--accent); }
+    footer {
+      position: relative; z-index: 1; background: var(--bg); border-top: 1px solid var(--border);
+      padding: 1.5rem; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--muted);
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .article-header > *,
+      .article-hero,
+      .article-content > * {
+        animation: article-entrance .6s cubic-bezier(.2, .65, .3, 1) backwards;
+      }
+
+      .article-header > :nth-child(2) { animation-delay: .1s; }
+      .article-header > :nth-child(3) { animation-delay: .2s; }
+      .article-header > :nth-child(4) { animation-delay: .3s; }
+      .article-hero { animation-delay: .4s; }
+      .article-content > * { animation-delay: .5s; }
+      .article-content > :nth-child(2) { animation-delay: .56s; }
+      .article-content > :nth-child(3) { animation-delay: .62s; }
+      .article-content > :nth-child(4) { animation-delay: .68s; }
+      .article-content > :nth-child(n+5) { animation-delay: .74s; }
+
+      @keyframes article-entrance {
+        from { opacity: 0; transform: translateY(14px); }
+      }
+    }
+
+    @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+      .article-hero, .callout, .ref-block, .article-content pre {
+        transition: transform .2s ease, box-shadow .2s ease;
+      }
+
+      .article-hero:hover, .article-hero:focus-within,
+      .callout:hover, .callout:focus-within,
+      .ref-block:hover, .ref-block:focus-within,
+      .article-content pre:hover, .article-content pre:focus-within {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px rgba(0, 113, 227, .12);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      body, .back-link, .theme-toggle { transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-right">
+      <a class="back-link mono" href="../index.html#blog">← back to blog</a>
+      <button class="theme-toggle" id="shareBtn" title="Share this post" aria-label="Share this post">
+        <svg class="icon-share" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        <svg class="icon-copied" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </button>
+      <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="article-header">
+      <p class="article-label mono">&gt; blog.post()</p>
+      <h1 class="article-title">Claude's November Model Lineup: <span class="accent">Opus 5.5, Haiku 5.5, and the Economics of "Good Enough"</span></h1>
+      <div class="article-meta">
+        <span>Roman Rabodzei</span>
+        <span>·</span>
+        <span>Nov 2026</span>
+        <span>·</span>
+        <span>~6 min read</span>
+      </div>
+      <div class="article-tags">
+        <span>Claude</span>
+        <span>AI Agents</span>
+        <span>Model Selection</span>
+        <span>FinOps</span>
+        <span>Microsoft Foundry</span>
+      </div>
+    </header>
+
+    <figure class="article-hero" aria-label="Illustration of three Claude model tiers positioned by cost and capability, with Haiku 5.5 handling high-volume subagent work">
+      <svg viewBox="0 0 1200 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of Opus 5.5, Sonnet 5.5, and Haiku 5.5 positioned along a cost-versus-capability axis for agent subtask routing">
+        <rect width="1200" height="500" fill="#06090f"></rect>
+        <g fill="#dce8f4" opacity=".35">
+          <circle cx="70" cy="60" r="1.3"></circle>
+          <circle cx="1130" cy="70" r="1.1"></circle>
+        </g>
+
+        <line x1="140" y1="380" x2="1060" y2="380" stroke="#38546f" stroke-width="1.4"></line>
+        <text x="140" y="400" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="10">cheaper, faster</text>
+        <text x="1060" y="400" text-anchor="end" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="10">frontier reasoning</text>
+
+        <rect x="140" y="260" width="240" height="110" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="1.8"></rect>
+        <text x="260" y="292" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Haiku 5.5</text>
+        <text x="260" y="312" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">summarization, subagents</text>
+        <text x="260" y="328" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">browser use</text>
+        <text x="260" y="352" text-anchor="middle" fill="#5c6773" font-family="JetBrains Mono, monospace" font-size="9">$</text>
+
+        <rect x="480" y="230" width="240" height="140" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="1.8"></rect>
+        <text x="600" y="265" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Sonnet 5.5</text>
+        <text x="600" y="285" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">30%+ faster than 5</text>
+        <text x="600" y="301" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">up to 30% cheaper</text>
+        <text x="600" y="317" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">most production work</text>
+        <text x="600" y="350" text-anchor="middle" fill="#5c6773" font-family="JetBrains Mono, monospace" font-size="9">$$</text>
+
+        <rect x="820" y="190" width="240" height="180" rx="8" fill="#101e30" stroke="#4fc3f7" stroke-width="1.8"></rect>
+        <text x="940" y="225" text-anchor="middle" fill="#4fc3f7" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Opus 5.5</text>
+        <text x="940" y="245" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">leads agentic coding</text>
+        <text x="940" y="261" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">leads knowledge work</text>
+        <text x="940" y="277" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">40% cheaper than Opus 5</text>
+        <text x="940" y="293" text-anchor="middle" fill="#98989d" font-family="JetBrains Mono, monospace" font-size="9">at the same workload</text>
+        <text x="940" y="358" text-anchor="middle" fill="#5c6773" font-family="JetBrains Mono, monospace" font-size="9">$$$ (but lower than last gen)</text>
+
+        <text x="600" y="440" text-anchor="middle" fill="#38546f" font-family="JetBrains Mono, monospace" font-size="11">every tier got cheaper this generation — re-run your routing thresholds, don't just keep last quarter's</text>
+      </svg>
+    </figure>
+
+    <article class="article-content">
+
+      <p>
+        Within about three weeks of each other, Anthropic shipped Claude Sonnet 5.5, Claude Haiku 5.5, and
+        Claude Opus 5.5 — a full-tier refresh rather than a single flagship update. The headline number worth
+        sitting with: Opus 5.5 costs roughly 40% less to run than Opus 5 for typical workloads while leading in
+        agentic coding and knowledge work. If you built a model-routing policy around last generation's pricing,
+        it's already stale.
+      </p>
+
+      <h2>What changed, tier by tier</h2>
+
+      <h3>// Opus 5.5</h3>
+      <p>
+        Still the frontier tier, still the one to reserve for genuinely hard reasoning — but the 40% cost
+        reduction versus Opus 5 at comparable workloads changes the calculus on what counts as "worth it."
+        Subtasks that got routed to Sonnet purely on cost grounds last quarter may now be cheap enough to send
+        to Opus directly, if the quality difference was ever the limiting factor.
+      </p>
+      <h3>// Sonnet 5.5</h3>
+      <p>
+        Positioned as the clear mid-tier upgrade: 30%+ faster than Sonnet 5, and up to 30% cheaper for most
+        work. This is the tier most production agent subtasks should default to, and the faster+cheaper
+        combination (rather than a trade-off between the two) is the more unusual part — normally a speed gain
+        costs something.
+      </p>
+      <h3>// Haiku 5.5</h3>
+      <p>
+        Explicitly built for high-volume work — summarization, subagents, and browser use — which is a more
+        specific positioning than "the cheap one." If your agent architecture has a fan-out pattern (one
+        orchestrator spawning many short-lived subagent calls), Haiku 5.5 is squarely aimed at that fan-out
+        layer rather than being a fallback for when Sonnet is too expensive.
+      </p>
+
+      <h2>Why "re-benchmark every refresh" still holds</h2>
+
+      <p>
+        The model-routing discipline from earlier this year still applies, unchanged: baseline quality on the
+        most capable model, test cheaper tiers against that baseline on real production examples, and route to
+        the cheapest tier that clears your quality threshold per subtask. What's different this time is that
+        the cost floor moved at every tier simultaneously, not just at the bottom — which means a routing
+        policy tuned for the previous generation's pricing is now leaving savings on the table across the board,
+        not just missing out on a new cheap option.
+      </p>
+
+      <div class="callout">
+        <p><strong>Worth doing this month:</strong> re-run your existing subtask-quality benchmarks against the 5.5
+        lineup before assuming your current routing table is still optimal. A 30-40% cost shift at every tier is
+        large enough to change which tier clears your quality bar at the lowest price, even if your thresholds
+        haven't changed at all.</p>
+      </div>
+
+      <h2>Availability</h2>
+
+      <p>
+        All three are available through the same channels as the prior generation — Anthropic's API directly,
+        and via Microsoft Foundry and GitHub Copilot's model picker for teams already standardized on those
+        platforms, so swapping model IDs in an existing routing config is typically the entire migration effort.
+      </p>
+
+      <div class="ref-block">
+        <strong>Further reading:</strong><br><br>
+        <a href="https://www.anthropic.com/claude-opus-5-5" target="_blank" rel="noopener">Introducing Claude Opus 5.5 — Anthropic</a> ·
+        <a href="https://www.anthropic.com/claude-haiku-5-5" target="_blank" rel="noopener">Introducing Claude Haiku 5.5 — Anthropic</a> ·
+        <a href="https://www.anthropic.com/claude-sonnet-5-5" target="_blank" rel="noopener">Introducing Claude Sonnet 5.5 — Anthropic</a>
+      </div>
+
+    </article>
+  </div>
+
+  <footer>
+    <span class="mono">&copy; <span id="year"></span> Roman Rabodzei &nbsp;·&nbsp; <a href="../index.html#blog" style="color: var(--accent);">← back to blog</a></span>
+  </footer>
+
+  <script>
+    const html = document.documentElement;
+    function applyTheme(t) { html.setAttribute('data-theme', t); localStorage.setItem('theme', t); }
+    const saved = localStorage.getItem('theme') || 'dark';
+    applyTheme(saved);
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', async () => {
+      const shareData = { title: document.title, url: location.href };
+      if (navigator.share) {
+        try { await navigator.share(shareData); shareBtn.classList.add('copied'); setTimeout(() => shareBtn.classList.remove('copied'), 1500); } catch (e) {}
+        return;
+      }
+      try { await navigator.clipboard.writeText(location.href); shareBtn.classList.add('copied'); setTimeout(() => shareBtn.classList.remove('copied'), 1500); } catch (e) {}
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>
