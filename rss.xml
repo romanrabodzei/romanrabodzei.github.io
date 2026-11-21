@@ -6,7 +6,14 @@
     <atom:link href="https://romanrabodzei.github.io/rss.xml" rel="self" type="application/rss+xml"/>
     <description>Notes on Azure, Kubernetes, DevOps, and AI in practice.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 18 Nov 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 21 Nov 2026 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>Why Is My Kubernetes Job Still Pending? Tracing Kueue Admission with Headlamp</title>
+      <link>https://romanrabodzei.github.io/blog/kueue-admission-tracing-headlamp.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/kueue-admission-tracing-headlamp.html</guid>
+      <description>A suspended Job with no Pod to inspect is one of the hardest Kueue failure modes to debug blind. How to trace admission decisions visually with Headlamp instead of piecing it together from kubectl describe.</description>
+      <pubDate>Sat, 07 Nov 2026 12:00:00 GMT</pubDate>
+    </item>
     <item>
       <title>Claude&#x27;s November Model Lineup: Opus 5.5, Haiku 5.5, and the Economics of &quot;Good Enough&quot;</title>
       <link>https://romanrabodzei.github.io/blog/claude-model-refresh-economics-nov2026.html</link>
