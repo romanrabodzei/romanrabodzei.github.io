@@ -6,7 +6,14 @@
     <atom:link href="https://romanrabodzei.github.io/rss.xml" rel="self" type="application/rss+xml"/>
     <description>Notes on Azure, Kubernetes, DevOps, and AI in practice.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 21 Nov 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 24 Nov 2026 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>Managing Open-Weight Model Risk in Enterprise Deployments</title>
+      <link>https://romanrabodzei.github.io/blog/open-weight-model-risk-enterprise.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/open-weight-model-risk-enterprise.html</guid>
+      <description>Open-weight models bring real benefits and a different risk profile than hosted APIs. A practical framework for provenance, supply-chain, and governance controls before you deploy one in production.</description>
+      <pubDate>Sun, 08 Nov 2026 12:00:00 GMT</pubDate>
+    </item>
     <item>
       <title>Why Is My Kubernetes Job Still Pending? Tracing Kueue Admission with Headlamp</title>
       <link>https://romanrabodzei.github.io/blog/kueue-admission-tracing-headlamp.html</link>
