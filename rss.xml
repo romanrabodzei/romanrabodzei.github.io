@@ -8,6 +8,13 @@
     <language>en-us</language>
     <lastBuildDate>Tue, 24 Nov 2026 12:00:00 GMT</lastBuildDate>
     <item>
+      <title>The Continuous Improvement Loop in Microsoft Foundry: Establish, Identify, Optimize, Validate</title>
+      <link>https://romanrabodzei.github.io/blog/microsoft-foundry-continuous-improvement-loop.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/microsoft-foundry-continuous-improvement-loop.html</guid>
+      <description>Microsoft Foundry now closes the loop between production agent traces and the next version you ship. A look at the Establish-Identify-Optimize-Validate cycle announced at Ignite 2026, and what&#x27;s actually GA versus preview.</description>
+      <pubDate>Mon, 09 Nov 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
       <title>Managing Open-Weight Model Risk in Enterprise Deployments</title>
       <link>https://romanrabodzei.github.io/blog/open-weight-model-risk-enterprise.html</link>
       <guid isPermaLink="true">https://romanrabodzei.github.io/blog/open-weight-model-risk-enterprise.html</guid>
