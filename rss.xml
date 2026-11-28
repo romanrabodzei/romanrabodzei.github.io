@@ -6,7 +6,14 @@
     <atom:link href="https://romanrabodzei.github.io/rss.xml" rel="self" type="application/rss+xml"/>
     <description>Notes on Azure, Kubernetes, DevOps, and AI in practice.</description>
     <language>en-us</language>
-    <lastBuildDate>Tue, 24 Nov 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 28 Nov 2026 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>AI-500: Microsoft Certified Multi-Agent AI Solutions Expert</title>
+      <link>https://romanrabodzei.github.io/blog/ai-500-multi-agent-ai-solutions-expert.html</link>
+      <guid isPermaLink="true">https://romanrabodzei.github.io/blog/ai-500-multi-agent-ai-solutions-expert.html</guid>
+      <description>What AI-500 actually tests — architecting, building, evaluating, and securing multi-agent systems on Azure — and why the exam weight sits mostly in building, not describing.</description>
+      <pubDate>Tue, 10 Nov 2026 12:00:00 GMT</pubDate>
+    </item>
     <item>
       <title>The Continuous Improvement Loop in Microsoft Foundry: Establish, Identify, Optimize, Validate</title>
       <link>https://romanrabodzei.github.io/blog/microsoft-foundry-continuous-improvement-loop.html</link>
